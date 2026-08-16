@@ -1,0 +1,23 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    // `noUncheckedIndexedAccess` is deliberately OFF. ~2200 lines of GraphQL
+    // documents and business logic are copied verbatim from the web storefront
+    // and are kept diffable against it; the flag fires ~13 times in that code
+    // for indexing patterns that are provably safe. Turning it on would mean
+    // editing ported files, which costs more than it buys.
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ],
+  "exclude": ["node_modules", "dist", ".expo"]
+}
