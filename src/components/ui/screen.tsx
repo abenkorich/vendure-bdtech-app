@@ -1,52 +1,64 @@
 import {View, type ViewProps} from 'react-native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useSafeAreaInsets, type Edge} from 'react-native-safe-area-context';
 import {StyleSheet} from 'react-native-unistyles';
 
 /**
- * Themed screen container. Use this instead of `SafeAreaView`.
+ * Screen — the root container every screen in the app must use.
  *
- * Why this exists: `SafeAreaView` from react-native-safe-area-context renders a
- * *native spec* component (`specs/NativeSafeAreaView`), which Unistyles' Babel
- * plugin does not process. A themed style applied to it is resolved once and
- * then never updated, so switching light/dark leaves the background stuck on
- * its original color while every real `View` and `Text` around it re-themes.
+ * **Never use `SafeAreaView`.** It renders a native spec component that
+ * Unistyles' Babel plugin cannot process, so its themed style resolves once and
+ * then never updates: the background stays on whichever theme was active at
+ * first render while text and chrome follow the real one, and the screen ends
+ * up white with invisible white text. This component was written after hitting
+ * exactly that on the showcase route.
  *
- * That failure is silent and ugly: the tab bar flips to dark, the body stays
- * white, and the text turns near-invisible against it. It was caught on a
- * simulator, not by `tsc` or by the bundler.
- *
- * A plain `View` plus `useSafeAreaInsets()` is processed normally and re-themes
- * correctly. Insets are applied as padding, which also composes better with
- * scroll views than the native component does.
+ * The fix is to apply insets as plain padding on an ordinary `View`, which the
+ * plugin does process.
  */
-
-type Edge = 'top' | 'bottom' | 'left' | 'right';
 
 export interface ScreenProps extends ViewProps {
     /**
-     * Which insets to apply. Defaults to top only: a screen inside the tab
-     * navigator must NOT pad the bottom, since the tab bar already covers it
-     * and doing both leaves a visible dead strip.
+     * Which edges to inset. Defaults to `['top']`: the bottom is usually owned
+     * by a tab bar or a sticky CTA that should sit against the edge itself.
      */
-    edges?: Edge[];
+    edges?: readonly Edge[];
+    /** `background` (default) or `surface` for sheet-like modal screens. */
+    variant?: 'background' | 'surface';
+    /** Horizontal gutter from the spacing scale. */
+    padded?: boolean;
+    children?: React.ReactNode;
 }
 
-export function Screen({edges = ['top'], style, children, ...rest}: ScreenProps) {
+export function Screen({
+    edges = ['top'],
+    variant = 'background',
+    padded = false,
+    style,
+    children,
+    ...rest
+}: ScreenProps) {
     const insets = useSafeAreaInsets();
+    styles.useVariants({variant});
 
     return (
         <View
             style={[
                 styles.screen,
+                padded && styles.padded,
                 {
                     paddingTop: edges.includes('top') ? insets.top : 0,
                     paddingBottom: edges.includes('bottom') ? insets.bottom : 0,
+                    // Logical properties: `left`/`right` insets are physical
+                    // (a notch does not move in Arabic), but the padding they
+                    // produce is applied per-side rather than start/end so a
+                    // landscape notch stays covered in both directions.
                     paddingLeft: edges.includes('left') ? insets.left : 0,
                     paddingRight: edges.includes('right') ? insets.right : 0,
                 },
                 style,
             ]}
-            {...rest}>
+            {...rest}
+        >
             {children}
         </View>
     );
@@ -55,6 +67,14 @@ export function Screen({edges = ['top'], style, children, ...rest}: ScreenProps)
 const styles = StyleSheet.create(theme => ({
     screen: {
         flex: 1,
-        backgroundColor: theme.colors.background,
+        variants: {
+            variant: {
+                background: {backgroundColor: theme.colors.background},
+                surface: {backgroundColor: theme.colors.surface},
+            },
+        },
+    },
+    padded: {
+        paddingHorizontal: theme.spacing.lg,
     },
 }));
