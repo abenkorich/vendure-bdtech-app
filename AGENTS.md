@@ -132,6 +132,13 @@ is silently not processed, and its styles will not resolve.
 after a restart. Switching to Arabic must show explicit reload UX rather than
 appearing to do nothing.
 
+**Never use `SafeAreaView`.** Use `Screen` from `@/components/ui/screen`.
+`SafeAreaView` renders a native spec component that Unistyles' Babel plugin
+cannot process, so its themed style resolves once and never updates: the tab bar
+goes dark, the screen background stays white, and the text becomes invisible.
+The same applies to any third-party component wrapping a native view. If a
+themed style will not react to a theme change, this is why.
+
 **Elevation is tint, not shadow.** Shadows look muddy on the dark surfaces this
 app mostly lives on. Raise a surface with `surfaceElevated` + a hairline border.
 
