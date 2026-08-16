@@ -2,25 +2,29 @@ import '@/design/unistyles';
 
 import {Stack} from 'expo-router';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import {QueryClientProvider} from '@tanstack/react-query';
 import {StatusBar} from 'expo-status-bar';
-import {queryClient} from '@/lib/query-client';
+import {DataProvider} from '@/lib/data-provider';
 
 /**
  * Root layout.
  *
  * The Unistyles import must come first: it configures the themes, and any
  * component that renders before `StyleSheet.configure` has run gets no theme.
+ *
+ * `DataProvider` replaces a bare `QueryClientProvider`: besides supplying the
+ * client it restores the persisted catalogue before the first paint, mirrors
+ * it back to MMKV, and clears customer-scoped queries when the session
+ * changes. See `lib/data-provider.tsx`.
  */
 export default function RootLayout() {
     return (
         <GestureHandlerRootView style={{flex: 1}}>
-            <QueryClientProvider client={queryClient}>
+            <DataProvider>
                 <StatusBar style="auto" />
                 <Stack screenOptions={{headerShown: false}}>
                     <Stack.Screen name="(tabs)" />
                 </Stack>
-            </QueryClientProvider>
+            </DataProvider>
         </GestureHandlerRootView>
     );
 }
