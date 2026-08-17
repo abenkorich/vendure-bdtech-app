@@ -201,7 +201,7 @@ Following the storefront's hard-won lesson that the dangerous bugs are the
 | Wishlist, compare | Built, device-local (no backend support exists) |
 | Blog, six calculators | Verified on device |
 | i18n (en/fr/ar), RTL, language switcher | Verified in Arabic |
-| Push notifications, deep links | Built; deep links verified, push needs a device |
+| Push notifications, deep links | Deep links and notification *routing* verified on device (foreground and cold start); only remote delivery still needs real hardware |
 | **Android** | Built and verified on a Pixel 7 emulator (API 36), including the full add-to-cart -> checkout path |
 
 ### Bugs that only running it could find
@@ -238,6 +238,10 @@ Every one of these passed `tsc` and bundled cleanly:
   different ICU data. Both are correct for ar-DZ; pick one explicitly if
   consistency matters.
 - **Store submission.** No EAS config, signing, icons or splash art.
-- **Push delivery.** No device registry on the backend, and no real device test.
+- **Push delivery.** No device registry on the backend, and remote delivery is
+  untested: an emulator cannot receive a real push. What *was* tested is the
+  half that actually breaks — a scheduled local notification travels the same
+  listener path, so tap routing, payload validation and the cold-start case are
+  all verified on device.
 - **Customer flows against real data.** No account was registered, no order
   placed, no existing customer's data touched.

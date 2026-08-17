@@ -1,5 +1,6 @@
 import {readdirSync, statSync} from 'node:fs';
 import {join} from 'node:path';
+import {NOTIFICATION_ROUTES} from '@/lib/notification-routes';
 import {check, done} from './harness';
 
 /**
@@ -93,6 +94,21 @@ export async function run(): Promise<void> {
         'every linked path resolves to a route',
         dead.length === 0,
         `dead links: ${dead.join(', ')}\n      routes: ${routes.sort().join(', ')}`,
+    );
+
+    // The push allow-list is maintained by hand (a payload may target a
+    // narrower set than the router can render), so it can drift away from the
+    // real tree. A notification pointing at a deleted route would open the app
+    // and then silently do nothing.
+    const orphaned = NOTIFICATION_ROUTES.filter(route => {
+        const concrete = route.replace(/:[a-z]+/gi, 'sample');
+        return !patterns.some(pattern => pattern.test(concrete));
+    });
+
+    check(
+        'every push-notification route still exists in the app',
+        orphaned.length === 0,
+        `no longer routable: ${orphaned.join(', ')}`,
     );
 
     done();

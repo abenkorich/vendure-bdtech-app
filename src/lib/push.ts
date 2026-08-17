@@ -3,6 +3,7 @@ import {Platform} from 'react-native';
 import * as Notifications from 'expo-notifications';
 import {router} from 'expo-router';
 import {prefsStorage} from '@/lib/storage/mmkv';
+import {resolveNotificationUrl} from '@/lib/notification-routes';
 
 /**
  * Push notifications.
@@ -90,13 +91,25 @@ export async function registerForPush(): Promise<string | null> {
  * Route a notification tap.
  *
  * The payload carries a `url` (an app path such as `/order/ABC123`) so the
- * backend decides where a notification leads without an app release.
+ * backend can decide where a notification leads without an app release.
+ *
+ * That destination is untrusted input, and `router.push` to a path the app
+ * does not serve silently does nothing, so the URL is validated against the
+ * real route list first. A rejected payload still opens the app, it just does
+ * not navigate, and says why in dev.
  */
 function handleNotificationResponse(response: Notifications.NotificationResponse): void {
-    const url = response.notification.request.content.data?.url;
-    if (typeof url === 'string' && url.startsWith('/')) {
-        router.push(url as never);
+    const data = response.notification.request.content.data;
+    const url = resolveNotificationUrl(data);
+
+    if (!url) {
+        if (__DEV__ && data?.url) {
+            console.warn('[push] ignoring unroutable notification url:', data.url);
+        }
+        return;
     }
+
+    router.push(url as never);
 }
 
 /**
