@@ -274,7 +274,8 @@
         "question": "Do you offer international shipping?",
         "answer": "Yes! We ship to over 50 countries worldwide. International shipping rates and delivery times vary by location. You can see the exact cost at checkout before completing your purchase."
       }
-    }
+    },
+    "specifications": "Specifications"
   },
   "Sort": {
     "nameAsc": "Name: A to Z",
@@ -821,7 +822,9 @@
     "cancel": "Cancel",
     "clearAllTitle": "Clear your wishlist?",
     "clearAllMessage": "This removes every saved product. It cannot be undone.",
-    "deviceOnlyNote": "Your wishlist is saved on this device only."
+    "deviceOnlyNote": "Your wishlist is saved on this device only.",
+    "save": "Save",
+    "saved": "Saved"
   },
   "Compare": {
     "title": "Compare",
@@ -858,7 +861,8 @@
     "siteDescription": "Shop the best products at {siteName}. Quality products, competitive prices, and fast delivery.",
     "language": "Language",
     "restartToApplyDirection": "The app needs to restart to switch the layout direction.",
-    "restartNow": "Restart now"
+    "restartNow": "Restart now",
+    "back": "Back"
   },
   "Customizer": {
     "title": "Theme customizer",

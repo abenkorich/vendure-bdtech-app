@@ -1,5 +1,5 @@
 import {useCallback, useMemo, useState} from 'react';
-import {View, ScrollView} from 'react-native';
+import {View, ScrollView, Alert} from 'react-native';
 import {StyleSheet} from 'react-native-unistyles';
 import * as Haptics from 'expo-haptics';
 import {useLocalSearchParams, router} from 'expo-router';
@@ -23,6 +23,8 @@ import {SpecSheet, type SpecRow} from '@/features/product/components/SpecSheet';
 import {VariantSheet} from '@/features/product/components/VariantSheet';
 import {Breadcrumbs} from '@/features/collection/components/Breadcrumbs';
 import {ProductRail} from '@/features/home/components/ProductRail';
+import {useWishlist, useCompare} from '@/features/wishlist/store';
+import {useTranslations} from '@/i18n';
 import {
     findVariant,
     initialSelection,
@@ -58,6 +60,12 @@ export default function ProductScreen() {
     const [added, setAdded] = useState(false);
 
     const addToCart = useAddToCart();
+    const wishlist = useWishlist();
+    const compare = useCompare();
+    const tWishlist = useTranslations('Wishlist');
+    const tCompare = useTranslations('Compare');
+    const tProduct = useTranslations('Product');
+    const tCommon = useTranslations('Common');
 
     const groups = useMemo(
         () => (product ? getDisplayOptionGroups(product) : []),
@@ -102,6 +110,47 @@ export default function ProductScreen() {
             },
         );
     }, [variant, addToCart]);
+
+    /**
+     * The payload both lists store. Enough to render a card offline (name,
+     * price, image) without refetching, which is the point of a device-local
+     * list.
+     */
+    const savedPayload = useMemo(
+        () =>
+            product && variant
+                ? {
+                      slug: product.slug,
+                      name: product.name,
+                      priceWithTax: variant.priceWithTax,
+                      currencyCode: CURRENCY,
+                      imageUrl: product.assets?.[0]?.preview ?? null,
+                  }
+                : null,
+        [product, variant],
+    );
+
+    const savedInWishlist = product ? wishlist.has(product.slug) : false;
+    const inCompare = product ? compare.has(product.slug) : false;
+
+    const onToggleWishlist = useCallback(() => {
+        if (!savedPayload) return;
+        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        wishlist.toggle(savedPayload);
+    }, [savedPayload, wishlist]);
+
+    const onToggleCompare = useCallback(() => {
+        if (!savedPayload) return;
+        const result = compare.toggle(savedPayload);
+        // Compare holds four products; silently ignoring a fifth tap looks
+        // broken, so say why nothing happened.
+        if (result.atLimit) {
+            void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+            Alert.alert(tCompare('limitTitle'), tCompare('limitMessage'));
+            return;
+        }
+        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }, [savedPayload, compare, tCompare]);
 
     const specs: SpecRow[] = useMemo(() => {
         if (!variant) return [];
@@ -244,6 +293,32 @@ export default function ProductScreen() {
                                     : S.addToCart}
                         </Button>
 
+                        {/* Save and compare live beside the cart CTA rather
+                            than in the header: they are secondary to buying,
+                            but a wishlist nothing can add to is just a dead
+                            screen, which is what shipped before this. */}
+                        <View style={styles.secondaryActions}>
+                            <Button
+                                variant="secondary"
+                                size="md"
+                                icon={savedInWishlist ? 'heartFilled' : 'heart'}
+                                onPress={onToggleWishlist}
+                                accessibilityLabel={tWishlist('title')}
+                            >
+                                {savedInWishlist ? tWishlist('saved') : tWishlist('save')}
+                            </Button>
+
+                            <Button
+                                variant="secondary"
+                                size="md"
+                                icon="compare"
+                                onPress={onToggleCompare}
+                                accessibilityLabel={tCompare('title')}
+                            >
+                                {inCompare ? tCompare('inCompare') : tCompare('addToCompare')}
+                            </Button>
+                        </View>
+
                         {addToCart.isError ? (
                             <View style={styles.errorRow}>
                                 <IconSymbol name="error" size={16} color="danger" />
@@ -259,7 +334,7 @@ export default function ProductScreen() {
 
                 {/* Specs before prose: this is a components catalogue, and the
                     table is what the buying decision is actually made on. */}
-                <SpecSheet title="Specifications" rows={specs} />
+                <SpecSheet title={tProduct('specifications')} rows={specs} />
 
                 {product.description ? (
                     <View style={styles.description}>
@@ -294,11 +369,13 @@ export default function ProductScreen() {
 }
 
 function NavBar() {
+    const tCommon = useTranslations('Common');
+
     return (
         <View style={styles.navBar}>
+            {/* `chevronBack` is in the directional set, so it mirrors in RTL. */}
             <Button variant="ghost" size="sm" icon="chevronBack" onPress={() => router.back()}>
-                {/* TODO(i18n): Navigation.back has no key in the catalogs yet. */}
-                Back
+                {tCommon('back')}
             </Button>
         </View>
     );
@@ -340,6 +417,10 @@ const styles = StyleSheet.create(theme => ({
         flexWrap: 'wrap',
     },
     variantTrigger: {paddingHorizontal: theme.spacing.lg},
+    secondaryActions: {
+        flexDirection: 'row',
+        gap: theme.spacing.sm,
+    },
     cta: {paddingHorizontal: theme.spacing.lg, gap: theme.spacing.sm, paddingBottom: theme.spacing.lg},
     errorRow: {
         flexDirection: 'row',

@@ -274,7 +274,8 @@
       "selectLocation": "Sélectionnez un emplacement pour voir les tarifs.",
       "error": "Impossible de calculer les frais de livraison.",
       "estimateNote": "Estimation — prix final au paiement."
-    }
+    },
+    "specifications": "Caractéristiques"
   },
   "Sort": {
     "nameAsc": "Nom : A à Z",
@@ -821,7 +822,9 @@
     "cancel": "Annuler",
     "clearAllTitle": "Vider votre liste d’envies ?",
     "clearAllMessage": "Cela supprime tous les produits enregistrés. Action irréversible.",
-    "deviceOnlyNote": "Votre liste d’envies est enregistrée uniquement sur cet appareil."
+    "deviceOnlyNote": "Votre liste d’envies est enregistrée uniquement sur cet appareil.",
+    "save": "Enregistrer",
+    "saved": "Enregistré"
   },
   "Compare": {
     "title": "Comparer",
@@ -858,7 +861,8 @@
     "siteDescription": "Achetez les meilleurs produits sur {siteName}. Produits de qualité, prix compétitifs et livraison rapide.",
     "language": "Langue",
     "restartToApplyDirection": "L'application doit redémarrer pour changer le sens de la mise en page.",
-    "restartNow": "Redémarrer maintenant"
+    "restartNow": "Redémarrer maintenant",
+    "back": "Retour"
   },
   "Customizer": {
     "title": "Personnalisation du thème",
