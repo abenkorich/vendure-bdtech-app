@@ -5,6 +5,7 @@ import type {MessageValues} from '@/i18n/format-message';
 import {translate} from '@/i18n/translate';
 import {defaultLocale, isLocale, type Locale} from '@/i18n/routing';
 import {prefsStorage} from '@/lib/storage/mmkv';
+import {initLocaleState, readLocale, writeLocale} from '@/i18n/locale-state';
 
 /**
  * Translation runtime (React-facing half; the pure lookup is in `translate.ts`).
@@ -52,9 +53,10 @@ type Listener = (locale: Locale) => void;
 const listeners = new Set<Listener>();
 
 let currentLocale: Locale = getInitialLocale();
+initLocaleState(currentLocale, detectLocale);
 
 export function getLocale(): Locale {
-    return currentLocale;
+    return readLocale();
 }
 
 /**
@@ -71,6 +73,7 @@ export function setLocale(next: Locale): {requiresRestart: boolean} {
     const willBeRtl = isRtlLocale(next);
 
     currentLocale = next;
+    writeLocale(next);
     prefsStorage().set(LOCALE_KEY, next);
 
     for (const listener of listeners) listener(next);

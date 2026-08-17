@@ -1,34 +1,27 @@
-import {getLocales} from 'expo-localization';
+import {readLocale} from '@/i18n/locale-state';
 
 /**
- * Best-guess display locale, used only as a *default* by design-system
- * primitives that format numbers or dates.
+ * The locale that number and date formatting should use.
  *
- * The real source of truth is the i18n layer's `useLocale()`, which lands in
- * phase 2 and reflects the user's in-app choice rather than their device. Until
- * then a primitive that hard-coded `'en'` would render French device users a
- * comma-grouped price, and the fix later would be a hunt through every call
- * site. Centralising the guess here makes it one import to swap.
+ * This used to read the *device* language, as a stopgap until the i18n layer
+ * existed. That layer landed and this never followed, which left the app
+ * speaking two languages at once: an English UI on an Arabic-locale device
+ * rendered "1 product" and "Coming soon" next to prices in Arabic-Indic digits
+ * (١٧٠ د.ج), because the strings came from the app's locale and the numbers
+ * came from the OS.
+ *
+ * The user's in-app choice now wins. The device is consulted only to seed that
+ * choice on first launch, which is `getLocale`'s own job, and as a fallback
+ * when the i18n layer is not available (tests, prerender).
  */
 
 const SUPPORTED = ['en', 'fr', 'ar'] as const;
 export type SupportedLocale = (typeof SUPPORTED)[number];
 
-let cached: SupportedLocale | undefined;
-
 export function deviceLocale(): SupportedLocale {
-    if (cached) return cached;
-    try {
-        for (const {languageCode} of getLocales()) {
-            const code = languageCode?.toLowerCase();
-            if (code && (SUPPORTED as readonly string[]).includes(code)) {
-                cached = code as SupportedLocale;
-                return cached;
-            }
-        }
-    } catch {
-        // getLocales throws in a bare Node context (tests, prerender).
+    const selected = readLocale();
+    if ((SUPPORTED as readonly string[]).includes(selected)) {
+        return selected as SupportedLocale;
     }
-    cached = 'en';
-    return cached;
+    return 'en';
 }
