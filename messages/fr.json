@@ -320,7 +320,9 @@
     "apply": "Appliquer",
     "sku": "SKU : {sku}",
     "viewCart": "Voir le panier",
-    "itemCount": "{count, plural, one {# article} other {# articles}}"
+    "itemCount": "{count, plural, one {# article} other {# articles}}",
+    "decreaseQuantity": "Diminuer la quantité",
+    "increaseQuantity": "Augmenter la quantité"
   },
   "Checkout": {
     "pageTitle": "Paiement",
@@ -871,7 +873,9 @@
     "restartToApplyDirection": "L'application doit redémarrer pour changer le sens de la mise en page.",
     "restartNow": "Redémarrer maintenant",
     "back": "Retour",
-    "loadMore": "Voir plus"
+    "loadMore": "Voir plus",
+    "close": "Fermer",
+    "dismiss": "Ignorer"
   },
   "Customizer": {
     "title": "Personnalisation du thème",

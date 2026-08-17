@@ -1,5 +1,6 @@
 import {View} from 'react-native';
 import {StyleSheet} from 'react-native-unistyles';
+import {useTranslations} from '@/i18n';
 import {Text, Button, IconSymbol} from '@/components/ui';
 import {CART_STRINGS} from '../strings';
 import type {PresentedError} from '../errors';
@@ -19,6 +20,11 @@ export interface ErrorBannerProps {
 }
 
 export function ErrorBanner({error, onRetry, onDismiss}: ErrorBannerProps) {
+    // Before the early return: a hook after a conditional return is a
+    // rules-of-hooks violation and would crash on the render where error
+    // flips from null to set.
+    const tCommon = useTranslations('Common');
+
     if (!error) return null;
 
     return (
@@ -44,7 +50,7 @@ export function ErrorBanner({error, onRetry, onDismiss}: ErrorBannerProps) {
                     variant="ghost"
                     size="sm"
                     icon="close"
-                    accessibilityLabel="Dismiss"
+                    accessibilityLabel={tCommon('dismiss')}
                     onPress={onDismiss}
                 />
             ) : null}

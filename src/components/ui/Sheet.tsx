@@ -12,6 +12,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {StyleSheet, useUnistyles} from 'react-native-unistyles';
 import {Text} from './Text';
 import {IconSymbol} from './IconSymbol';
+import {useTranslations} from '@/i18n';
 import {Divider} from './Divider';
 
 /**
@@ -40,6 +41,7 @@ export interface SheetProps {
 }
 
 export function Sheet({open, onClose, title, height, children}: SheetProps) {
+    const t = useTranslations('Common');
     const {theme} = useUnistyles();
     const {height: screenHeight} = useWindowDimensions();
     const insets = useSafeAreaInsets();
@@ -94,7 +96,7 @@ export function Sheet({open, onClose, title, height, children}: SheetProps) {
                 <Animated.View style={[styles.backdrop, backdropStyle]}>
                     <Pressable
                         style={styles.backdropPress}
-                        accessibilityLabel="Close"
+                        accessibilityLabel={t('close')}
                         accessibilityRole="button"
                         onPress={onClose}
                     />
@@ -122,7 +124,7 @@ export function Sheet({open, onClose, title, height, children}: SheetProps) {
                                 </Text>
                                 <Pressable
                                     accessibilityRole="button"
-                                    accessibilityLabel="Close"
+                                    accessibilityLabel={t('close')}
                                     onPress={onClose}
                                     hitSlop={12}
                                     style={styles.close}

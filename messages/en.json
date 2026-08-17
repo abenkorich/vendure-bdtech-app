@@ -320,7 +320,9 @@
     "apply": "Apply",
     "sku": "SKU: {sku}",
     "viewCart": "View cart",
-    "itemCount": "{count, plural, one {# item} other {# items}}"
+    "itemCount": "{count, plural, one {# item} other {# items}}",
+    "decreaseQuantity": "Decrease quantity",
+    "increaseQuantity": "Increase quantity"
   },
   "Checkout": {
     "pageTitle": "Checkout",
@@ -871,7 +873,9 @@
     "restartToApplyDirection": "The app needs to restart to switch the layout direction.",
     "restartNow": "Restart now",
     "back": "Back",
-    "loadMore": "Load more"
+    "loadMore": "Load more",
+    "close": "Close",
+    "dismiss": "Dismiss"
   },
   "Customizer": {
     "title": "Theme customizer",

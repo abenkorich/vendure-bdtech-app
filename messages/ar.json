@@ -320,7 +320,9 @@
     "apply": "تطبيق",
     "sku": "رمز المنتج: {sku}",
     "viewCart": "عرض السلة",
-    "itemCount": "{count, plural, one {# عنصر} other {# عناصر}}"
+    "itemCount": "{count, plural, one {# عنصر} other {# عناصر}}",
+    "decreaseQuantity": "إنقاص الكمية",
+    "increaseQuantity": "زيادة الكمية"
   },
   "Checkout": {
     "pageTitle": "الدفع",
@@ -871,7 +873,9 @@
     "restartToApplyDirection": "يجب إعادة تشغيل التطبيق لتغيير اتجاه الواجهة.",
     "restartNow": "إعادة التشغيل الآن",
     "back": "رجوع",
-    "loadMore": "تحميل المزيد"
+    "loadMore": "تحميل المزيد",
+    "close": "إغلاق",
+    "dismiss": "تجاهل"
   },
   "Customizer": {
     "title": "مخصّص المظهر",

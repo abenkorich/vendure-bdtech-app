@@ -3,6 +3,7 @@ import * as Haptics from 'expo-haptics';
 import {StyleSheet} from 'react-native-unistyles';
 import {Text} from './Text';
 import {IconSymbol} from './IconSymbol';
+import {useTranslations} from '@/i18n';
 
 /**
  * Quantity stepper — cart lines and add-to-cart.
@@ -39,6 +40,7 @@ export function Stepper({
     disabled = false,
     label,
 }: StepperProps) {
+    const t = useTranslations('Cart');
     styles.useVariants({size});
 
     const canDecrement = !disabled && value > min;
@@ -55,7 +57,7 @@ export function Stepper({
         <View style={styles.row} accessibilityLabel={label}>
             <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Decrease quantity"
+                accessibilityLabel={t('decreaseQuantity')}
                 accessibilityState={{disabled: !canDecrement}}
                 disabled={!canDecrement}
                 onPress={() => step(value - 1)}
@@ -77,7 +79,7 @@ export function Stepper({
 
             <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Increase quantity"
+                accessibilityLabel={t('increaseQuantity')}
                 accessibilityState={{disabled: !canIncrement}}
                 disabled={!canIncrement}
                 onPress={() => step(value + 1)}
