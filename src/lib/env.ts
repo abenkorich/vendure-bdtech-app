@@ -39,10 +39,25 @@ function readExtra(): Extra {
         );
     }
 
+    // The bare apex host serves Traefik's default self-signed certificate, so
+    // every request to it fails TLS. That is invisible in the UI — images just
+    // do not appear — and it survived a `.env` fix because `extra` is baked
+    // into the native build, so only a rebuild picks the new value up. Refusing
+    // to start says which of those two things is wrong.
+    const siteUrl = extra.siteUrl ?? 'https://www.dzduino.dz';
+    if (/^https:\/\/dzduino\.dz/.test(siteUrl)) {
+        throw new Error(
+            `siteUrl is ${siteUrl}, which serves a self-signed certificate: every ` +
+                'customizer image will fail to load. Use https://www.dzduino.dz and ' +
+                'rebuild the native app — extra is baked in at build time, so ' +
+                'editing .env and reloading is not enough.',
+        );
+    }
+
     return {
         vendureShopApiUrl: extra.vendureShopApiUrl,
         vendureChannelToken: extra.vendureChannelToken,
-        siteUrl: extra.siteUrl ?? 'https://dzduino.dz',
+        siteUrl,
     };
 }
 
