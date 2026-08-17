@@ -134,6 +134,11 @@ is silently not processed, and its styles will not resolve.
 after a restart. Switching to Arabic must show explicit reload UX rather than
 appearing to do nothing.
 
+**Drive the emulator by element bounds, not by eye.** `adb shell uiautomator
+dump` gives exact coordinates. Estimating a button's position from a
+screenshot wastes a lot of time looking like a broken button when the tap
+simply landed on empty space.
+
 **The Android emulator cannot reach Metro on the host's LAN address.** Run
 `adb reverse tcp:8081 tcp:8081` or the dev build shows a black screen with
 nothing in logcat to explain it.

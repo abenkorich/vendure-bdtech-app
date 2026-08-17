@@ -202,7 +202,7 @@ Following the storefront's hard-won lesson that the dangerous bugs are the
 | Blog, six calculators | Verified on device |
 | i18n (en/fr/ar), RTL, language switcher | Verified in Arabic |
 | Push notifications, deep links | Built; deep links verified, push needs a device |
-| **Android** | Built and verified on a Pixel 7 emulator (API 36) |
+| **Android** | Built and verified on a Pixel 7 emulator (API 36), including the full add-to-cart -> checkout path |
 
 ### Bugs that only running it could find
 
@@ -229,8 +229,10 @@ Every one of these passed `tsc` and bundled cleanly:
 
 - **SATIM payment.** Deferred by decision; the payment step is structured so
   adding a method does not mean restructuring.
-- **Android.** Home, search, tools and Arabic RTL verified on a Pixel 7
-  emulator. Checkout and account were not re-walked there. One cosmetic
+- **Android.** Home, search, tools, product detail, wishlist, cart and
+  checkout verified on a Pixel 7 emulator; an order was created against the
+  live backend, the totals checked, and the cart emptied afterwards. Account
+  screens were not re-walked there. One cosmetic
   platform difference: iOS renders Arabic prices in Arabic-Indic numerals
   (٤,٢٠٠) while Android uses Western digits (4,200), because the two ship
   different ICU data. Both are correct for ar-DZ; pick one explicitly if
