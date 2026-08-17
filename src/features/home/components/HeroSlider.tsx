@@ -6,6 +6,7 @@ import {router} from 'expo-router';
 import {Text, Skeleton} from '@/components/ui';
 import {useLocale} from '@/i18n';
 import {absoluteAsset, enabledSlides, slideCopy, type HeroConfig} from '@/lib/site-config/schema';
+import {resolveAppUrl} from '@/lib/notification-routes';
 
 /**
  * Merchant-configured hero carousel.
@@ -88,9 +89,15 @@ export function HeroSlider({hero, assetBaseUrl, isLoading = false}: HeroSliderPr
             >
                 {slides.map(slide => {
                     const copy = slideCopy(slide, locale);
+                    // A slide's link is merchant input from another
+                    // application, and `router.push` to a path this app does
+                    // not serve is a silent no-op. The same validator the push
+                    // payloads use rejects external urls, schemes and unknown
+                    // routes, so a banner either navigates or is inert — never
+                    // a tap that appears to do nothing.
                     const target = slide.collectionSlug
-                        ? `/collection/${slide.collectionSlug}`
-                        : slide.href;
+                        ? resolveAppUrl({url: `/collection/${slide.collectionSlug}`})
+                        : resolveAppUrl({url: slide.href});
 
                     return (
                         <Pressable

@@ -1,14 +1,14 @@
 /**
- * Notification payload handling.
+ * Navigation targets supplied by a backend.
+ *
+ * Two things feed the app paths it did not write: push payloads and the
+ * merchant's site config (hero slide links). Both are untrusted, and
+ * `router.push` to a path this app does not serve does nothing at all — no
+ * crash, no log — so a typo in either shows up as "tapping it does nothing",
+ * which is indistinguishable from the app being broken.
  *
  * Pure, so it can be unit-tested: `push.ts` imports expo-notifications and
  * expo-router and therefore cannot be bundled for the Node test harness.
- *
- * The rule this enforces: a notification's destination comes from the
- * *backend*, so it is untrusted input. `router.push` to a path that does not
- * exist does nothing at all — no crash, no log — so a typo in a campaign
- * payload would show up as "the notification opens the app but nothing
- * happens", which is indistinguishable from the app being broken.
  */
 
 /**
@@ -68,7 +68,7 @@ const PATTERNS = NOTIFICATION_ROUTES.map(toPattern);
  *  - protocol-relative (`//host`) and traversal (`..`) forms
  *  - any path that does not match a route the app serves
  */
-export function resolveNotificationUrl(data: unknown): string | null {
+export function resolveAppUrl(data: unknown): string | null {
     if (data === null || typeof data !== 'object') return null;
 
     const url = (data as {url?: unknown}).url;
@@ -86,3 +86,9 @@ export function resolveNotificationUrl(data: unknown): string | null {
 
     return PATTERNS.some(pattern => pattern.test(normalised)) ? trimmed : null;
 }
+
+/**
+ * Push-payload spelling of `resolveAppUrl`, kept because that is what the
+ * notification code and its tests read as.
+ */
+export const resolveNotificationUrl = resolveAppUrl;

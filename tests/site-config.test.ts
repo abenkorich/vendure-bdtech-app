@@ -6,6 +6,7 @@ import {
     contactLabel,
 } from '@/lib/site-config/schema';
 import fallback from '@/lib/site-config/fallback.json';
+import {resolveAppUrl} from '@/lib/notification-routes';
 import {check, eq, done} from './harness';
 
 /**
@@ -113,6 +114,28 @@ export async function run(): Promise<void> {
         contactLabel({value: 'store@dzduino.com'}, 'en'),
         'store@dzduino.com',
     );
+
+    /* --------------------------------------------- hero slide link safety */
+
+    // A slide's link is merchant input from another application, so it goes
+    // through the same validator as a push payload. A banner must either
+    // navigate or be inert; a tap that silently does nothing reads as a bug.
+    eq(
+        'a collection slug becomes a real route',
+        resolveAppUrl({url: '/collection/robotics'}),
+        '/collection/robotics',
+    );
+    eq(
+        'a merchant-set external link is refused',
+        resolveAppUrl({url: 'https://promo.example/sale'}),
+        null,
+    );
+    eq(
+        'a web-only path with no app route is refused',
+        resolveAppUrl({url: '/customizer'}),
+        null,
+    );
+    eq('a slide with no link stays inert', resolveAppUrl({url: undefined}), null);
 
     done();
 }
