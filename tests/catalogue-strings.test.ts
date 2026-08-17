@@ -72,6 +72,37 @@ export async function run(): Promise<void> {
         );
     }
 
+    // The subtitles a shopper actually reads on the shop tab. Device runs
+    // confirmed "3 products" and "6 products" on iOS and the Arabic dual form
+    // on Android; French was never on screen, so it is pinned here.
+    eq(
+        'English pluralises the singular case',
+        translate('en', '', 'Collections.productsCount', {count: 1}),
+        '1 product',
+    );
+    eq(
+        'English pluralises the plural case',
+        translate('en', '', 'Collections.productsCount', {count: 6}),
+        '6 products',
+    );
+    eq(
+        'French pluralises',
+        translate('fr', '', 'Collections.productsCount', {count: 3}),
+        '3 produits',
+    );
+    eq(
+        'French treats one as singular',
+        translate('fr', '', 'Collections.productsCount', {count: 1}),
+        '1 produit',
+    );
+    // Arabic has a dedicated dual form; Hermes lacks Intl.PluralRules, so this
+    // exercises the ported formatter that stands in for it.
+    eq(
+        'Arabic uses the dual form for two',
+        translate('ar', '', 'Collections.productsCount', {count: 2}),
+        'منتجان',
+    );
+
     eq('English is correct', translate('en', '', 'Product.addToCart'), 'Add to Cart');
     eq('French is translated', translate('fr', '', 'Navigation.cart'), 'Panier');
     eq('Arabic is translated', translate('ar', '', 'Navigation.home'), 'الرئيسية');
