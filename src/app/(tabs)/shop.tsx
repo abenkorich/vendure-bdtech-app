@@ -1,128 +1,113 @@
-import {useCallback, useState} from 'react';
-import {View, Pressable} from 'react-native';
-import {FlashList} from '@shopify/flash-list';
-import Animated, {LinearTransition} from 'react-native-reanimated';
+import {useCallback, useMemo, useState} from 'react';
+import {RefreshControl, ScrollView, View} from 'react-native';
+import Animated, {FadeInDown} from 'react-native-reanimated';
 import {StyleSheet, useUnistyles} from 'react-native-unistyles';
 import {router} from 'expo-router';
-import {Screen, Text, Card, Skeleton, EmptyState, IconSymbol, Divider} from '@/components/ui';
+import {Screen, Text, Skeleton, EmptyState} from '@/components/ui';
 import {useCollections} from '@/features/collection/queries';
-import type {CollectionTreeNode} from '@/lib/types';
+import {useStockedCollections} from '@/features/collection/stocked-queries';
+import {CollectionCard} from '@/features/collection/components/CollectionCard';
+import {ProductRail} from '@/features/home/components/ProductRail';
+import {useSiteConfig} from '@/lib/site-config';
+import {useTranslations} from '@/i18n';
 import {S} from '@/features/catalogue-strings';
+import type {CollectionTreeNode} from '@/lib/types';
 
 /**
- * Shop — the collection tree.
+ * Shop — browse by category.
  *
- * Accordion rather than a drill-down stack. A drill-down costs a screen
- * transition per level and hides the sibling categories, which is exactly the
- * context an electronics shopper needs ("is this under Sensors or under
- * Modules?"). Expanding in place keeps the whole map on one screen.
+ * Replaces a text accordion. That accordion was accurate and lifeless: eleven
+ * near-identical rows, asking a shopper to *read* their way to "the one with
+ * the sensors in it" when the catalogue has a photograph for every top-level
+ * collection.
  *
- * A parent row does two things and must make both reachable: tapping the row
- * expands it, tapping "View all" opens the parent's own listing. Merging them
- * would make one of the two unreachable.
+ * The layout is shaped by what this catalogue actually contains, measured
+ * against the live API rather than assumed:
+ *
+ * - **Top-level collections are empty containers.** Their products live in
+ *   children, so a card here opens the category rather than promising a
+ *   listing that would come back empty.
+ * - **Only 11 of 45 child collections carry stock**, and two whole top-level
+ *   categories have none at all. So the product rails below are driven by
+ *   `useStockedCollections`, which asks first and renders only what exists.
+ *   Anything else would be a column of blank sections.
+ *
+ * The merchant's highlighted categories lead, in their configured order, since
+ * that is the shop's own opinion about what matters.
  */
+
+/** The first card is full-width; the rest pair up. */
+const HERO_COUNT = 1;
+
 export default function ShopScreen() {
     const {theme} = useUnistyles();
+    const {config} = useSiteConfig();
+    const t = useTranslations('Collections');
+
     const {data, isPending, error, refetch, isRefetching} = useCollections();
-    const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+    const [refreshing, setRefreshing] = useState(false);
 
-    const toggle = useCallback((id: string) => {
-        setExpanded(current => ({...current, [id]: !current[id]}));
-    }, []);
+    const collections = useMemo(() => data ?? [], [data]);
 
-    const renderItem = useCallback(
-        ({item}: {item: CollectionTreeNode}) => {
-            const children = item.children ?? [];
-            const isOpen = Boolean(expanded[item.id]);
+    /**
+     * Merchant order first, then everything else. `popularCategories` is the
+     * shop's stated priority, and a browse screen that ignores it would
+     * disagree with the home screen two taps away.
+     */
+    const ordered = useMemo(() => {
+        const highlighted = config.popularCategories.collectionSlugs;
+        const rank = new Map(highlighted.map((slug, index) => [slug, index]));
 
-            return (
-                <Animated.View layout={LinearTransition.duration(theme.motion.base)}>
-                    <Card padding="none" style={styles.group}>
-                        <Pressable
-                            accessibilityRole="button"
-                            accessibilityState={{expanded: isOpen}}
-                            accessibilityLabel={item.name}
-                            onPress={() =>
-                                children.length > 0
-                                    ? toggle(item.id)
-                                    : router.push(`/collection/${item.slug}`)
-                            }
-                            style={styles.groupHeader}
-                        >
-                            <View style={styles.groupText}>
-                                <Text variant="bodyStrong" numberOfLines={1}>
-                                    {item.name}
-                                </Text>
-                                {children.length > 0 ? (
-                                    <Text variant="micro" color="textMuted" tabular>
-                                        {`${children.length} ${S.subCollections}`}
-                                    </Text>
-                                ) : null}
-                            </View>
+        return [...collections].sort((a, b) => {
+            const rankA = rank.get(a.slug) ?? Number.MAX_SAFE_INTEGER;
+            const rankB = rank.get(b.slug) ?? Number.MAX_SAFE_INTEGER;
+            return rankA - rankB;
+        });
+    }, [collections, config.popularCategories.collectionSlugs]);
 
-                            <IconSymbol
-                                name={
-                                    children.length === 0
-                                        ? 'chevronForward'
-                                        : isOpen
-                                          ? 'chevronUp'
-                                          : 'chevronDown'
-                                }
-                                size={18}
-                                color="textMuted"
-                            />
-                        </Pressable>
-
-                        {isOpen && children.length > 0 ? (
-                            <View style={styles.children}>
-                                <Divider />
-                                <Pressable
-                                    accessibilityRole="button"
-                                    onPress={() => router.push(`/collection/${item.slug}`)}
-                                    style={styles.childRow}
-                                >
-                                    <Text variant="caption" color="brand">
-                                        {S.viewCollection}
-                                    </Text>
-                                    <IconSymbol name="chevronForward" size={16} color="brand" />
-                                </Pressable>
-
-                                {children.map(child => (
-                                    <View key={child.id}>
-                                        <Divider />
-                                        <Pressable
-                                            accessibilityRole="button"
-                                            accessibilityLabel={child.name}
-                                            onPress={() => router.push(`/collection/${child.slug}`)}
-                                            style={styles.childRow}
-                                        >
-                                            <Text variant="body" numberOfLines={1} style={styles.childName}>
-                                                {child.name}
-                                            </Text>
-                                            <IconSymbol
-                                                name="chevronForward"
-                                                size={16}
-                                                color="textMuted"
-                                            />
-                                        </Pressable>
-                                    </View>
-                                ))}
-                            </View>
-                        ) : null}
-                    </Card>
-                </Animated.View>
-            );
-        },
-        [expanded, toggle, theme.motion.base],
+    /**
+     * Rail candidates: every child collection, best-stocked first. Children
+     * rather than parents because that is where this catalogue keeps its
+     * products.
+     */
+    const candidates = useMemo(
+        () =>
+            ordered.flatMap(parent =>
+                (parent.children ?? []).map(child => ({
+                    slug: child.slug,
+                    name: child.name,
+                    parentName: parent.name,
+                })),
+            ),
+        [ordered],
     );
 
-    return (
-        <Screen>
-            <View style={styles.header}>
-                <Text variant="title">{S.collectionsTitle}</Text>
-            </View>
+    const stocked = useStockedCollections({candidates, take: 8, limit: 4});
 
-            {error ? (
+    const onRefresh = useCallback(async () => {
+        setRefreshing(true);
+        await Promise.all([refetch(), stocked.refetch()]);
+        setRefreshing(false);
+    }, [refetch, stocked]);
+
+    const openCollection = useCallback((node: {slug: string}) => {
+        router.push(`/collection/${node.slug}`);
+    }, []);
+
+    const subtitleFor = useCallback(
+        (node: CollectionTreeNode) => {
+            const count = node.children?.length ?? 0;
+            return count > 0 ? `${count} ${S.subCollections}` : undefined;
+        },
+        [],
+    );
+
+    if (error && collections.length === 0) {
+        return (
+            <Screen>
+                <View style={styles.header}>
+                    <Text variant="title">{S.collectionsTitle}</Text>
+                </View>
                 <EmptyState
                     tone="error"
                     icon="offline"
@@ -130,71 +115,142 @@ export default function ShopScreen() {
                     message={error.message}
                     action={{label: S.tryAgain, onPress: () => void refetch()}}
                 />
-            ) : isPending ? (
-                <View style={styles.skeletons}>
-                    {[0, 1, 2, 3, 4, 5].map(index => (
-                        <Skeleton key={index} height={64} radius="md" />
-                    ))}
-                </View>
-            ) : (data?.length ?? 0) === 0 ? (
-                <EmptyState title={S.collectionsEmpty} />
-            ) : (
-                <FlashList
-                    data={data as CollectionTreeNode[]}
-                    renderItem={renderItem}
-                    keyExtractor={item => item.id}
-                    refreshing={isRefetching}
-                    onRefresh={() => void refetch()}
-                    ItemSeparatorComponent={Gap}
-                    contentContainerStyle={{
-                        paddingHorizontal: theme.spacing.lg,
-                        paddingBottom: theme.spacing['3xl'],
-                    }}
-                />
-            )}
+            </Screen>
+        );
+    }
+
+    const heroes = ordered.slice(0, HERO_COUNT);
+    const tiles = ordered.slice(HERO_COUNT);
+
+    return (
+        <Screen>
+            <View style={styles.header}>
+                <Text variant="title">{S.collectionsTitle}</Text>
+            </View>
+
+            <ScrollView
+                contentContainerStyle={styles.content}
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing || isRefetching}
+                        onRefresh={() => void onRefresh()}
+                        tintColor={theme.colors.textMuted}
+                    />
+                }
+            >
+                {isPending && collections.length === 0 ? (
+                    <View style={styles.grid}>
+                        <Skeleton width="100%" height={168} radius="lg" />
+                        <View style={styles.row}>
+                            <Skeleton width="48%" height={132} radius="lg" />
+                            <Skeleton width="48%" height={132} radius="lg" />
+                        </View>
+                        <View style={styles.row}>
+                            <Skeleton width="48%" height={132} radius="lg" />
+                            <Skeleton width="48%" height={132} radius="lg" />
+                        </View>
+                    </View>
+                ) : collections.length === 0 ? (
+                    <EmptyState icon="grid" title={S.collectionsTitle} message={S.collectionsEmpty} />
+                ) : (
+                    <View style={styles.grid}>
+                        {heroes.map((node, index) => (
+                            <Animated.View
+                                key={node.id}
+                                entering={FadeInDown.delay(index * 40).duration(theme.motion.base)}
+                            >
+                                <CollectionCard
+                                    size="hero"
+                                    name={node.name}
+                                    imageUrl={node.featuredAsset?.preview}
+                                    meta={subtitleFor(node)}
+                                    onPress={() => openCollection(node)}
+                                />
+                            </Animated.View>
+                        ))}
+
+                        {/* Pairs, so a stray odd card does not stretch to full
+                            width and read as another hero. */}
+                        {chunk(tiles, 2).map((pair, rowIndex) => (
+                            <Animated.View
+                                key={pair.map(node => node.id).join('-')}
+                                style={styles.row}
+                                entering={FadeInDown.delay(
+                                    (rowIndex + HERO_COUNT) * 40,
+                                ).duration(theme.motion.base)}
+                            >
+                                {pair.map(node => (
+                                    <CollectionCard
+                                        key={node.id}
+                                        name={node.name}
+                                        imageUrl={node.featuredAsset?.preview}
+                                        meta={subtitleFor(node)}
+                                        onPress={() => openCollection(node)}
+                                    />
+                                ))}
+                                {pair.length === 1 ? <View style={styles.spacer} /> : null}
+                            </Animated.View>
+                        ))}
+                    </View>
+                )}
+
+                {/* Product rails only for collections proven to have stock. */}
+                {stocked.data?.map(collection => (
+                    <ProductRail
+                        key={collection.slug}
+                        eyebrow={collection.parentName ?? t('pageTitle')}
+                        title={collection.name}
+                        products={collection.products}
+                        onViewAll={() => router.push(`/collection/${collection.slug}`)}
+                    />
+                ))}
+
+                {stocked.isPending && candidates.length > 0 ? (
+                    <View style={styles.railSkeleton}>
+                        <Skeleton width="45%" height={18} />
+                        <View style={styles.row}>
+                            <Skeleton width="45%" height={190} radius="lg" />
+                            <Skeleton width="45%" height={190} radius="lg" />
+                        </View>
+                    </View>
+                ) : null}
+            </ScrollView>
         </Screen>
     );
 }
 
-function Gap() {
-    return <View style={styles.gap} />;
+/** Split a list into fixed-size rows. */
+function chunk<T>(items: readonly T[], size: number): T[][] {
+    const rows: T[][] = [];
+    for (let index = 0; index < items.length; index += size) {
+        rows.push(items.slice(index, index + size));
+    }
+    return rows;
 }
 
 const styles = StyleSheet.create(theme => ({
     header: {
         paddingHorizontal: theme.spacing.lg,
-        paddingTop: theme.spacing.md,
         paddingBottom: theme.spacing.md,
     },
-    skeletons: {
+    content: {
+        paddingBottom: theme.spacing['2xl'],
+    },
+    grid: {
+        paddingHorizontal: theme.spacing.lg,
+        gap: theme.spacing.md,
+        paddingBottom: theme.spacing.xl,
+    },
+    row: {
+        flexDirection: 'row',
+        gap: theme.spacing.md,
+    },
+    spacer: {
+        flex: 1,
+    },
+    railSkeleton: {
         paddingHorizontal: theme.spacing.lg,
         gap: theme.spacing.md,
     },
-    gap: {height: theme.spacing.md},
-    group: {overflow: 'hidden'},
-    groupHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: theme.spacing.md,
-        padding: theme.spacing.lg,
-        // 44pt minimum target, met by padding rather than a fixed height so a
-        // two-line category name still fits.
-        minHeight: 56,
-    },
-    groupText: {flex: 1, gap: 2},
-    children: {
-        backgroundColor: theme.colors.surfaceElevated,
-    },
-    childRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: theme.spacing.sm,
-        paddingVertical: theme.spacing.md,
-        // Logical: the extra indent must sit on the reading-start side so the
-        // hierarchy still reads as nesting in Arabic.
-        paddingStart: theme.spacing.xl,
-        paddingEnd: theme.spacing.lg,
-        minHeight: 44,
-    },
-    childName: {flex: 1},
 }));

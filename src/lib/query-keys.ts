@@ -34,6 +34,9 @@ export const queryKeys = {
     productCard: (slug: string) => [CATALOGUE_ROOT, 'product-card', slug] as const,
 
     collections: () => [CATALOGUE_ROOT, 'collections'] as const,
+    /** Which of a candidate set carry stock, plus a sample of each. */
+    stockedCollections: (slugs: readonly string[], take: number, limit: number) =>
+        [CATALOGUE_ROOT, 'stocked-collections', slugs.join(','), take, limit] as const,
     collectionsFlat: (params?: Record<string, unknown>) =>
         [CATALOGUE_ROOT, 'collections-flat', stableParams(params)] as const,
     collection: (slug: string, params?: Record<string, unknown>) =>
