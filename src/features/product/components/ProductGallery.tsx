@@ -86,7 +86,13 @@ export function ProductGallery({images}: ProductGalleryProps) {
 
 const styles = StyleSheet.create(theme => ({
     page: {
-        backgroundColor: theme.colors.surfaceElevated,
+        // Deliberately white in both themes. This catalogue is photographed on
+        // a white sweep, so the photo brings its own white block: tinting the
+        // surface behind it only produced a hard seam where the two met. A
+        // full-width white plate reads as a lightbox, which is how a spec sheet
+        // should present a part, and keeps dark mode looking intentional
+        // rather than broken.
+        backgroundColor: '#ffffff',
         alignItems: 'center',
         justifyContent: 'center',
     },
