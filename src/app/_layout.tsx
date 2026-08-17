@@ -4,6 +4,7 @@ import {Stack} from 'expo-router';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {StatusBar} from 'expo-status-bar';
 import {DataProvider} from '@/lib/data-provider';
+import {useNotificationRouting} from '@/lib/push';
 
 /**
  * Root layout.
@@ -17,6 +18,9 @@ import {DataProvider} from '@/lib/data-provider';
  * changes. See `lib/data-provider.tsx`.
  */
 export default function RootLayout() {
+    // Route notification taps, including a cold start from a terminated app.
+    useNotificationRouting();
+
     return (
         <GestureHandlerRootView style={{flex: 1}}>
             <DataProvider>
