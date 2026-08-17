@@ -804,7 +804,10 @@
     "loading": "Chargement...",
     "sending": "Envoi en cours...",
     "sku": "SKU",
-    "siteDescription": "Achetez les meilleurs produits sur {siteName}. Produits de qualité, prix compétitifs et livraison rapide."
+    "siteDescription": "Achetez les meilleurs produits sur {siteName}. Produits de qualité, prix compétitifs et livraison rapide.",
+    "language": "Langue",
+    "restartToApplyDirection": "L'application doit redémarrer pour changer le sens de la mise en page.",
+    "restartNow": "Redémarrer maintenant"
   },
   "Customizer": {
     "title": "Personnalisation du thème",

@@ -1,73 +1,89 @@
+import {translate} from '@/i18n/translate';
+import {getLocale} from '@/i18n';
+
 /**
- * Catalogue copy, keyed by the **real** message paths in `messages/en.json`.
+ * Catalogue copy, resolved from the shipped translation catalogs.
  *
- * TODO(i18n phase 2): replace every `S.x` read with `t('Namespace.key')` once
- * `useTranslations` lands (see docs/CONTRACTS.md). The literals below are the
- * English values already present in all three catalogs, so swapping the lookup
- * is mechanical and adds no new keys — adding one would require editing
- * `messages/{en,fr,ar}.json` together or `messages-parity.test.ts` fails.
+ * This started as a table of English literals: the feature work landed before
+ * `useTranslations` existed, so each entry carried the real key path in a
+ * comment and a TODO to swap the lookup. That swap is this file.
  *
- * Every entry names the key path it stands in for. Nothing here is invented:
- * if a string has no key yet it is not in this file, it is a literal at the
- * call site marked with a TODO.
+ * Reads are lazy via a getter, deliberately. Resolving at module load would
+ * freeze every string at whatever locale was active on first import, and the
+ * language switcher would then translate the tab bar but leave the whole
+ * catalogue in the previous language. A getter re-reads on each access, so a
+ * re-render after a locale change picks up the new value.
+ *
+ * `S` is for module scope and non-component code. Inside a component prefer
+ * `useTranslations('Namespace')`, which subscribes to locale changes and
+ * therefore triggers the re-render this relies on.
  */
-export const S = {
-    /** HomeSections.viewAll */
-    viewAll: 'View all',
-    /** HomeSections.newArrivals.* */
-    newArrivalsEyebrow: 'Just landed',
-    newArrivalsTitle: 'New arrivals',
-    /** Merchandising.dealsTitle / dealsSubtitle */
-    dealsTitle: 'Deals',
-    dealsSubtitle: 'Discounted products with a compare-at price higher than the selling price.',
-    /** HomeSections.categories.* */
-    categoriesEyebrow: 'Browse',
-    categoriesTitle: 'Shop by category',
-    /** HomeSections.blog.* */
-    blogEyebrow: 'Journal',
-    blogTitle: 'From the blog',
-    blogMinRead: 'min read',
 
-    /** Collections.* */
-    collectionsTitle: 'Collections',
-    collectionsEmpty: 'No collections are available right now.',
-    subCollections: 'Sub-collections',
-    viewCollection: 'View all',
+/** key -> message path in `messages/*.json`. */
+const PATHS = {
+    viewAll: 'HomeSections.viewAll',
 
-    /** Sort.* */
-    sortPlaceholder: 'Sort by',
-    sortNameAsc: 'Name: A to Z',
-    sortNameDesc: 'Name: Z to A',
-    sortPriceAsc: 'Price: Low to High',
-    sortPriceDesc: 'Price: High to Low',
+    newArrivalsEyebrow: 'HomeSections.newArrivals.eyebrow',
+    newArrivalsTitle: 'HomeSections.newArrivals.title',
 
-    /** Product.* */
-    inStock: 'In Stock',
-    outOfStock: 'Out of Stock',
-    lowStock: 'Low stock',
-    addToCart: 'Add to Cart',
-    adding: 'Adding...',
-    addedToCart: 'Added to Cart',
-    selectOptions: 'Select Options',
-    descriptionTitle: 'Description',
-    relatedProducts: 'Related Products',
-    relatedEyebrow: 'You may also like',
-    from: 'From',
+    dealsTitle: 'Merchandising.dealsTitle',
+    dealsSubtitle: 'Merchandising.dealsSubtitle',
 
-    /** Common.sku */
-    sku: 'SKU',
-    /** Common.loading */
-    loading: 'Loading...',
+    categoriesEyebrow: 'HomeSections.categories.eyebrow',
+    categoriesTitle: 'HomeSections.categories.title',
 
-    /** Errors.* */
-    somethingWentWrong: 'Something went wrong',
-    tryAgain: 'Try again',
-    unexpectedError: 'An unexpected error occurred. Please try again.',
-    serverUnreachableTitle: 'Server unreachable',
-    serverUnreachableBody:
-        'Unable to reach the server. Please check your connection and ensure the backend is running.',
-    failedAddToCart: 'Failed to add item to cart',
+    blogEyebrow: 'HomeSections.blog.eyebrow',
+    blogTitle: 'HomeSections.blog.title',
+    blogMinRead: 'HomeSections.blog.minRead',
 
-    /** Search.noResults */
-    noResults: 'No results found',
+    collectionsTitle: 'Collections.pageTitle',
+    collectionsEmpty: 'Collections.empty',
+    subCollections: 'Collections.subCollections',
+    viewCollection: 'Collections.viewCollection',
+
+    sortPlaceholder: 'Sort.placeholder',
+    sortNameAsc: 'Sort.nameAsc',
+    sortNameDesc: 'Sort.nameDesc',
+    sortPriceAsc: 'Sort.priceAsc',
+    sortPriceDesc: 'Sort.priceDesc',
+
+    inStock: 'Product.inStock',
+    outOfStock: 'Product.outOfStock',
+    lowStock: 'Product.lowStock',
+    addToCart: 'Product.addToCart',
+    adding: 'Product.adding',
+    addedToCart: 'Product.addedToCart',
+    selectOptions: 'Product.selectOptions',
+    descriptionTitle: 'Product.descriptionTitle',
+    relatedProducts: 'Product.relatedProducts',
+    relatedEyebrow: 'Product.relatedEyebrow',
+    from: 'Product.from',
+
+    sku: 'Common.sku',
+    loading: 'Common.loading',
+
+    somethingWentWrong: 'Errors.somethingWentWrong',
+    tryAgain: 'Errors.tryAgain',
+    unexpectedError: 'Errors.unexpectedError',
+    serverUnreachableTitle: 'Errors.serverUnreachableTitle',
+    serverUnreachableBody: 'Errors.serverUnreachableBody',
+    failedAddToCart: 'Errors.failedAddToCart',
+
+    noResults: 'Search.noResults',
 } as const;
+
+export type CatalogueStringKey = keyof typeof PATHS;
+
+/**
+ * Every key resolves through the active locale on access. `translate` splits
+ * the path itself, so the namespace argument is empty.
+ */
+export const S = Object.defineProperties(
+    {} as Record<CatalogueStringKey, string>,
+    Object.fromEntries(
+        Object.entries(PATHS).map(([key, path]) => [
+            key,
+            {get: () => translate(getLocale(), '', path), enumerable: true},
+        ]),
+    ),
+);

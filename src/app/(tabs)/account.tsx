@@ -1,4 +1,4 @@
-import {useCallback} from 'react';
+import {useCallback, useState} from 'react';
 import {Alert, ScrollView, View} from 'react-native';
 import {StyleSheet} from 'react-native-unistyles';
 import {useRouter} from 'expo-router';
@@ -7,6 +7,9 @@ import {useSession, useSignOut} from '@/features/auth/queries';
 import {useOrders, useAddresses} from '@/features/account/queries';
 import {LinkRow, RowGroup, ScreenHeader} from '@/features/account/components/chrome';
 import {useT, translate} from '@/features/account/i18n';
+import {LanguageSheet} from '@/features/account/components/LanguageSheet';
+import {useLocale} from '@/i18n';
+import {localeNames} from '@/i18n/routing';
 
 /**
  * Account hub.
@@ -143,14 +146,29 @@ function Benefit({icon, label}: {icon: 'truck' | 'package' | 'lock'; label: stri
 function BrowseLinks() {
     const tNav = useT('Navigation');
     const router = useRouter();
+    const {locale} = useLocale();
+    const [languageOpen, setLanguageOpen] = useState(false);
 
     return (
-        <RowGroup>
-            <LinkRow icon="heart" title={tNav('wishlist')} onPress={() => router.push('/wishlist')} />
-            <LinkRow icon="compare" title={tNav('compare')} onPress={() => router.push('/compare')} />
-            <LinkRow icon="calculator" title={tNav('tools')} onPress={() => router.push('/tools')} />
-            <LinkRow icon="article" title={translate('HomeSections.blog.title')} onPress={() => router.push('/blog')} />
-        </RowGroup>
+        <>
+            <RowGroup>
+                <LinkRow icon="heart" title={tNav('wishlist')} onPress={() => router.push('/wishlist')} />
+                <LinkRow icon="compare" title={tNav('compare')} onPress={() => router.push('/compare')} />
+                <LinkRow icon="calculator" title={tNav('tools')} onPress={() => router.push('/tools')} />
+                <LinkRow icon="article" title={translate('HomeSections.blog.title')} onPress={() => router.push('/blog')} />
+                {/* The only way to reach French and Arabic. Without this the
+                    other two thirds of the catalogue's audience are stuck on
+                    whatever the device locale happened to be. */}
+                <LinkRow
+                    icon="globe"
+                    title={tNav('switchLanguage')}
+                    value={localeNames[locale]}
+                    onPress={() => setLanguageOpen(true)}
+                />
+            </RowGroup>
+
+            <LanguageSheet open={languageOpen} onClose={() => setLanguageOpen(false)} />
+        </>
     );
 }
 

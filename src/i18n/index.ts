@@ -1,16 +1,13 @@
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {I18nManager} from 'react-native';
 import {getLocales} from 'expo-localization';
-import {formatMessage, type MessageValues} from '@/i18n/format-message';
+import type {MessageValues} from '@/i18n/format-message';
+import {translate} from '@/i18n/translate';
 import {defaultLocale, isLocale, type Locale} from '@/i18n/routing';
 import {prefsStorage} from '@/lib/storage/mmkv';
 
-import en from '../../messages/en.json';
-import fr from '../../messages/fr.json';
-import ar from '../../messages/ar.json';
-
 /**
- * Translation runtime.
+ * Translation runtime (React-facing half; the pure lookup is in `translate.ts`).
  *
  * All three catalogs are bundled. That is ~400 KB of JSON, which is a real but
  * acceptable cost: the alternative is a network fetch on the very first screen,
@@ -20,8 +17,6 @@ import ar from '../../messages/ar.json';
  * ICU formatting is handled by `format-message.ts`, copied from the web
  * storefront, so a plural renders identically on both platforms.
  */
-
-const CATALOGS: Record<Locale, Record<string, unknown>> = {en, fr, ar};
 
 const LOCALE_KEY = 'app_locale';
 
@@ -47,49 +42,6 @@ export function getStoredLocale(): Locale | null {
 
 export function getInitialLocale(): Locale {
     return getStoredLocale() ?? detectLocale();
-}
-
-/* -------------------------------------------------------------------------- */
-/* Lookup                                                                     */
-/* -------------------------------------------------------------------------- */
-
-function lookup(catalog: Record<string, unknown>, path: string): string | undefined {
-    let node: unknown = catalog;
-    for (const segment of path.split('.')) {
-        if (node === null || typeof node !== 'object') return undefined;
-        node = (node as Record<string, unknown>)[segment];
-    }
-    return typeof node === 'string' ? node : undefined;
-}
-
-/**
- * Resolve a key to a formatted string.
- *
- * A missing key falls back to the English catalog and then to the key path
- * itself. Rendering the raw path is deliberately ugly: it is visible in a
- * screenshot, where a silent empty string would not be.
- */
-export function translate(
-    locale: Locale,
-    namespace: string,
-    key: string,
-    values?: MessageValues,
-): string {
-    const path = namespace ? `${namespace}.${key}` : key;
-    const message = lookup(CATALOGS[locale], path) ?? lookup(CATALOGS.en, path);
-
-    if (message === undefined) {
-        if (__DEV__) console.warn(`[i18n] missing key: ${path}`);
-        return path;
-    }
-
-    try {
-        return formatMessage(message, values, locale);
-    } catch (error) {
-        // A malformed message must not take down the screen that renders it.
-        if (__DEV__) console.warn(`[i18n] bad message at ${path}:`, error);
-        return message;
-    }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -187,3 +139,6 @@ export function useFormatters() {
         };
     }, [locale]);
 }
+
+export {translate};
+export type {MessageValues};

@@ -804,7 +804,10 @@
     "loading": "Loading...",
     "sending": "Sending...",
     "sku": "SKU",
-    "siteDescription": "Shop the best products at {siteName}. Quality products, competitive prices, and fast delivery."
+    "siteDescription": "Shop the best products at {siteName}. Quality products, competitive prices, and fast delivery.",
+    "language": "Language",
+    "restartToApplyDirection": "The app needs to restart to switch the layout direction.",
+    "restartNow": "Restart now"
   },
   "Customizer": {
     "title": "Theme customizer",
