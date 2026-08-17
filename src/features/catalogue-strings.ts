@@ -38,6 +38,7 @@ const PATHS = {
 
     collectionsTitle: 'Collections.pageTitle',
     collectionsEmpty: 'Collections.empty',
+    emptyCategory: 'Collections.emptyCategory',
     subCollections: 'Collections.subCollections',
     viewCollection: 'Collections.viewCollection',
 
@@ -93,6 +94,6 @@ export const S = Object.defineProperties(
  * entry in the table above (a spec-sheet row label, say). Resolves through the
  * active locale on every call, same as `S`.
  */
-export function tr(path: string): string {
-    return translate(getLocale(), '', path);
+export function tr(path: string, values?: Record<string, string | number>): string {
+    return translate(getLocale(), '', path, values);
 }

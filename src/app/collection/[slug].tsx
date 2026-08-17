@@ -1,4 +1,4 @@
-import {useCallback, useState} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {FlashList} from '@shopify/flash-list';
 import {StyleSheet, useUnistyles} from 'react-native-unistyles';
@@ -13,6 +13,7 @@ import {
     IconSymbol,
 } from '@/components/ui';
 import {useCollection} from '@/features/collection/queries';
+import {useStockedCollections} from '@/features/collection/stocked-queries';
 import {readProductCards} from '@/lib/types';
 import type {SortKey} from '@/lib/search-input';
 import {Breadcrumbs} from '@/features/collection/components/Breadcrumbs';
@@ -61,7 +62,38 @@ export default function CollectionScreen() {
         setTake(current => current + PAGE_SIZE);
     }, [isFetching]);
 
-    const children = data?.collection?.children ?? [];
+    // Memoised because it seeds the child-count query's candidate list; a
+    // fresh array each render would re-key that query on every paint.
+    const children = useMemo(() => data?.collection?.children ?? [], [data]);
+
+    /**
+     * Counts for the sub-collection rows.
+     *
+     * Without these the screen contradicted itself: the shop card advertised
+     * "3 products" for Téléphonie (the whole subtree) while this screen said
+     * "1 product", because a collection search matches the slug and *not* its
+     * descendants. The other two lived one level down, behind rows that gave
+     * no hint of it, and two sibling rows were empty dead ends.
+     *
+     * Labelling each row reconciles the two numbers and stops the taps that
+     * land on nothing.
+     */
+    const childCandidates = useMemo(
+        () => children.map(child => ({slug: child.slug, name: child.name, parentName: ''})),
+        [children],
+    );
+    const childStock = useStockedCollections({candidates: childCandidates, take: 1, limit: 0});
+
+    const childMeta = useCallback(
+        (slug: string) => {
+            const total = childStock.data?.totals?.[slug];
+            if (total === undefined) return undefined;
+            return total > 0
+                ? tr('Collections.productsCount', {count: total})
+                : S.emptyCategory;
+        },
+        [childStock.data],
+    );
 
     const header = (
         <View style={styles.header}>
@@ -79,6 +111,7 @@ export default function CollectionScreen() {
                                 layout="row"
                                 name={child.name}
                                 imageUrl={child.featuredAsset?.preview}
+                                meta={childMeta(child.slug)}
                                 onPress={() => router.push(`/collection/${child.slug}`)}
                             />
                         </View>
