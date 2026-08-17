@@ -1,7 +1,6 @@
 import {useEffect, useRef} from 'react';
 import {Platform} from 'react-native';
 import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
 import {router} from 'expo-router';
 import {prefsStorage} from '@/lib/storage/mmkv';
 
@@ -50,7 +49,10 @@ export function hasDeclinedPush(): boolean {
  * enhancement, not a requirement for buying anything.
  */
 export async function registerForPush(): Promise<string | null> {
-    if (!Device.isDevice) return null;
+    // A simulator cannot receive push, and getExpoPushTokenAsync throws
+    // there. Rather than add expo-device (a native module, so every
+    // contributor would need a rebuild before the app would even start) for
+    // one boolean, the token call below is allowed to fail and returns null.
 
     const existing = await Notifications.getPermissionsAsync();
     let status = existing.status;

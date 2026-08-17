@@ -24,7 +24,6 @@
     "expo": "~57.0.13",
     "expo-application": "~57.0.1",
     "expo-constants": "~57.0.1",
-    "expo-device": "^57.0.1",
     "expo-haptics": "~57.0.1",
     "expo-image": "~57.0.3",
     "expo-linking": "~57.0.1",
