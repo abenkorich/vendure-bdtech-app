@@ -248,3 +248,51 @@ Every one of these passed `tsc` and bundled cleanly:
   all verified on device.
 - **Customer flows against real data.** No account was registered, no order
   placed, no existing customer's data touched.
+
+---
+
+## 11. Landing page and the shared customizer
+
+The home screen is the marketplace layout the merchant asked for: logo leading,
+notifications and messages trailing, a search bar with an image-search entry
+point, highlighted categories, then the hero slider, above the product rails.
+
+### One customizer, two front-ends
+
+Everything configurable comes from the **web storefront's existing customizer**,
+not a second one built into the app. A merchant edits hero slides, category
+order, search terms and the logo once, and both surfaces follow.
+
+```
+customizer (web)
+  └─ data/site-config/published.json        on the storefront's disk
+       └─ GET /api/site-config?locale=xx    added for non-web clients
+            └─ app: useSiteConfig()          network -> MMKV -> bundled 5 KB
+```
+
+The bundled layer is load-bearing, not a nicety: home is the first screen
+anyone sees, and it renders a complete storefront with the config service
+entirely unreachable. That was verified by accident when the dev server died
+mid-test, and then deliberately.
+
+**Only the published config is exposed, never the draft**, and
+`tests/site-config-public.test.ts` asserts nothing secret-shaped is in it,
+because that route is unauthenticated.
+
+### To finish the wiring
+
+The endpoint is committed but **production runs an older deployment**
+(`https://dzduino.dz/api/site-config` currently 404s). Until the storefront is
+deployed the app shows its bundled snapshot: correct copy and categories, but
+no hero imagery and no live edits. Deploying the storefront is the only step.
+
+### Deliberate limits
+
+- **Image search** is UI only. There is no visual-search query on the Shop API,
+  so the camera button explains itself rather than doing nothing.
+- **Messages** offers the merchant's real contact rows. `aiShopChat` is
+  disabled on this channel (verified live), so a chat screen could not send.
+- **Notifications** carries the push opt-in until a feed exists to list.
+- Anything the customizer supplies as a **link** is validated against the real
+  route table, and anything it supplies as an **image path** must go through
+  `absoluteAsset()`. Both failure modes are silent.
