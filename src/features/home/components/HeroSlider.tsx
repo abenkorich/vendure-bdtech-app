@@ -1,11 +1,12 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
-import {View, Pressable, ScrollView, useWindowDimensions} from 'react-native';
+import {View, Pressable, ScrollView, useWindowDimensions, I18nManager} from 'react-native';
 import {Image} from 'expo-image';
 import {StyleSheet} from 'react-native-unistyles';
 import {router} from 'expo-router';
 import {Text, Skeleton} from '@/components/ui';
 import {useLocale} from '@/i18n';
 import {absoluteAsset, enabledSlides, slideCopy, type HeroConfig} from '@/lib/site-config/schema';
+import {slideOffset, slideIndex} from '@/features/home/slide-paging';
 import {resolveAppUrl} from '@/lib/notification-routes';
 
 /**
@@ -40,12 +41,25 @@ export function HeroSlider({hero, assetBaseUrl, isLoading = false}: HeroSliderPr
     const slides = enabledSlides(hero);
     const height = width / ASPECT;
 
+    /**
+     * Slide index <-> scroll offset; mirrored under RTL. See `slide-paging`
+     * for why, and for the tests that pin the round trip.
+     */
+    const offsetFor = useCallback(
+        (index: number) => slideOffset(index, slides.length, width, I18nManager.isRTL),
+        [slides.length, width],
+    );
+    const indexFrom = useCallback(
+        (offset: number) => slideIndex(offset, slides.length, width, I18nManager.isRTL),
+        [slides.length, width],
+    );
+
     const goTo = useCallback(
         (next: number) => {
-            scrollRef.current?.scrollTo({x: next * width, animated: true});
+            scrollRef.current?.scrollTo({x: offsetFor(next), animated: true});
             setIndex(next);
         },
-        [width],
+        [offsetFor],
     );
 
     useEffect(() => {
@@ -56,13 +70,13 @@ export function HeroSlider({hero, assetBaseUrl, isLoading = false}: HeroSliderPr
             if (interacting.current) return;
             setIndex(current => {
                 const next = (current + 1) % slides.length;
-                scrollRef.current?.scrollTo({x: next * width, animated: true});
+                scrollRef.current?.scrollTo({x: offsetFor(next), animated: true});
                 return next;
             });
         }, hero.intervalMs);
 
         return () => clearInterval(timer);
-    }, [hero.autoplay, hero.intervalMs, slides.length, width]);
+    }, [hero.autoplay, hero.intervalMs, slides.length, offsetFor]);
 
     if (isLoading && slides.length === 0) {
         return <Skeleton width="100%" height={height} radius="none" />;
@@ -84,7 +98,7 @@ export function HeroSlider({hero, assetBaseUrl, isLoading = false}: HeroSliderPr
                     interacting.current = false;
                 }}
                 onMomentumScrollEnd={event => {
-                    setIndex(Math.round(event.nativeEvent.contentOffset.x / width));
+                    setIndex(indexFrom(event.nativeEvent.contentOffset.x));
                 }}
             >
                 {slides.map(slide => {

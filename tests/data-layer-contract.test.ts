@@ -77,6 +77,20 @@ async function gql(
 }
 
 function ok(result: GqlResponse, label: string): Record<string, unknown> {
+    // A missing database column is a broken *deployment*, not a broken query.
+    // Saying so up front stops the next person reading "add to cart failed"
+    // and going looking for the bug in this repo. Seen 2026-08-17:
+    // `column Customer.customFieldsMarketingemailoptin does not exist`, a
+    // custom field added to the Vendure config without running its migration,
+    // which breaks every add-to-cart in production while browsing looks fine.
+    const message = result.errors?.[0]?.message ?? '';
+    if (/column .* does not exist/i.test(message)) {
+        assert.fail(
+            `${label}: the BACKEND is misconfigured, not this app — ${message}. ` +
+                'Run the pending Vendure migration or drop the custom field.',
+        );
+    }
+
     assert.equal(result.errors, undefined, `${label}: ${JSON.stringify(result.errors)}`);
     assert.ok(result.data, `${label}: no data`);
     return result.data;

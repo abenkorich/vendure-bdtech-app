@@ -229,3 +229,23 @@ route prefers it over public/.
 The app degrades correctly here (the hero shows its brand plate and copy rather
 than a broken image), so do not "fix" this in the app. Verify with curl against
 one of the banner urls and compare to /favicon.ico.
+
+
+**PRODUCTION IS BROKEN: add-to-cart fails (server-side, 2026-08-17).**
+`addItemToOrder` returns `column Customer.customFieldsMarketingemailoptin does
+not exist`. A `marketingEmailOptIn` custom field was added to Customer in the
+Vendure config, but the database column was never created, so the query builder
+emits SQL referencing a column that is not there.
+
+Reproduce with no app involved: post an `addItemToOrder` mutation to the shop
+api and read the error. Browsing is unaffected (search and collections answer
+normally), so the storefront looks healthy while nobody can buy anything.
+
+The fix is on the backend, not here: run the pending migration, or drop the
+custom field from the Vendure config. Do not work around it in the app.
+
+The same deploy renamed `dealProducts(options:)` from `ProductListOptions` to
+`MerchandisingListOptions`, which is already handled in `lib/vendure/rails.ts`.
+`newArrivalProducts` became callable at the same time (the new input carries
+`since`), but the rail still uses `products` sorted by createdAt, which needs
+no cutoff date and is already verified on device.

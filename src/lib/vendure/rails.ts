@@ -12,16 +12,20 @@ import {toProductCardFragment} from './product-card-from-detail';
  * web storefront's `/deals` and `/new` pages 500. The copy is left untouched
  * so it stays diffable; these are the versions the app actually calls.
  *
- * Probed against api.dzduino.dz on 2026-08-16:
+ * Probed against api.dzduino.dz on 2026-08-16, re-probed 2026-08-17 after the
+ * storefront deploy, which added the merchandising plugin and changed these
+ * signatures:
  *
- * - `dealProducts(options: ProductListOptions)` — valid, currently returns
- *   `totalItems: 0` (no product carries a deal flag yet). An empty rail is a
- *   correct render, not a bug to chase.
- * - `newArrivalProducts(options: ProductListOptions)` — **unusable**. The
- *   resolver rejects every call with `newArrivalProducts requires
- *   options.since`, but `since` is not a field of `ProductListOptions`, so
- *   there is no input that satisfies it. New arrivals therefore come from
- *   `products` sorted by `createdAt DESC`, which is what the rail means anyway.
+ * - `dealProducts(options: MerchandisingListOptions)` — was
+ *   `ProductListOptions` until the deploy; the rename broke this query with a
+ *   400 until it was updated. Still returns `totalItems: 0` (no product
+ *   carries a deal flag yet), so an empty rail remains a correct render.
+ * - `newArrivalProducts(options: MerchandisingListOptions)` — the new input
+ *   type *does* carry `since`, so this resolver is finally callable (verified:
+ *   3240 items for `since: 2026-01-01`). New arrivals still come from
+ *   `products` sorted by `createdAt DESC`: that is the same set, needs no
+ *   arbitrary cutoff date, and is already proven on device. Switching would be
+ *   churn, not a fix.
  *
  * `graphqlUnsafe` mirrors the existing escape hatch: `dealProducts` is absent
  * from the `graphql-env.d.ts` snapshot, so gql.tada cannot type it. Results are
@@ -50,7 +54,7 @@ const RAIL_PRODUCT_FIELDS = `
 `;
 
 export const DealProductsRailQuery = graphqlUnsafe(`
-    query DealProductsRail($options: ProductListOptions) {
+    query DealProductsRail($options: MerchandisingListOptions) {
         dealProducts(options: $options) {
             totalItems
             items {${RAIL_PRODUCT_FIELDS}}
