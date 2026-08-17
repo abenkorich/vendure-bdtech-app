@@ -216,3 +216,16 @@ bugs that actually shipped on the web side.
 
 Commit as you go, with messages explaining *why* a shape changed and what was
 verified.
+
+
+**Customizer banners 404 in production (server-side, not the app).** As of the
+2026-08-17 storefront deploy, GET /api/site-config returns 200 and its hero
+slides reference /customizer/banners/<id>.jpg, but those paths 404 while
+/favicon.ico and /en serve fine. The files are present in dist/client, so the
+build is correct; the running deploy is not serving them. Likely
+ASSET_UPLOAD_DIR pointing at a volume that does not contain them, since the
+route prefers it over public/.
+
+The app degrades correctly here (the hero shows its brand plate and copy rather
+than a broken image), so do not "fix" this in the app. Verify with curl against
+one of the banner urls and compare to /favicon.ico.
