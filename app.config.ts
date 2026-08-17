@@ -34,13 +34,17 @@ const config: ExpoConfig = {
             foregroundImage: './assets/adaptive-icon.png',
             backgroundColor: '#0B0F14',
         },
-        // Deep links: https://dzduino.dz/* opens in-app once the site hosts
-        // assetlinks.json. Until then the scheme above is the working path.
+        // Deep links: both hosts, because `dzduino.dz` currently redirects to
+        // `www` and a link that lands on the redirect target must still open
+        // in-app rather than bouncing to the browser.
         intentFilters: [
             {
                 action: 'VIEW',
                 autoVerify: true,
-                data: [{scheme: 'https', host: 'dzduino.dz'}],
+                data: [
+                    {scheme: 'https', host: 'dzduino.dz'},
+                    {scheme: 'https', host: 'www.dzduino.dz'},
+                ],
                 category: ['BROWSABLE', 'DEFAULT'],
             },
         ],
@@ -81,7 +85,11 @@ const config: ExpoConfig = {
         // so a missing value must fail loudly in `lib/env.ts` rather than
         // producing CHANNEL_NOT_FOUND on every screen.
         vendureChannelToken: process.env.EXPO_PUBLIC_VENDURE_CHANNEL_TOKEN,
-        siteUrl: process.env.EXPO_PUBLIC_SITE_URL ?? 'https://dzduino.dz',
+        // `www`, not the bare host: dzduino.dz serves Traefik's default
+        // self-signed certificate, which fails TLS verification on both
+        // platforms. Every customizer image resolves against this origin, so
+        // the bare host would blank the hero and the category strip.
+        siteUrl: process.env.EXPO_PUBLIC_SITE_URL ?? 'https://www.dzduino.dz',
     },
 };
 
