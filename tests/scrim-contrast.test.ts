@@ -15,13 +15,22 @@ import {check, done} from './harness';
  * So this measures the pixels. It reads a device screenshot and asserts the
  * bottom of a card (where the label sits) is materially darker than the top.
  *
- * Skipped when no screenshot is present, so it never blocks a run; the
- * on-device verification step is what produces one.
+ * The bands are committed as fixtures, cropped from real device screenshots.
+ * They used to be read from `/tmp`, which meant the test quietly measured
+ * nothing once those files aged out — it reported PASS with no screenshots at
+ * all, which I only noticed by deleting them and watching it still pass. A
+ * check that cannot fail is worse than no check, so the inputs now live in the
+ * repo and a missing one is an error rather than a skip.
  */
 
+/**
+ * Bands are relative to the committed crops, not the full screenshots:
+ * scrim-ios.png is x 60-430, y 990-1270 of the iPhone shot; scrim-android.png
+ * is x 60-420, y 920-1095 of the Pixel one.
+ */
 const SHOTS = [
-    {name: 'iOS', path: '/tmp/ios-shop.png', x0: 60, x1: 430, top: [1000, 1080], bottom: [1200, 1262]},
-    {name: 'Android', path: '/tmp/shop-final.png', x0: 60, x1: 420, top: [930, 980], bottom: [1040, 1085]},
+    {name: 'iOS', path: 'tests/fixtures/scrim-ios.png', x0: 0, x1: 370, top: [10, 90], bottom: [210, 272]},
+    {name: 'Android', path: 'tests/fixtures/scrim-android.png', x0: 0, x1: 360, top: [10, 60], bottom: [120, 165]},
 ] as const;
 
 /** Minimum luma drop from a card's top band to its label band. */
@@ -108,6 +117,7 @@ export async function run(): Promise<void> {
     let checked = 0;
 
     for (const shot of SHOTS) {
+        check(`${shot.name}: the scrim fixture is present`, existsSync(shot.path), shot.path);
         if (!existsSync(shot.path)) continue;
         checked += 1;
 
@@ -124,10 +134,7 @@ export async function run(): Promise<void> {
         );
     }
 
-    if (checked === 0) {
-        console.log('        (skipped: no device screenshots to measure)');
-        return;
-    }
+    check('both scrim fixtures were measured', checked === SHOTS.length, `measured ${checked}`);
 
     done();
 }
