@@ -132,6 +132,18 @@ is silently not processed, and its styles will not resolve.
 after a restart. Switching to Arabic must show explicit reload UX rather than
 appearing to do nothing.
 
+**Hermes lacks `Intl.PluralRules`.** Polyfilled in `src/lib/intl-polyfill.ts`,
+loaded from `index.js`. Do not remove it: without it every pluralised string
+crashes the screen rendering it, and no test catches that because Node
+implements the API.
+
+**Unistyles is configured in `index.js`, not `app/_layout.tsx`.** expo-router
+executes route modules before the root layout body, so configuring it there is
+too late and the app dies with "no theme has been selected yet".
+
+**A new native dependency costs everyone a rebuild.** Adding one mid-stream
+breaks the app for anyone who has not rebuilt. Weigh that against what it buys.
+
 **Never use `SafeAreaView`.** Use `Screen` from `@/components/ui/screen`.
 `SafeAreaView` renders a native spec component that Unistyles' Babel plugin
 cannot process, so its themed style resolves once and never updates: the tab bar

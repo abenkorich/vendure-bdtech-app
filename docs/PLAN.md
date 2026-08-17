@@ -4,7 +4,8 @@ Native iOS + Android app for the Dzduino / BDTech Vendure store, sharing the
 GraphQL layer, i18n catalogs and business logic of
 `vendure-bdtech-storefront-astro` while presenting a **native-first** UI.
 
-Status: **plan approved, no code written yet.**
+Status: **v1 built and verified on an iOS simulator against the live backend.**
+See "Delivered" at the end for what is done and what is not.
 
 ---
 
@@ -183,3 +184,52 @@ Following the storefront's hard-won lesson that the dangerous bugs are the
 | gql.tada needs a generated `graphql-env.d.ts` | Regenerate against the live schema during Phase 0 |
 | Social sign-in requires native config | Google/Apple entitlements deferred to the pre-ship pass; email auth in v1 |
 | Store review needs Apple Sign-In if Google ships | Both land together in the pre-ship pass |
+
+
+---
+
+## 10. Delivered
+
+25 routes, ~24k lines, verified on an iPhone 17 Pro simulator against
+`api.dzduino.dz` in English and Arabic, light and dark.
+
+| Area | State |
+| --- | --- |
+| Home, collections, product detail, search | Verified on device with real data |
+| Cart, checkout (COD, Yalidine/ZRExpress stopdesk), order confirmation | Verified up to the final confirm; **no order was ever placed** |
+| Auth, account, orders, addresses | Built; auth screens verified |
+| Wishlist, compare | Built, device-local (no backend support exists) |
+| Blog, six calculators | Verified on device |
+| i18n (en/fr/ar), RTL, language switcher | Verified in Arabic |
+| Push notifications, deep links | Built; deep links verified, push needs a device |
+
+### Bugs that only running it could find
+
+Every one of these passed `tsc` and bundled cleanly:
+
+1. **`SafeAreaView` broke theming.** It renders a native spec component the
+   Unistyles Babel plugin cannot process, so its themed style resolved once and
+   never updated: dark mode left a white background under white text.
+2. **Unistyles init order.** Configuring it at the top of `_layout.tsx` was not
+   early enough, because expo-router executes route modules first. Adding one
+   import to the tab layout took down the whole app.
+3. **Hermes has no `Intl.PluralRules`.** Every pluralised string crashed its
+   screen. Node implements it, so the formatter's own tests passed.
+4. **A never-resolving skeleton.** Products with no image showed a shimmer
+   forever rather than a placeholder, which reads as a broken screen.
+5. **Dead links.** `/tools`, `/blog`, `/wishlist`, `/compare`, `/checkout` were
+   linked from the UI before they existed; `router.push` to a missing route
+   fails silently. `tests/routes.test.ts` now guards this.
+6. **Unreachable features.** Wishlist and compare were fully built but nothing
+   could add to them, and the whole catalogue rendered English literals in
+   Arabic because the i18n runtime landed after the feature work.
+
+### Not done
+
+- **SATIM payment.** Deferred by decision; the payment step is structured so
+  adding a method does not mean restructuring.
+- **Android.** Never built or run. Expect RTL and edge-to-edge differences.
+- **Store submission.** No EAS config, signing, icons or splash art.
+- **Push delivery.** No device registry on the backend, and no real device test.
+- **Customer flows against real data.** No account was registered, no order
+  placed, no existing customer's data touched.
