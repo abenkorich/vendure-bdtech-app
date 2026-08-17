@@ -218,34 +218,43 @@ Commit as you go, with messages explaining *why* a shape changed and what was
 verified.
 
 
-**Customizer banners 404 in production (server-side, not the app).** As of the
-2026-08-17 storefront deploy, GET /api/site-config returns 200 and its hero
-slides reference /customizer/banners/<id>.jpg, but those paths 404 while
-/favicon.ico and /en serve fine. The files are present in dist/client, so the
-build is correct; the running deploy is not serving them. Likely
-ASSET_UPLOAD_DIR pointing at a volume that does not contain them, since the
-route prefers it over public/.
+**Production runs the Next storefront, not the Astro one.** `x-powered-by:
+Next.js` on www.dzduino.dz. That single fact explains both app-visible
+failures, and it is why guessing at server config was wrong:
 
-The app degrades correctly here (the hero shows its brand plate and copy rather
-than a broken image), so do not "fix" this in the app. Verify with curl against
-one of the banner urls and compare to /favicon.ico.
+- `GET /api/site-config` 500s with `content-type: text/plain`. The Next app has
+  only `enter-preview` and `exit-preview` under `api/site-config`; the public
+  GET route exists **only in the Astro repo**, which is not deployed.
+- `/customizer/banners/<id>.jpg` 404s for the same reason.
+
+Verified by running the Astro build locally (`node dist/server/entry.mjs`):
+both answer 200 there, so the code is correct and the deployment is the gap.
+Do not work around either in the app; it already falls back to its bundled
+snapshot and a brand plate.
+
+Check which server is live before diagnosing anything here:
+`curl -sI https://www.dzduino.dz/en | grep x-powered-by`
 
 
-**PRODUCTION IS BROKEN: add-to-cart fails (server-side, 2026-08-17).**
+**PRODUCTION IS BROKEN: add-to-cart fails (backend, 2026-08-17).**
 `addItemToOrder` returns `column Customer.customFieldsMarketingemailoptin does
-not exist`. A `marketingEmailOptIn` custom field was added to Customer in the
-Vendure config, but the database column was never created, so the query builder
-emits SQL referencing a column that is not there.
+not exist`, so no one can buy anything on the app *or* the website. Browsing is
+unaffected, which is why the store looks healthy.
 
-Reproduce with no app involved: post an `addItemToOrder` mutation to the shop
-api and read the error. Browsing is unaffected (search and collections answer
-normally), so the storefront looks healthy while nobody can buy anything.
+Diagnosed, not guessed. The `campaign-pro` plugin declares a
+`marketingEmailOptIn` custom field on Customer; the migration that adds the
+column exists at
+`vendure-ecommerce-platform/src/migrations/1820000000000-campaign-pro-plugin.ts`
+(`ADD COLUMN IF NOT EXISTS "customFieldsMarketingemailoptin"`), and
+`vendure-config.ts` sets `synchronize: false`, so schema changes only land when
+migrations are run. It has not been run against the production database.
 
-The fix is on the backend, not here: run the pending migration, or drop the
-custom field from the Vendure config. Do not work around it in the app.
+Fix: run the pending migrations on the production Vendure instance. Nothing to
+change in the app. Reproduce with a bare `addItemToOrder` mutation against the
+shop api, no app involved.
 
-The same deploy renamed `dealProducts(options:)` from `ProductListOptions` to
-`MerchandisingListOptions`, which is already handled in `lib/vendure/rails.ts`.
-`newArrivalProducts` became callable at the same time (the new input carries
-`since`), but the rail still uses `products` sorted by createdAt, which needs
-no cutoff date and is already verified on device.
+The same day's work also renamed `dealProducts(options:)` from
+`ProductListOptions` to `MerchandisingListOptions`, handled in
+`lib/vendure/rails.ts`. `newArrivalProducts` became callable at the same time
+(the new input carries `since`), but the rail still uses `products` sorted by
+createdAt, which needs no cutoff date and is already verified on device.
