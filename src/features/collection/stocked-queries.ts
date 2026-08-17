@@ -32,6 +32,16 @@ export interface StockedCollection {
     products: readonly ProductCardData[];
 }
 
+/** Product totals per collection slug, for callers that only need the count. */
+export type CollectionTotals = Readonly<Record<string, number>>;
+
+export interface StockedCollectionsResult {
+    /** Collections worth a rail, best-stocked first. */
+    rails: StockedCollection[];
+    /** Product totals for every candidate, including the empty ones. */
+    totals: CollectionTotals;
+}
+
 export interface StockedCollectionsParams {
     /** Candidate collections, usually the children of the browsed tree. */
     candidates: readonly {slug: string; name: string; parentName?: string}[];
@@ -45,7 +55,7 @@ export function useStockedCollections({
     candidates,
     take = 8,
     limit = 4,
-}: StockedCollectionsParams): UseQueryResult<StockedCollection[], Error> {
+}: StockedCollectionsParams): UseQueryResult<StockedCollectionsResult, Error> {
     const slugs = candidates.map(candidate => candidate.slug);
 
     return useQuery({
@@ -54,7 +64,7 @@ export function useStockedCollections({
         // Which collections carry stock changes with the catalogue, not with
         // the session, so this is worth holding on to.
         staleTime: 10 * 60 * 1000,
-        queryFn: async ({signal}): Promise<StockedCollection[]> => {
+        queryFn: async ({signal}): Promise<StockedCollectionsResult> => {
             const results: Array<StockedCollection | null> = await Promise.all(
                 candidates.map(async candidate => {
                     try {
@@ -86,11 +96,22 @@ export function useStockedCollections({
                 }),
             );
 
-            return results
-                .filter((result): result is StockedCollection => result !== null)
-                .filter(result => result.totalItems > 0)
-                .sort((a, b) => b.totalItems - a.totalItems)
-                .slice(0, limit);
+            const found = results.filter(
+                (result): result is StockedCollection => result !== null,
+            );
+
+            // Totals include zeroes, so a caller can label a category honestly
+            // ("no products yet") rather than implying stock that is not there.
+            const totals: Record<string, number> = {};
+            for (const entry of found) totals[entry.slug] = entry.totalItems;
+
+            return {
+                rails: found
+                    .filter(result => result.totalItems > 0)
+                    .sort((a, b) => b.totalItems - a.totalItems)
+                    .slice(0, limit),
+                totals,
+            };
         },
     });
 }

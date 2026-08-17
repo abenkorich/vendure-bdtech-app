@@ -94,12 +94,39 @@ export default function ShopScreen() {
         router.push(`/collection/${node.slug}`);
     }, []);
 
+    /**
+     * What a category actually contains.
+     *
+     * Sub-collection count was the obvious label and the wrong one: two
+     * categories advertise eight and zero sub-collections respectively while
+     * holding *no products at all*, so the card promised a shop that isn't
+     * there. Product totals say the useful thing, and say it honestly when the
+     * answer is none.
+     *
+     * Falls back to the sub-collection count until the totals arrive, so the
+     * first paint is not blank.
+     */
     const subtitleFor = useCallback(
         (node: CollectionTreeNode) => {
-            const count = node.children?.length ?? 0;
-            return count > 0 ? `${count} ${S.subCollections}` : undefined;
+            const totals = stocked.data?.totals;
+
+            if (totals) {
+                const own = totals[node.slug] ?? 0;
+                const beneath = (node.children ?? []).reduce(
+                    (sum, child) => sum + (totals[child.slug] ?? 0),
+                    0,
+                );
+                const products = own + beneath;
+
+                if (products > 0) return t('productsCount', {count: products});
+                // Only claim emptiness once every candidate has been counted.
+                if (!stocked.isPending) return t('emptyCategory');
+            }
+
+            const children = node.children?.length ?? 0;
+            return children > 0 ? `${children} ${S.subCollections}` : undefined;
         },
-        [],
+        [stocked.data, stocked.isPending, t],
     );
 
     if (error && collections.length === 0) {
@@ -196,7 +223,7 @@ export default function ShopScreen() {
                 )}
 
                 {/* Product rails only for collections proven to have stock. */}
-                {stocked.data?.map(collection => (
+                {stocked.data?.rails?.map(collection => (
                     <ProductRail
                         key={collection.slug}
                         eyebrow={collection.parentName ?? t('pageTitle')}

@@ -31,8 +31,13 @@ export const PERSIST_KEY = 'tanstack-query-cache';
 /**
  * Bump when the persisted shape or the catalogue documents change in a way
  * that makes an old blob wrong rather than merely stale.
+ *
+ * v2: `useStockedCollections` changed its cached value from an array to
+ * `{rails, totals}`. An old blob crashed the shop screen on `data.rails.map`,
+ * which is the failure this version marker exists to prevent — the cache
+ * outlives a code change, so a shape change must invalidate it.
  */
-export const PERSIST_VERSION = 1;
+export const PERSIST_VERSION = 2;
 
 /** Older than this and a cold start refetches instead of showing stale prices. */
 export const MAX_AGE_MS = 24 * 60 * 60 * 1000;

@@ -527,7 +527,8 @@
     "viewCollection": "Tout voir",
     "subCollections": "Sous-collections",
     "empty": "Aucune collection n'est disponible pour le moment.",
-    "productsCount": "{count, plural, one {# produit} other {# produits}}"
+    "productsCount": "{count, plural, one {# produit} other {# produits}}",
+    "emptyCategory": "Bientôt disponible"
   },
   "Search": {
     "title": "Recherche",

@@ -36,7 +36,11 @@ export const queryKeys = {
     collections: () => [CATALOGUE_ROOT, 'collections'] as const,
     /** Which of a candidate set carry stock, plus a sample of each. */
     stockedCollections: (slugs: readonly string[], take: number, limit: number) =>
-        [CATALOGUE_ROOT, 'stocked-collections', slugs.join(','), take, limit] as const,
+        // `v2` because the cached shape changed from an array to
+        // {rails, totals}. The query cache is persisted to MMKV and outlives a
+        // code change, so an unversioned key hands an old array to new code
+        // and crashes on `data.rails.map`.
+        [CATALOGUE_ROOT, 'stocked-collections', 'v2', slugs.join(','), take, limit] as const,
     collectionsFlat: (params?: Record<string, unknown>) =>
         [CATALOGUE_ROOT, 'collections-flat', stableParams(params)] as const,
     collection: (slug: string, params?: Record<string, unknown>) =>

@@ -527,7 +527,8 @@
     "viewCollection": "عرض الكل",
     "subCollections": "المجموعات الفرعية",
     "empty": "لا توجد مجموعات متاحة حالياً.",
-    "productsCount": "{count, plural, zero {# منتج} one {منتج واحد} two {منتجان} few {# منتجات} many {# منتجًا} other {# منتج}}"
+    "productsCount": "{count, plural, zero {# منتج} one {منتج واحد} two {منتجان} few {# منتجات} many {# منتجًا} other {# منتج}}",
+    "emptyCategory": "قريباً"
   },
   "Search": {
     "title": "البحث",
