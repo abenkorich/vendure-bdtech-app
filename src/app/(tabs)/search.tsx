@@ -1,4 +1,5 @@
 import {useCallback, useMemo, useRef, useState} from 'react';
+import {useLocalSearchParams} from 'expo-router';
 import {Keyboard, KeyboardAvoidingView, Platform, View, type TextInput} from 'react-native';
 import {router} from 'expo-router';
 import {StyleSheet} from 'react-native-unistyles';
@@ -46,7 +47,10 @@ export default function SearchScreen() {
     const t = useTranslations('Search');
     const inputRef = useRef<TextInput>(null);
 
-    const [term, setTerm] = useState('');
+    // Seed from `?q=`, so a search is shareable and deep-linkable
+    // (dzduino://search?q=esp32) rather than only reachable by typing.
+    const {q} = useLocalSearchParams<{q?: string}>();
+    const [term, setTerm] = useState(typeof q === 'string' ? q : '');
     const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
     const [page, setPage] = useState(1);
     const [sheetOpen, setSheetOpen] = useState(false);

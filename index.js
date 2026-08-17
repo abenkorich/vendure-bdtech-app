@@ -13,5 +13,8 @@
  * Loading the configuration here, before `expo-router/entry`, makes the
  * ordering guaranteed rather than incidental.
  */
+// Intl polyfills must load before anything formats a message: Hermes has no
+// Intl.PluralRules, and our ICU formatter constructs one for any plural.
+import './src/lib/intl-polyfill';
 import './src/design/unistyles';
 import 'expo-router/entry';
