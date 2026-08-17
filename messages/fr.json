@@ -24,7 +24,11 @@
     "allDepartments": "Tous les rayons",
     "shopCategory": "Acheter {name}",
     "links": "Liens",
-    "dashboard": "Tableau de bord"
+    "dashboard": "Tableau de bord",
+    "home": "Accueil",
+    "shop": "Boutique",
+    "search": "Recherche",
+    "cart": "Panier"
   },
   "Hero": {
     "title": "Découvrez la qualité",

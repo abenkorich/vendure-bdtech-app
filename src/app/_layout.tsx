@@ -1,5 +1,5 @@
-import '@/design/unistyles';
-
+// Unistyles is configured in `index.js`, before expo-router's entry, because
+// route modules can execute before this file's body runs. Do not move it here.
 import {Stack} from 'expo-router';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {StatusBar} from 'expo-status-bar';

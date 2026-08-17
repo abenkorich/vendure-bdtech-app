@@ -6,6 +6,7 @@ import {Card} from './Card';
 import {Badge} from './Badge';
 import {Price} from './Price';
 import {Skeleton} from './Skeleton';
+import {IconSymbol} from './IconSymbol';
 
 /**
  * Product card — the unit the whole catalogue is built from.
@@ -84,7 +85,14 @@ export function ProductCard({
                         accessibilityIgnoresInvertColors
                     />
                 ) : (
-                    <Skeleton width="100%" height="100%" radius="none" />
+                    // A product with no image is a *settled* state, not a
+                    // loading one, so this must not be a Skeleton: a shimmer
+                    // that never resolves reads as a broken screen. Part of
+                    // this catalogue genuinely has no featuredAsset (verified
+                    // against the live API), so this renders regularly.
+                    <View style={styles.noImage}>
+                        <IconSymbol name="chip" size={28} color="textMuted" />
+                    </View>
                 )}
 
                 {outOfStock ? (
@@ -151,11 +159,27 @@ const styles = StyleSheet.create(theme => ({
         aspectRatio: 1,
         backgroundColor: theme.colors.surfaceElevated,
         justifyContent: 'flex-end',
+        overflow: 'hidden',
     },
     image: {
-        ...StyleSheet.absoluteFillObject,
+        // Explicit 100%/100% rather than absoluteFillObject: an absolutely
+        // positioned child of a container whose height comes from `aspectRatio`
+        // resolved to zero height here, so the image was laid out but never
+        // visible. The out-of-stock badge still needs to sit above it, hence
+        // the absolute badge slot below rather than an absolute image.
+        width: '100%',
+        height: '100%',
+    },
+    noImage: {
+        width: '100%',
+        height: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     badgeSlot: {
+        position: 'absolute',
+        bottom: 0,
+        start: 0,
         padding: theme.spacing.sm,
     },
     body: {

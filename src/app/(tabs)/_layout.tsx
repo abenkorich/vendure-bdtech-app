@@ -1,5 +1,8 @@
 import {Tabs} from 'expo-router';
+import type {ColorValue} from 'react-native';
 import {useUnistyles} from 'react-native-unistyles';
+import {IconSymbol, type IconName} from '@/components/ui';
+import {useTranslations} from '@/i18n';
 
 /**
  * Bottom tab navigation.
@@ -8,11 +11,20 @@ import {useUnistyles} from 'react-native-unistyles';
  * rather than a header icon because it is the most revisited screen in any
  * store, and burying it behind a header button costs conversions.
  *
- * Icons land with the design-system work; labels alone keep this navigable
- * in the meantime.
+ * Each tab uses its outline glyph when inactive and the filled one when
+ * active. That reads as a state change at a glance, where a color shift alone
+ * is easy to miss on a small, dark tab bar.
  */
+
+function tabIcon(base: IconName, filled: IconName) {
+    return function TabIcon({focused, color}: {focused: boolean; color: ColorValue}) {
+        return <IconSymbol name={focused ? filled : base} size={24} color={String(color)} />;
+    };
+}
+
 export default function TabsLayout() {
     const {theme} = useUnistyles();
+    const t = useTranslations('Navigation');
 
     return (
         <Tabs
@@ -25,11 +37,26 @@ export default function TabsLayout() {
                     borderTopColor: theme.colors.border,
                 },
             }}>
-            <Tabs.Screen name="index" options={{title: 'Home'}} />
-            <Tabs.Screen name="shop" options={{title: 'Shop'}} />
-            <Tabs.Screen name="search" options={{title: 'Search'}} />
-            <Tabs.Screen name="cart" options={{title: 'Cart'}} />
-            <Tabs.Screen name="account" options={{title: 'Account'}} />
+            <Tabs.Screen
+                name="index"
+                options={{title: t('home'), tabBarIcon: tabIcon('home', 'homeFilled')}}
+            />
+            <Tabs.Screen
+                name="shop"
+                options={{title: t('shop'), tabBarIcon: tabIcon('shop', 'shopFilled')}}
+            />
+            <Tabs.Screen
+                name="search"
+                options={{title: t('search'), tabBarIcon: tabIcon('search', 'searchFilled')}}
+            />
+            <Tabs.Screen
+                name="cart"
+                options={{title: t('cart'), tabBarIcon: tabIcon('cart', 'cartFilled')}}
+            />
+            <Tabs.Screen
+                name="account"
+                options={{title: t('account'), tabBarIcon: tabIcon('account', 'accountFilled')}}
+            />
         </Tabs>
     );
 }

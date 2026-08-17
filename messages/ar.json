@@ -24,7 +24,11 @@
     "allDepartments": "جميع الأقسام",
     "shopCategory": "تسوق {name}",
     "links": "روابط",
-    "dashboard": "لوحة التحكم"
+    "dashboard": "لوحة التحكم",
+    "home": "الرئيسية",
+    "shop": "المتجر",
+    "search": "بحث",
+    "cart": "السلة"
   },
   "Hero": {
     "title": "اكتشف الجودة",

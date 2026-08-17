@@ -24,7 +24,11 @@
     "tools": "Tools",
     "allDepartments": "All Departments",
     "shopCategory": "Shop {name}",
-    "links": "Links"
+    "links": "Links",
+    "home": "Home",
+    "shop": "Shop",
+    "search": "Search",
+    "cart": "Cart"
   },
   "Hero": {
     "title": "Discover Quality",
