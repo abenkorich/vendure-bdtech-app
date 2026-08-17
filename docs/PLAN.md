@@ -190,7 +190,7 @@ Following the storefront's hard-won lesson that the dangerous bugs are the
 
 ## 10. Delivered
 
-25 routes, ~24k lines, verified on an iPhone 17 Pro simulator against
+27 routes, ~26k lines, verified on an iPhone 17 Pro simulator against
 `api.dzduino.dz` in English and Arabic, light and dark.
 
 | Area | State |
@@ -224,6 +224,35 @@ Every one of these passed `tsc` and bundled cleanly:
 6. **Unreachable features.** Wishlist and compare were fully built but nothing
    could add to them, and the whole catalogue rendered English literals in
    Arabic because the i18n runtime landed after the feature work.
+
+### Bugs that only *rechecking* could find
+
+Everything above was found by running the app. A later pass re-examined three
+areas already marked verified, and found defects in all three. They are worth
+recording because each was invisible to a green build:
+
+1. **`registerForPush` had no caller.** The permission prompt was written but
+   unreachable, so no token could ever be obtained and push could not have
+   worked regardless of what the backend sent. Found by grepping for *call
+   sites* rather than definitions.
+2. **`POST_NOTIFICATIONS` was missing from the manifest.** Android 13+ requires
+   it; without it `requestPermissionsAsync` resolves to denied **only on a
+   release build**, while dev keeps working because the emulator auto-grants.
+   Found by reading the *generated* manifest, not the config that produces it.
+3. **Thirteen untranslated strings**, five of them accessibility labels. The
+   first i18n sweep matched visible text and missed props entirely, so a
+   screen-reader user in Arabic heard English next to translated copy.
+4. **Home's blog cards were inert**, deliberately so while the blog routes
+   belonged to another workstream — and never re-linked after those landed.
+5. **The launcher icon was clipped** by the adaptive-icon mask, then "fixed" to
+   clear it by 1px of 338, which is a coincidence rather than a margin.
+   `tests/adaptive-icon.test.ts` now measures the drawn geometry.
+6. **`npm run lint` had no config**, so it had never run. A lint script that
+   has never run is worse than none: it reads like a passing gate.
+
+The transferable lesson: *verified* should mean the entry point was traced to a
+caller, the generated artefact was inspected rather than its source, and the
+rendered result was measured rather than assumed.
 
 ### Not done
 
@@ -267,7 +296,7 @@ order, search terms and the logo once, and both surfaces follow.
 customizer (web)
   └─ data/site-config/published.json        on the storefront's disk
        └─ GET /api/site-config?locale=xx    added for non-web clients
-            └─ app: useSiteConfig()          network -> MMKV -> bundled 5 KB
+            └─ app: useSiteConfig()          network -> MMKV -> bundled
 ```
 
 The bundled layer is load-bearing, not a nicety: home is the first screen

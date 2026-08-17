@@ -1,10 +1,16 @@
 # Interface contracts
 
-What each parallel workstream may rely on from the others. Agents build
-against this document, not against each other's in-progress code.
+Written to let parallel workstreams build against each other before the code
+existed. **Everything below has since shipped**, so this now reads as a map of
+the seams rather than a plan: what each area owns, and what it may rely on from
+the others.
 
-Anything not listed here is private to its owning area. If you need something
-that is not in this document, add it here first.
+The boundaries still hold. If you need something across one of them, add it
+here first rather than reaching into another area's internals.
+
+The authoritative list of primitives is `src/components/ui/index.ts`, and of
+hooks, the `queries.ts` in each feature folder; where this document and the code
+disagree, the code is right.
 
 ---
 
@@ -29,7 +35,7 @@ const styles = StyleSheet.create(theme => ({ ... }));   // preferred
 const {theme} = useUnistyles();                          // when you need a value
 ```
 
-Primitives to be delivered, and their props:
+Primitives (all delivered; see `src/components/ui/index.ts`):
 
 ```ts
 <Text variant="body|title|caption|..." color="text|textMuted|brand|..." />
@@ -60,7 +66,7 @@ import {getAuthToken, setAuthToken, clearAuthToken, onAuthTokenChange}
     from '@/lib/auth/token-store';
 ```
 
-To be delivered:
+Also delivered:
 
 ```ts
 // Query keys. Every hook uses this factory; no hand-written key arrays.
