@@ -132,6 +132,10 @@ is silently not processed, and its styles will not resolve.
 after a restart. Switching to Arabic must show explicit reload UX rather than
 appearing to do nothing.
 
+**The Android emulator cannot reach Metro on the host's LAN address.** Run
+`adb reverse tcp:8081 tcp:8081` or the dev build shows a black screen with
+nothing in logcat to explain it.
+
 **Hermes lacks `Intl.PluralRules`.** Polyfilled in `src/lib/intl-polyfill.ts`,
 loaded from `index.js`. Do not remove it: without it every pluralised string
 crashes the screen rendering it, and no test catches that because Node
