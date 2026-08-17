@@ -95,8 +95,10 @@ export async function run(): Promise<void> {
         translate('fr', '', 'Collections.productsCount', {count: 1}),
         '1 produit',
     );
-    // Arabic has a dedicated dual form; Hermes lacks Intl.PluralRules, so this
-    // exercises the ported formatter that stands in for it.
+    // Arabic has a dedicated dual form. This checks the *message catalogue*
+    // has that branch and the formatter selects it; it runs on Node's ICU, so
+    // it says nothing about Hermes. The device engine is covered separately by
+    // plural-polyfill.test.ts.
     eq(
         'Arabic uses the dual form for two',
         translate('ar', '', 'Collections.productsCount', {count: 2}),

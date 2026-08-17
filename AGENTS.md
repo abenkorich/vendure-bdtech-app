@@ -164,8 +164,25 @@ nothing in logcat to explain it.
 
 **Hermes lacks `Intl.PluralRules`.** Polyfilled in `src/lib/intl-polyfill.ts`,
 loaded from `index.js`. Do not remove it: without it every pluralised string
-crashes the screen rendering it, and no test catches that because Node
-implements the API.
+crashes the screen rendering it. A test that formats a plural in Node proves
+nothing here, because Node implements the API natively; only
+`tests/plural-polyfill.test.ts` exercises the code path the device uses. It
+also catches the quieter failure, where the polyfill loads without a locale's
+data and Arabic silently falls back to English rules, turning the dual
+"منتجان" into "2 منتج".
+
+**Checking a native module is linked: match the symbol, not the word.** Counting
+symbols containing "gradient" in the app binary looks like proof and is not:
+2469 of them are RNSVG's own gradient classes, and zero contain
+"EXLinearGradient". expo-linear-gradient is Swift, so its symbols carry the
+mangled module name. `nm Dzduino.app/Dzduino.debug.dylib | grep -c
+ExpoLinearGradient` is the check that means something (174 symbols), and
+`xcrun swift-demangle` makes the result readable.
+
+On Android the equivalent is the class definition, not a word: pull the APK
+(`adb shell pm path`), unzip `classes*.dex` and grep for
+`Lexpo/modules/lineargradient/LinearGradientView;`. The dex index is not
+stable across builds, so naming a specific `classesN.dex` proves nothing.
 
 **Unistyles is configured in `index.js`, not `app/_layout.tsx`.** expo-router
 executes route modules before the root layout body, so configuring it there is
