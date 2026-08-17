@@ -117,19 +117,27 @@ directional icons flip, and switching in or out of it requires an app reload
 `tests/run.mjs` is a dependency-free harness: it bundles each `*.test.ts` with
 esbuild and runs it in Node. Run one file with `node tests/run.mjs <substring>`.
 
-19 files, covering the load-bearing and easy-to-regress rather than UI:
+20 files, covering the load-bearing and easy-to-regress rather than UI:
 
 | Area | Guards |
 | --- | --- |
 | `vendure-contract`, `data-layer-contract`, `checkout-contract` | The copied GraphQL still validates against the **live** API |
 | `messages-parity`, `format-message`, `catalogue-strings` | All three catalogs stay in sync and every string resolves |
 | `routes`, `notification-routes` | No dead links; backend-supplied paths are validated |
-| `site-config` | Merchant config survives hostile input |
+| `site-config`, `site-config-contract` | Merchant config survives hostile input, and the live endpoint still satisfies the app's schema |
 | `price-format`, `cart-math`, `tools-calculators` | Money in minor units, cart totals, calculator correctness |
 | `adaptive-icon` | The launcher icon stays inside the mask's safe zone |
 
 Tests cannot import React Native (it will not bundle for Node), which is why
 pure logic lives in plain `.ts` modules.
+
+Network-dependent tests skip rather than fail when their service is
+unreachable, so an offline run reports honestly. To exercise the site-config
+contract against a local storefront:
+
+```bash
+SITE_CONFIG_URL=http://localhost:4321 node tests/run.mjs site-config-contract
+```
 
 ## Documentation
 

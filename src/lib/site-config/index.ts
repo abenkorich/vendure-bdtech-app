@@ -39,12 +39,35 @@ interface CachedConfig {
     fetchedAt: number;
 }
 
+/**
+ * Memoised per locale.
+ *
+ * TanStack Query calls `initialData` and `initialDataUpdatedAt` separately on
+ * every mount, and each call would otherwise mean an MMKV read plus a full Zod
+ * parse. `writeCache` invalidates the entry, so this never serves a value
+ * older than the last write.
+ */
+const cacheMemo = new Map<string, CachedConfig | null>();
+
 function readCache(locale: string): CachedConfig | null {
+    const memo = cacheMemo.get(locale);
+    if (memo !== undefined) return memo;
+
+    const result = readCacheUncached(locale);
+    cacheMemo.set(locale, result);
+    return result;
+}
+
+function readCacheUncached(locale: string): CachedConfig | null {
     const raw = prefsStorage().getString(cacheKey(locale));
     if (!raw) return null;
 
     try {
         const parsed = JSON.parse(raw) as {config?: unknown; fetchedAt?: unknown};
+
+        // A blob without a timestamp predates this format. Treating it as
+        // epoch 0 rather than dropping it keeps the offline render, and the
+        // age makes it instantly stale so it is replaced on the next launch.
         return {
             config: parseSiteConfig(parsed.config),
             fetchedAt: typeof parsed.fetchedAt === 'number' ? parsed.fetchedAt : 0,
@@ -56,8 +79,11 @@ function readCache(locale: string): CachedConfig | null {
 }
 
 function writeCache(locale: string, config: AppSiteConfig): void {
+    const entry: CachedConfig = {config, fetchedAt: Date.now()};
+    cacheMemo.set(locale, entry);
+
     try {
-        prefsStorage().set(cacheKey(locale), JSON.stringify({config, fetchedAt: Date.now()}));
+        prefsStorage().set(cacheKey(locale), JSON.stringify(entry));
     } catch {
         // Storage full or unavailable. The config still works this session.
     }
