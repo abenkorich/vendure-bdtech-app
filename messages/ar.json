@@ -522,7 +522,8 @@
     "metaDescription": "استكشف جميع مجموعات المنتجات على {siteName}.",
     "viewCollection": "عرض الكل",
     "subCollections": "المجموعات الفرعية",
-    "empty": "لا توجد مجموعات متاحة حالياً."
+    "empty": "لا توجد مجموعات متاحة حالياً.",
+    "productsCount": "{count, plural, zero {# منتج} one {منتج واحد} two {منتجان} few {# منتجات} many {# منتجًا} other {# منتج}}"
   },
   "Search": {
     "title": "البحث",
@@ -756,7 +757,14 @@
       "errorMessage": "يرجى المحاولة لاحقاً أو التواصل مع الدعم إذا استمرت المشكلة.",
       "verifying": "جارٍ التحقق من البريد الإلكتروني...",
       "verifyingDesc": "يرجى الانتظار بينما نتحقق من عنوان بريدك الإلكتروني."
-    }
+    },
+    "notificationsTitle": "تحديثات الطلب",
+    "notificationsBody": "احصل على إشعار عند شحن طلبك أو خروجه للتوصيل.",
+    "notificationsEnable": "تفعيل الإشعارات",
+    "notificationsEnabled": "إشعارات الطلب مفعّلة.",
+    "notificationsDeniedBody": "الإشعارات معطّلة. يمكنك تفعيلها من إعدادات جهازك.",
+    "notificationsUnavailableTitle": "الإشعارات غير متاحة",
+    "notificationsUnavailableBody": "تعذّر تفعيل الإشعارات على هذا الجهاز. يمكنك المحاولة مرة أخرى من إعدادات جهازك."
   },
   "NotFound": {
     "title": "الصفحة غير موجودة",
@@ -862,7 +870,8 @@
     "language": "اللغة",
     "restartToApplyDirection": "يجب إعادة تشغيل التطبيق لتغيير اتجاه الواجهة.",
     "restartNow": "إعادة التشغيل الآن",
-    "back": "رجوع"
+    "back": "رجوع",
+    "loadMore": "تحميل المزيد"
   },
   "Customizer": {
     "title": "مخصّص المظهر",

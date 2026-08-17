@@ -1,6 +1,7 @@
 import {useState} from 'react';
 import {View, Pressable} from 'react-native';
 import {StyleSheet} from 'react-native-unistyles';
+import {useTranslations} from '@/i18n';
 import {Sheet, Text, IconSymbol, Divider} from '@/components/ui';
 import type {SortKey} from '@/lib/search-input';
 import {S} from '@/features/catalogue-strings';
@@ -27,6 +28,7 @@ export interface SortControlProps {
 }
 
 export function SortControl({value, onChange, totalItems}: SortControlProps) {
+    const t = useTranslations('Collections');
     const [open, setOpen] = useState(false);
     const active = SORT_OPTIONS.find(option => option.key === value) ?? SORT_OPTIONS[0];
 
@@ -34,8 +36,7 @@ export function SortControl({value, onChange, totalItems}: SortControlProps) {
         <View style={styles.bar}>
             {totalItems != null ? (
                 <Text variant="caption" color="textMuted" tabular>
-                    {/* TODO(i18n): needs a pluralised key; none exists yet. */}
-                    {`${totalItems} products`}
+                    {t('productsCount', {count: totalItems})}
                 </Text>
             ) : (
                 <View style={styles.spacer} />

@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {FlashList, type ListRenderItemInfo} from '@shopify/flash-list';
 import {Image} from 'expo-image';
 import {StyleSheet, useUnistyles} from 'react-native-unistyles';
+import {router} from 'expo-router';
 import {Card, Text, Skeleton} from '@/components/ui';
 import type {BlogRailItem} from '@/features/blog/queries';
 import {SectionHeader} from './SectionHeader';
@@ -15,10 +16,10 @@ import {S} from '@/features/catalogue-strings';
  * only metadata. It sits at the bottom of home because it is the section a
  * shopper reaches when they did not find what they came for.
  *
- * The blog routes are owned by another workstream, so the cards are not
- * navigable yet; they render as flat cards rather than fake buttons, which is
- * honest about what a tap would do. TODO: link to `/blog/[slug]` when that
- * route lands.
+ * Cards link to `/blog/[slug]`. They were deliberately inert while the blog
+ * routes belonged to another workstream and did not exist yet — a card that
+ * looks tappable and does nothing is worse than one that does not invite the
+ * tap. Those routes have since landed, so the link is live.
  */
 export interface BlogRailProps {
     posts?: readonly BlogRailItem[];
@@ -31,7 +32,12 @@ export function BlogRail({posts, isLoading = false, error = null}: BlogRailProps
 
     const renderItem = useCallback(
         ({item}: ListRenderItemInfo<BlogRailItem>) => (
-            <Card padding="none" style={styles.card} accessibilityLabel={item.title}>
+            <Card
+                padding="none"
+                style={styles.card}
+                accessibilityLabel={item.title}
+                onPress={() => router.push(`/blog/${item.slug}`)}
+            >
                 <View style={styles.media}>
                     {item.coverImageUrl ? (
                         <Image

@@ -522,7 +522,8 @@
     "metaDescription": "Explorez toutes les collections de produits sur {siteName}.",
     "viewCollection": "Tout voir",
     "subCollections": "Sous-collections",
-    "empty": "Aucune collection n'est disponible pour le moment."
+    "empty": "Aucune collection n'est disponible pour le moment.",
+    "productsCount": "{count, plural, one {# produit} other {# produits}}"
   },
   "Search": {
     "title": "Recherche",
@@ -756,7 +757,14 @@
       "errorMessage": "Veuillez réessayer plus tard ou contacter le support si le problème persiste.",
       "verifying": "Vérification de l'e-mail...",
       "verifyingDesc": "Veuillez patienter pendant que nous vérifions votre adresse e-mail."
-    }
+    },
+    "notificationsTitle": "Suivi de commande",
+    "notificationsBody": "Soyez averti lorsque votre commande est expédiée ou en cours de livraison.",
+    "notificationsEnable": "Activer les notifications",
+    "notificationsEnabled": "Les notifications de commande sont activées.",
+    "notificationsDeniedBody": "Les notifications sont désactivées. Vous pouvez les activer dans les réglages de votre appareil.",
+    "notificationsUnavailableTitle": "Notifications indisponibles",
+    "notificationsUnavailableBody": "Impossible d'activer les notifications sur cet appareil. Réessayez depuis les réglages de votre appareil."
   },
   "NotFound": {
     "title": "Page introuvable",
@@ -862,7 +870,8 @@
     "language": "Langue",
     "restartToApplyDirection": "L'application doit redémarrer pour changer le sens de la mise en page.",
     "restartNow": "Redémarrer maintenant",
-    "back": "Retour"
+    "back": "Retour",
+    "loadMore": "Voir plus"
   },
   "Customizer": {
     "title": "Personnalisation du thème",

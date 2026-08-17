@@ -522,7 +522,8 @@
     "metaDescription": "Explore all product collections at {siteName}.",
     "viewCollection": "View all",
     "subCollections": "Sub-collections",
-    "empty": "No collections are available right now."
+    "empty": "No collections are available right now.",
+    "productsCount": "{count, plural, one {# product} other {# products}}"
   },
   "Search": {
     "title": "Search",
@@ -756,7 +757,14 @@
       "errorMessage": "Please try again later or contact support if the problem persists.",
       "verifying": "Verifying Email...",
       "verifyingDesc": "Please wait while we verify your email address."
-    }
+    },
+    "notificationsTitle": "Order updates",
+    "notificationsBody": "Get notified when your order ships or is out for delivery.",
+    "notificationsEnable": "Enable notifications",
+    "notificationsEnabled": "Order notifications are on.",
+    "notificationsDeniedBody": "Notifications are turned off. You can enable them in your device settings.",
+    "notificationsUnavailableTitle": "Notifications unavailable",
+    "notificationsUnavailableBody": "We could not enable notifications on this device. You can try again from your device settings."
   },
   "NotFound": {
     "title": "Page Not Found",
@@ -862,7 +870,8 @@
     "language": "Language",
     "restartToApplyDirection": "The app needs to restart to switch the layout direction.",
     "restartNow": "Restart now",
-    "back": "Back"
+    "back": "Back",
+    "loadMore": "Load more"
   },
   "Customizer": {
     "title": "Theme customizer",

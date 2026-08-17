@@ -24,6 +24,12 @@ const config: ExpoConfig = {
 
     android: {
         package: BUNDLE_ID,
+        // Android 13+ requires an explicit runtime permission to post any
+        // notification. The expo-notifications plugin does not add it, and
+        // without it requestPermissionsAsync silently resolves to "denied" on
+        // a release build — while still appearing to work in dev, because the
+        // emulator auto-grants it.
+        permissions: ['android.permission.POST_NOTIFICATIONS'],
         adaptiveIcon: {
             foregroundImage: './assets/adaptive-icon.png',
             backgroundColor: '#0B0F14',

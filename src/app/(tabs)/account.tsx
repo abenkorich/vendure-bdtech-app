@@ -8,6 +8,7 @@ import {useOrders, useAddresses} from '@/features/account/queries';
 import {LinkRow, RowGroup, ScreenHeader} from '@/features/account/components/chrome';
 import {useT, translate} from '@/features/account/i18n';
 import {LanguageSheet} from '@/features/account/components/LanguageSheet';
+import {NotificationOptIn} from '@/features/account/components/NotificationOptIn';
 import {useLocale} from '@/i18n';
 import {localeNames} from '@/i18n/routing';
 
@@ -73,6 +74,14 @@ export default function AccountScreen() {
                 </Section>
 
                 <RecentOrders />
+
+                {/* Signed-in only: this is the one caller of registerForPush,
+                    and offering order updates to someone with no orders (and
+                    spending iOS's single permission prompt on them) is the
+                    wrong moment to ask. */}
+                <View style={styles.optIn}>
+                    <NotificationOptIn />
+                </View>
 
                 <Section title={tNav('links')}>
                     <BrowseLinks />
@@ -347,6 +356,7 @@ const styles = StyleSheet.create(theme => ({
         borderColor: theme.colors.border,
         backgroundColor: theme.colors.surface,
     },
+    optIn: {paddingHorizontal: theme.spacing.lg},
     stats: {
         flexDirection: 'row',
         gap: theme.spacing.sm,

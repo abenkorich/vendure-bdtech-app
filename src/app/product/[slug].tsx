@@ -31,7 +31,7 @@ import {
     stockState,
     type Selection,
 } from '@/features/product/variant-selection';
-import {S} from '@/features/catalogue-strings';
+import {S, tr} from '@/features/catalogue-strings';
 
 /**
  * Product detail.
@@ -159,17 +159,20 @@ export default function ProductScreen() {
             rows.push({label: group?.name ?? option.name, value: option.name});
         }
         rows.push({
-            label: 'Availability', // TODO(i18n): Filters.availability
+            label: tr('Filters.availability'),
             value: outOfStock ? S.outOfStock : state === 'low-stock' ? S.lowStock : S.inStock,
         });
         if (product?.customFields?.averageRating != null) {
             rows.push({
-                label: 'Rating', // TODO(i18n): no standalone key; Product.reviewsEyebrow is a heading
+                // Compare.rating rather than a Product key: the spec sheet and
+                // the compare table are the same kind of row and should read
+                // identically.
+                label: tr('Compare.rating'),
                 value: `${product.customFields.averageRating.toFixed(1)} / 5`,
             });
         }
         if (variants.length > 1) {
-            rows.push({label: 'Variants', value: String(variants.length)}); // TODO(i18n)
+            rows.push({label: tr('Compare.variants'), value: String(variants.length)});
         }
         return rows;
     }, [variant, outOfStock, state, product, variants.length, groups]);

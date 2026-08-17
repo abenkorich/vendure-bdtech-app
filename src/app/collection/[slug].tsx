@@ -18,7 +18,7 @@ import type {SortKey} from '@/lib/search-input';
 import {Breadcrumbs} from '@/features/collection/components/Breadcrumbs';
 import {SortControl} from '@/features/collection/components/SortControl';
 import {CollectionTile} from '@/features/collection/components/CollectionTile';
-import {S} from '@/features/catalogue-strings';
+import {S, tr} from '@/features/catalogue-strings';
 
 /**
  * Collection listing.
@@ -96,8 +96,7 @@ export default function CollectionScreen() {
 
             <View style={styles.navBar}>
                 <Button variant="ghost" size="sm" icon="chevronBack" onPress={() => router.back()}>
-                    {/* TODO(i18n): Navigation.back has no key in the catalogs yet. */}
-                    Back
+                    {tr('Common.back')}
                 </Button>
             </View>
 
@@ -159,8 +158,7 @@ export default function CollectionScreen() {
                                     onPress={loadMore}
                                     iconEnd="chevronDown"
                                 >
-                                    {/* TODO(i18n): no loadMore key in the catalogs yet. */}
-                                    Load more
+                                    {tr('Common.loadMore')}
                                 </Button>
                             </View>
                         ) : products.length > 0 ? (

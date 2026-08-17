@@ -81,6 +81,7 @@ const ICONS = {
     article: 'newspaper-outline',
     chip: 'hardware-chip-outline',
     globe: 'globe-outline',
+    bell: 'notifications-outline',
 } as const satisfies Record<string, React.ComponentProps<typeof Ionicons>['name']>;
 
 export type IconName = keyof typeof ICONS;

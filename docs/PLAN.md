@@ -238,7 +238,10 @@ Every one of these passed `tsc` and bundled cleanly:
   different ICU data. Both are correct for ar-DZ; pick one explicitly if
   consistency matters.
 - **Store submission.** No EAS config, signing, icons or splash art.
-- **Push delivery.** No device registry on the backend, and remote delivery is
+- **Push delivery.** The opt-in exists in the account screen and the Android
+  permission is declared, but `getExpoPushTokenAsync` needs an EAS project id,
+  so no token can be obtained until the pre-ship pass. No device registry on
+  the backend, and remote delivery is
   untested: an emulator cannot receive a real push. What *was* tested is the
   half that actually breaks — a scheduled local notification travels the same
   listener path, so tap routing, payload validation and the cold-start case are

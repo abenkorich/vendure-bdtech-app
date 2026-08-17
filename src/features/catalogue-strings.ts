@@ -87,3 +87,12 @@ export const S = Object.defineProperties(
         ]),
     ),
 );
+
+/**
+ * One-off lookup by full message path, for a string that has a key but no
+ * entry in the table above (a spec-sheet row label, say). Resolves through the
+ * active locale on every call, same as `S`.
+ */
+export function tr(path: string): string {
+    return translate(getLocale(), '', path);
+}

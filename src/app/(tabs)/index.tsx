@@ -8,7 +8,7 @@ import {useBlogRail} from '@/features/blog/queries';
 import {ProductRail} from '@/features/home/components/ProductRail';
 import {CategoryGrid} from '@/features/home/components/CategoryGrid';
 import {BlogRail} from '@/features/home/components/BlogRail';
-import {S} from '@/features/catalogue-strings';
+import {S, tr} from '@/features/catalogue-strings';
 
 /**
  * Home.
@@ -52,8 +52,7 @@ export default function HomeScreen() {
                 <Text variant="micro" color="brand" uppercase>
                     Dzduino
                 </Text>
-                {/* TODO(i18n): Home.pageTitle */}
-                <Text variant="title">Your One-Stop Electronics Shop</Text>
+                <Text variant="title">{tr('Home.pageTitle')}</Text>
             </View>
 
             {allFailed ? (
