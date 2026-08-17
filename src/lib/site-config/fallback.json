@@ -1,0 +1,175 @@
+{
+  "hero": {
+    "autoplay": true,
+    "intervalMs": 3000,
+    "showDots": true,
+    "slides": [
+      {
+        "id": "flagship",
+        "enabled": true,
+        "imageUrl": "/customizer/banners/0c44dbc3-d3dc-4e7c-bbc1-53cddfadaa93.jpg",
+        "align": "left",
+        "theme": "dark",
+        "overlayOpacity": 0.45,
+        "copy": {
+          "en": {
+            "eyebrow": "From Nvidia",
+            "title": "AI Powred developemnt Kit",
+            "subtitle": "Discover a curated collection of premium Nvidia devices engineered for makers.",
+            "ctaLabel": "Shop the collection",
+            "ctaUrl": "/nvidia",
+            "secondaryCtaLabel": "Explore",
+            "secondaryCtaUrl": "product/jetson-nano-developer-kit-4gb-16gb-emmc"
+          },
+          "de": {
+            "eyebrow": "Neue Saison",
+            "title": "Technologie, perfektioniert.",
+            "subtitle": "Entdecke eine kuratierte Auswahl an Premium-Geräten für deinen Alltag.",
+            "ctaLabel": "Zur Kollektion",
+            "ctaUrl": "/search",
+            "secondaryCtaLabel": "Angebote ansehen",
+            "secondaryCtaUrl": "/search"
+          },
+          "fr": {
+            "eyebrow": "Nouvelle saison",
+            "title": "Technologie, raffinée.",
+            "subtitle": "Découvrez une collection soigneusement sélectionnée de dispositifs Nvidia haut de gamme conçus pour les créateurs.",
+            "ctaLabel": "Acheter la collection",
+            "ctaUrl": "/search",
+            "secondaryCtaLabel": "Explorer les offres",
+            "secondaryCtaUrl": "/search"
+          },
+          "ar": {
+            "eyebrow": "الموسم الجديد",
+            "title": "تكنولوجيا، مصقولة.",
+            "subtitle": "اكتشف مجموعة مختارة من أجهزة Nvidia المتميزة المصممة للمبدعين.",
+            "ctaLabel": "تسوق المجموعة",
+            "ctaUrl": "/search",
+            "secondaryCtaLabel": "استكشاف العروض",
+            "secondaryCtaUrl": "/search"
+          }
+        }
+      },
+      {
+        "id": "audio",
+        "enabled": true,
+        "imageUrl": "/customizer/banners/a714db07-834f-4377-b111-07f0b6569fa4.jpg",
+        "align": "left",
+        "theme": "dark",
+        "overlayOpacity": 0.45,
+        "copy": {
+          "en": {
+            "eyebrow": "Immersive sound",
+            "title": "Hear every detail.",
+            "subtitle": "Studio-grade audio that disappears into the experience. Pure, powerful, personal.",
+            "ctaLabel": "Shop audio",
+            "ctaUrl": "/search?q=headphones",
+            "secondaryCtaLabel": "",
+            "secondaryCtaUrl": ""
+          },
+          "de": {
+            "eyebrow": "Immersiver Klang",
+            "title": "Höre jedes Detail.",
+            "subtitle": "Audio in Studioqualität, das im Erlebnis verschwindet. Pur, kraftvoll, persönlich.",
+            "ctaLabel": "Audio entdecken",
+            "ctaUrl": "/search?q=headphones",
+            "secondaryCtaLabel": "",
+            "secondaryCtaUrl": ""
+          },
+          "fr": {
+            "eyebrow": "Immersive sound",
+            "title": "Hear every detail.",
+            "subtitle": "Studio-grade audio that disappears into the experience. Pure, powerful, personal.",
+            "ctaLabel": "Shop audio",
+            "ctaUrl": "/search?q=headphones",
+            "secondaryCtaLabel": "",
+            "secondaryCtaUrl": ""
+          },
+          "ar": {
+            "eyebrow": "Immersive sound",
+            "title": "Hear every detail.",
+            "subtitle": "Studio-grade audio that disappears into the experience. Pure, powerful, personal.",
+            "ctaLabel": "Shop audio",
+            "ctaUrl": "/search?q=headphones",
+            "secondaryCtaLabel": "",
+            "secondaryCtaUrl": ""
+          }
+        }
+      },
+      {
+        "id": "workspace",
+        "enabled": true,
+        "imageUrl": "/customizer/banners/18f5a136-72d1-47fc-91d7-dc9572c2e6aa.jpg",
+        "align": "left",
+        "theme": "dark",
+        "overlayOpacity": 0.45,
+        "copy": {
+          "en": {
+            "eyebrow": "Build your setup",
+            "title": "Your workspace, elevated.",
+            "subtitle": "From ultrabooks to ultrawide displays — everything you need to do your best work.",
+            "ctaLabel": "Shop computing",
+            "ctaUrl": "/search?q=laptop",
+            "secondaryCtaLabel": "",
+            "secondaryCtaUrl": ""
+          },
+          "de": {
+            "eyebrow": "Dein Setup",
+            "title": "Dein Arbeitsplatz, neu definiert.",
+            "subtitle": "Von Ultrabooks bis Ultrawide-Displays – alles für deine beste Arbeit.",
+            "ctaLabel": "Computer entdecken",
+            "ctaUrl": "/search?q=laptop",
+            "secondaryCtaLabel": "",
+            "secondaryCtaUrl": ""
+          },
+          "fr": {
+            "eyebrow": "Build your setup",
+            "title": "Your workspace, elevated.",
+            "subtitle": "From ultrabooks to ultrawide displays — everything you need to do your best work.",
+            "ctaLabel": "Shop computing",
+            "ctaUrl": "/search?q=laptop",
+            "secondaryCtaLabel": "",
+            "secondaryCtaUrl": ""
+          },
+          "ar": {
+            "eyebrow": "Build your setup",
+            "title": "Your workspace, elevated.",
+            "subtitle": "From ultrabooks to ultrawide displays — everything you need to do your best work.",
+            "ctaLabel": "Shop computing",
+            "ctaUrl": "/search?q=laptop",
+            "secondaryCtaLabel": "",
+            "secondaryCtaUrl": ""
+          }
+        }
+      }
+    ]
+  },
+  "popularCategories": {
+    "collectionSlugs": [
+      "electronique-developpement",
+      "sensors-modules",
+      "electronic-components",
+      "robotics",
+      "rc-drones"
+    ],
+    "featuredSlug": "electronique-developpement",
+    "showViewMore": true
+  },
+  "search": {
+    "popularTerms": [
+      "arduino",
+      "raspberry pi"
+    ],
+    "categorySlugs": [
+      "electronic-components-350",
+      "sensors-amp-modules-60",
+      "raspberry-pi-100",
+      "original-arduino-40"
+    ]
+  },
+  "header": {
+    "showSiteName": false,
+    "siteName": "you have the skills, we have the tools",
+    "logoUrl": "/customizer/banners/1205f3f9-7909-45d3-8fc6-4440c5ba1c91.png"
+  }
+}
