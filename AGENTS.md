@@ -151,6 +151,13 @@ dump` gives exact coordinates. Estimating a button's position from a
 screenshot wastes a lot of time looking like a broken button when the tap
 simply landed on empty space.
 
+**Adding a native module needs `pod install` on iOS, not just a rebuild.**
+`npx expo run:ios` can reuse a cached workspace and produce an app *without*
+the new pod, which then crashes at the first use of that module. Run
+`cd ios && pod install` after adding one. Note that most Expo pods link
+statically, so `ls Dzduino.app/Frameworks` is the wrong way to check whether
+one is present; look for `-l<PodName>` in the build log instead.
+
 **The Android emulator cannot reach Metro on the host's LAN address.** Run
 `adb reverse tcp:8081 tcp:8081` or the dev build shows a black screen with
 nothing in logcat to explain it.
