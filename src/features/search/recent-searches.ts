@@ -1,7 +1,7 @@
 import {useCallback, useSyncExternalStore} from 'react';
 import {prefsStorage} from '@/lib/storage/mmkv';
-export {mergeRecent} from './recent-core';
 import {mergeRecent} from './recent-core';
+export {mergeRecent} from './recent-core';
 
 /**
  * Recent searches, persisted to the *prefs* MMKV instance.

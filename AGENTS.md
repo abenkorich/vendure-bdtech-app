@@ -51,7 +51,8 @@ stateful things: price, stock, CTAs, focus. Never a large decorative fill.
 directional layout (rows, icons, chevrons, animations, swipes) must be checked
 in Arabic. See RTL below.
 
-**7. `npm run check` and `npm test` stay clean.** Both before every commit.
+**7. `npm run check`, `npm test` and `npm run lint` stay clean.** All three
+before every commit. Lint is at 0 errors and 0 warnings; keep it there.
 
 ---
 
@@ -63,6 +64,7 @@ npm install
 npm run ios             # or: npm run android
 npm run check           # tsc --noEmit, must be 0 errors
 npm test                # must be all green
+npm run lint            # must be 0 errors and 0 warnings
 ```
 
 **A dev build is required, not Expo Go.** Unistyles, MMKV, Reanimated and

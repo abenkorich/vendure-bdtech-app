@@ -1,7 +1,6 @@
 import {useEffect, useRef, useState, type ReactNode} from 'react';
-import {QueryClientProvider} from '@tanstack/react-query';
+import {QueryClientProvider,focusManager, onlineManager} from '@tanstack/react-query';
 import {AppState, type AppStateStatus} from 'react-native';
-import {focusManager, onlineManager} from '@tanstack/react-query';
 import {queryClient} from '@/lib/query-client';
 import {restorePersistedCache, startPersistingCache} from '@/lib/persist-query-cache';
 import {startAuthCacheSync} from '@/lib/auth/auth-cache-sync';

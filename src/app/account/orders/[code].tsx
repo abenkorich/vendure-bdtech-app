@@ -153,7 +153,7 @@ export default function OrderDetailScreen() {
                         ]
                             .filter(Boolean)
                             .map((row, index) => (
-                                // eslint-disable-next-line react/no-array-index-key -- static address lines
+                                 
                                 <Text key={index} variant="caption" color="textMuted">
                                     {row}
                                 </Text>

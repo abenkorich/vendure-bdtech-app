@@ -65,7 +65,6 @@ export default function ProductScreen() {
     const tWishlist = useTranslations('Wishlist');
     const tCompare = useTranslations('Compare');
     const tProduct = useTranslations('Product');
-    const tCommon = useTranslations('Common');
 
     const groups = useMemo(
         () => (product ? getDisplayOptionGroups(product) : []),

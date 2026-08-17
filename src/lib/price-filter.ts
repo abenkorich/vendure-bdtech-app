@@ -2,6 +2,13 @@ import {query} from '@/lib/vendure/api';
 import {SearchProductsQuery, SearchPriceBoundQuery} from '@/lib/vendure/queries';
 import type {SearchInputParams, PriceFilter} from '@/lib/search-helpers';
 
+import {
+    lowestPrice,
+    highestPrice,
+    matchesPriceFilter,
+    type PriceValue,
+} from '@/lib/price-predicates';
+
 /**
  * Price support for the collection/search filter pane.
  *
@@ -28,13 +35,6 @@ const UNPAGINATED_TAKE = 5000;
 // and therefore cannot be bundled for Node. Re-exported so call sites and the
 // diff against the web storefront stay unchanged.
 export {
-    lowestPrice,
-    highestPrice,
-    matchesPriceFilter,
-    type PriceValue,
-} from '@/lib/price-predicates';
-
-import {
     lowestPrice,
     highestPrice,
     matchesPriceFilter,

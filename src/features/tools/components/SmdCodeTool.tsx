@@ -1,5 +1,5 @@
 import {useMemo, useState} from 'react';
-import {TextInput, View} from 'react-native';
+import {TextInput} from 'react-native';
 import {StyleSheet, useUnistyles} from 'react-native-unistyles';
 import {Text} from '@/components/ui';
 import {Segmented} from '@/features/account/components/chrome';

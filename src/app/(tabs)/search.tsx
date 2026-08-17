@@ -1,7 +1,6 @@
 import {useCallback, useMemo, useRef, useState} from 'react';
-import {useLocalSearchParams} from 'expo-router';
+import {useLocalSearchParams,router} from 'expo-router';
 import {Keyboard, KeyboardAvoidingView, Platform, View, type TextInput} from 'react-native';
-import {router} from 'expo-router';
 import {StyleSheet} from 'react-native-unistyles';
 import {Screen, Text, Button} from '@/components/ui';
 import {

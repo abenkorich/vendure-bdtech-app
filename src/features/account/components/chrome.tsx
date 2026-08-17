@@ -178,7 +178,7 @@ export function RowGroup({children}: {children: React.ReactNode}) {
     return (
         <View style={styles.group}>
             {items.map((child, index) => (
-                // eslint-disable-next-line react/no-array-index-key -- static rows
+                 
                 <View key={index}>
                     {index > 0 ? <Divider inset="lg" /> : null}
                     {child}

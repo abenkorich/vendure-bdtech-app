@@ -1,7 +1,6 @@
-import type {ResultOf} from '@/graphql';
+import type {ResultOf,FragmentOf} from '@/graphql';
 import {readFragment} from '@/graphql';
 import {ProductCardFragment, SearchOverlayFragment} from '@/lib/vendure/fragments';
-import type {FragmentOf} from '@/graphql';
 import {
     GetActiveOrderQuery,
     GetActiveOrderForCheckoutQuery,
