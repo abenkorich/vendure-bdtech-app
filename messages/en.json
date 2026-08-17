@@ -277,7 +277,8 @@
     "nameDesc": "Name: Z to A",
     "priceAsc": "Price: Low to High",
     "priceDesc": "Price: High to Low",
-    "placeholder": "Sort by"
+    "placeholder": "Sort by",
+    "relevance": "Relevance"
   },
   "Filters": {
     "title": "Filters",
@@ -289,7 +290,10 @@
     "price": "Price",
     "resetPrice": "Reset price",
     "minPrice": "Min",
-    "maxPrice": "Max"
+    "maxPrice": "Max",
+    "apply": "Show results",
+    "sortTitle": "Sort by",
+    "anyPrice": "Any price"
   },
   "Cart": {
     "title": "Shopping Cart",
@@ -505,7 +509,19 @@
     "pressEnterToSearch": "Press Enter or tap below to search the full catalog.",
     "inStock": "In stock",
     "outOfStock": "Out of stock",
-    "close": "Close"
+    "close": "Close",
+    "startTitle": "Search the catalogue",
+    "startHint": "Find boards, sensors, modules and components by name, brand or reference.",
+    "resultsCount": "{count, plural, one {# result} other {# results}}",
+    "noResultsFor": "No results for \"{query}\"",
+    "noResultsHint": "Check the spelling, try a shorter or more general word, or remove a filter.",
+    "suggestionsTitle": "Try one of these",
+    "clearQuery": "Clear search",
+    "clearFilters": "Clear filters",
+    "errorTitle": "Search didn't load",
+    "errorMessage": "We could not reach the store. Check your connection and try again.",
+    "retry": "Try again",
+    "loadMore": "Load more"
   },
   "Merchandising": {
     "dealsTitle": "Deals",

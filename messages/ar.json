@@ -277,7 +277,8 @@
     "nameDesc": "الاسم: ي إلى أ",
     "priceAsc": "السعر: من الأقل إلى الأعلى",
     "priceDesc": "السعر: من الأعلى إلى الأقل",
-    "placeholder": "ترتيب حسب"
+    "placeholder": "ترتيب حسب",
+    "relevance": "الصلة"
   },
   "Filters": {
     "title": "الفلاتر",
@@ -289,7 +290,10 @@
     "price": "السعر",
     "resetPrice": "إعادة تعيين السعر",
     "minPrice": "الأدنى",
-    "maxPrice": "الأعلى"
+    "maxPrice": "الأعلى",
+    "apply": "عرض النتائج",
+    "sortTitle": "ترتيب حسب",
+    "anyPrice": "كل الأسعار"
   },
   "Cart": {
     "title": "سلة التسوق",
@@ -505,7 +509,19 @@
     "pressEnterToSearch": "اضغط Enter أو انقر أدناه للبحث في كامل المتجر.",
     "inStock": "متوفر",
     "outOfStock": "غير متوفر",
-    "close": "إغلاق"
+    "close": "إغلاق",
+    "startTitle": "ابحث في الفهرس",
+    "startHint": "ابحث عن اللوحات والحساسات والوحدات والمكونات بالاسم أو العلامة التجارية أو المرجع.",
+    "resultsCount": "{count, plural, one {نتيجة واحدة} other {# نتائج}}",
+    "noResultsFor": "لا توجد نتائج لـ \"{query}\"",
+    "noResultsHint": "تحقق من الإملاء، أو جرّب كلمة أقصر أو أعم، أو أزل أحد الفلاتر.",
+    "suggestionsTitle": "جرّب أحد هذه",
+    "clearQuery": "مسح البحث",
+    "clearFilters": "مسح الفلاتر",
+    "errorTitle": "تعذر تحميل البحث",
+    "errorMessage": "تعذر الوصول إلى المتجر. تحقق من اتصالك وحاول مرة أخرى.",
+    "retry": "حاول مرة أخرى",
+    "loadMore": "عرض المزيد"
   },
   "Merchandising": {
     "dealsTitle": "العروض",

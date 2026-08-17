@@ -277,7 +277,8 @@
     "nameDesc": "Nom : Z à A",
     "priceAsc": "Prix : croissant",
     "priceDesc": "Prix : décroissant",
-    "placeholder": "Trier par"
+    "placeholder": "Trier par",
+    "relevance": "Pertinence"
   },
   "Filters": {
     "title": "Filtres",
@@ -289,7 +290,10 @@
     "price": "Prix",
     "resetPrice": "Reinitialiser le prix",
     "minPrice": "Min",
-    "maxPrice": "Max"
+    "maxPrice": "Max",
+    "apply": "Afficher les résultats",
+    "sortTitle": "Trier par",
+    "anyPrice": "Tous les prix"
   },
   "Cart": {
     "title": "Panier",
@@ -505,7 +509,19 @@
     "pressEnterToSearch": "Appuyez sur Entrée ou touchez ci-dessous pour parcourir tout le catalogue.",
     "inStock": "En stock",
     "outOfStock": "Rupture de stock",
-    "close": "Fermer"
+    "close": "Fermer",
+    "startTitle": "Rechercher dans le catalogue",
+    "startHint": "Trouvez cartes, capteurs, modules et composants par nom, marque ou référence.",
+    "resultsCount": "{count, plural, one {# résultat} other {# résultats}}",
+    "noResultsFor": "Aucun résultat pour « {query} »",
+    "noResultsHint": "Vérifiez l'orthographe, essayez un mot plus court ou plus général, ou retirez un filtre.",
+    "suggestionsTitle": "Essayez plutôt",
+    "clearQuery": "Effacer la recherche",
+    "clearFilters": "Effacer les filtres",
+    "errorTitle": "La recherche n'a pas pu être chargée",
+    "errorMessage": "Impossible de joindre la boutique. Vérifiez votre connexion et réessayez.",
+    "retry": "Réessayer",
+    "loadMore": "Voir plus"
   },
   "Merchandising": {
     "dealsTitle": "Promotions",

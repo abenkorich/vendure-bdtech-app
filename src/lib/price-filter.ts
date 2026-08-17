@@ -23,34 +23,23 @@ import type {SearchInputParams, PriceFilter} from '@/lib/search-helpers';
 /** Upper bound for the "fetch everything then filter" pass. */
 const UNPAGINATED_TAKE = 5000;
 
-/**
- * `PriceRange | SinglePrice` flattened into one optional shape. A discriminated
- * union would be more precise, but the generated gql-tada types already model
- * that and callers only ever need the numeric span, so this stays structural.
- */
-type PriceValue = {min?: number; max?: number; value?: number; __typename?: string};
+// The pure predicates live in `price-predicates.ts` so they can be unit-tested:
+// this module imports the API client, which transitively pulls in react-native
+// and therefore cannot be bundled for Node. Re-exported so call sites and the
+// diff against the web storefront stay unchanged.
+export {
+    lowestPrice,
+    highestPrice,
+    matchesPriceFilter,
+    type PriceValue,
+} from '@/lib/price-predicates';
 
-/** Lowest price a result can be bought at, in minor units. */
-export function lowestPrice(price: PriceValue): number {
-    if (typeof price?.min === 'number') return price.min;
-    return typeof price?.value === 'number' ? price.value : 0;
-}
-
-/** Highest price a result can be bought at, in minor units. */
-export function highestPrice(price: PriceValue): number {
-    if (typeof price?.max === 'number') return price.max;
-    return typeof price?.value === 'number' ? price.value : 0;
-}
-
-/**
- * A product matches when its price span overlaps the selected window, so a
- * variant-priced product stays visible if *any* variant falls inside it.
- */
-export function matchesPriceFilter(price: PriceValue, filter: PriceFilter): boolean {
-    const min = filter.min ?? Number.NEGATIVE_INFINITY;
-    const max = filter.max ?? Number.POSITIVE_INFINITY;
-    return highestPrice(price) >= min && lowestPrice(price) <= max;
-}
+import {
+    lowestPrice,
+    highestPrice,
+    matchesPriceFilter,
+    type PriceValue,
+} from '@/lib/price-predicates';
 
 export interface PriceBounds {
     min: number;
