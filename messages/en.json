@@ -28,7 +28,9 @@
     "home": "Home",
     "shop": "Shop",
     "search": "Search",
-    "cart": "Cart"
+    "cart": "Cart",
+    "notifications": "Notifications",
+    "messages": "Messages"
   },
   "Hero": {
     "title": "Discover Quality",
@@ -559,7 +561,11 @@
     "errorTitle": "Search didn't load",
     "errorMessage": "We could not reach the store. Check your connection and try again.",
     "retry": "Try again",
-    "loadMore": "Load more"
+    "loadMore": "Load more",
+    "searchForTerm": "Search for {term}",
+    "imageSearch": "Search by image",
+    "imageSearchSoonTitle": "Search by image",
+    "imageSearchSoonBody": "Point your camera at a component to find it. Coming soon."
   },
   "Merchandising": {
     "dealsTitle": "Deals",
@@ -766,7 +772,11 @@
     "notificationsEnabled": "Order notifications are on.",
     "notificationsDeniedBody": "Notifications are turned off. You can enable them in your device settings.",
     "notificationsUnavailableTitle": "Notifications unavailable",
-    "notificationsUnavailableBody": "We could not enable notifications on this device. You can try again from your device settings."
+    "notificationsUnavailableBody": "We could not enable notifications on this device. You can try again from your device settings.",
+    "notificationsEmptyBody": "You have no notifications yet. Order updates will appear here once you've placed an order.",
+    "notificationsSignInHint": "Sign in to get updates about your orders.",
+    "messagesIntro": "Need help with an order? Get in touch and our team will get back to you.",
+    "messagesOrderHint": "Have your order number ready so we can help faster."
   },
   "NotFound": {
     "title": "Page Not Found",

@@ -74,6 +74,8 @@ const LINKED_PATHS = [
     '/account/addresses',
     '/wishlist',
     '/compare',
+    '/notifications',
+    '/messages',
     '/tools',
     '/tools/ohms-law',
     '/blog',

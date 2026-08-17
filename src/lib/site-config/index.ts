@@ -33,12 +33,22 @@ function cacheKey(locale: string): string {
     return `${CACHE_KEY}_${locale}`;
 }
 
-function readCache(locale: string): AppSiteConfig | null {
+interface CachedConfig {
+    config: AppSiteConfig;
+    /** Epoch ms. Without this the cache would look permanently fresh. */
+    fetchedAt: number;
+}
+
+function readCache(locale: string): CachedConfig | null {
     const raw = prefsStorage().getString(cacheKey(locale));
     if (!raw) return null;
 
     try {
-        return parseSiteConfig(JSON.parse(raw));
+        const parsed = JSON.parse(raw) as {config?: unknown; fetchedAt?: unknown};
+        return {
+            config: parseSiteConfig(parsed.config),
+            fetchedAt: typeof parsed.fetchedAt === 'number' ? parsed.fetchedAt : 0,
+        };
     } catch {
         // A corrupt blob is not worth reporting: it just means one refetch.
         return null;
@@ -47,7 +57,7 @@ function readCache(locale: string): AppSiteConfig | null {
 
 function writeCache(locale: string, config: AppSiteConfig): void {
     try {
-        prefsStorage().set(cacheKey(locale), JSON.stringify(config));
+        prefsStorage().set(cacheKey(locale), JSON.stringify({config, fetchedAt: Date.now()}));
     } catch {
         // Storage full or unavailable. The config still works this session.
     }
@@ -104,7 +114,13 @@ export function useSiteConfig(): UseQueryResult<AppSiteConfig, Error> & {
         // Merchandising changes rarely, and a stale hero is harmless.
         staleTime: 15 * 60 * 1000,
         gcTime: 7 * 24 * 60 * 60 * 1000,
-        initialData: () => readCache(locale) ?? undefined,
+        initialData: () => readCache(locale)?.config,
+        // Without this, `initialData` is treated as fetched *now*, so a cached
+        // config would look fresh for the whole staleTime and the app would
+        // never refetch on launch. A merchant's published change would then
+        // take 15 minutes to appear, which reads as the customizer being
+        // broken.
+        initialDataUpdatedAt: () => readCache(locale)?.fetchedAt,
         retry: 1,
     });
 

@@ -28,7 +28,9 @@
     "home": "الرئيسية",
     "shop": "المتجر",
     "search": "بحث",
-    "cart": "السلة"
+    "cart": "السلة",
+    "notifications": "الإشعارات",
+    "messages": "الرسائل"
   },
   "Hero": {
     "title": "اكتشف الجودة",
@@ -559,7 +561,11 @@
     "errorTitle": "تعذر تحميل البحث",
     "errorMessage": "تعذر الوصول إلى المتجر. تحقق من اتصالك وحاول مرة أخرى.",
     "retry": "حاول مرة أخرى",
-    "loadMore": "عرض المزيد"
+    "loadMore": "عرض المزيد",
+    "searchForTerm": "ابحث عن {term}",
+    "imageSearch": "البحث بالصورة",
+    "imageSearchSoonTitle": "البحث بالصورة",
+    "imageSearchSoonBody": "وجّه الكاميرا نحو قطعة للعثور عليها. قريباً."
   },
   "Merchandising": {
     "dealsTitle": "العروض",
@@ -766,7 +772,11 @@
     "notificationsEnabled": "إشعارات الطلب مفعّلة.",
     "notificationsDeniedBody": "الإشعارات معطّلة. يمكنك تفعيلها من إعدادات جهازك.",
     "notificationsUnavailableTitle": "الإشعارات غير متاحة",
-    "notificationsUnavailableBody": "تعذّر تفعيل الإشعارات على هذا الجهاز. يمكنك المحاولة مرة أخرى من إعدادات جهازك."
+    "notificationsUnavailableBody": "تعذّر تفعيل الإشعارات على هذا الجهاز. يمكنك المحاولة مرة أخرى من إعدادات جهازك.",
+    "notificationsEmptyBody": "لا توجد إشعارات بعد. ستظهر تحديثات طلبك هنا بعد إتمام عملية شراء.",
+    "notificationsSignInHint": "سجّل الدخول لمتابعة تحديثات طلباتك.",
+    "messagesIntro": "هل تحتاج مساعدة بخصوص طلب؟ تواصل معنا وسيرد عليك فريقنا.",
+    "messagesOrderHint": "جهّز رقم طلبك لنساعدك بسرعة أكبر."
   },
   "NotFound": {
     "title": "الصفحة غير موجودة",

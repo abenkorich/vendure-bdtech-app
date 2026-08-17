@@ -123,6 +123,18 @@ invisible to `tsc` and shows up as an empty screen at runtime.
 
 ## Gotchas
 
+**Site config comes from the web storefront.** The home screen's hero,
+categories, search terms and logo are the merchant's customizer settings,
+served by `GET /api/site-config` on the storefront and cached in MMKV with a
+bundled fallback (`src/lib/site-config/`). Point `EXPO_PUBLIC_SITE_URL` at a
+running storefront to see live config; without one the app renders the bundled
+snapshot, which is the intended behaviour rather than a failure.
+
+**Anything from site config is a web-root-relative path.** Banner and logo URLs
+look like `/customizer/banners/x.jpg` and resolve to nothing on a device. Always
+put them through `absoluteAsset()`; forgetting it renders a blank image with no
+error.
+
 **`EXPO_PUBLIC_*` is inlined at build time.** Changing one needs a bundler
 restart, not a reload. And it is readable by anyone who unpacks the app, so no
 secret ever goes behind that prefix.

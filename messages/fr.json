@@ -28,7 +28,9 @@
     "home": "Accueil",
     "shop": "Boutique",
     "search": "Recherche",
-    "cart": "Panier"
+    "cart": "Panier",
+    "notifications": "Notifications",
+    "messages": "Messages"
   },
   "Hero": {
     "title": "Découvrez la qualité",
@@ -559,7 +561,11 @@
     "errorTitle": "La recherche n'a pas pu être chargée",
     "errorMessage": "Impossible de joindre la boutique. Vérifiez votre connexion et réessayez.",
     "retry": "Réessayer",
-    "loadMore": "Voir plus"
+    "loadMore": "Voir plus",
+    "searchForTerm": "Rechercher {term}",
+    "imageSearch": "Recherche par image",
+    "imageSearchSoonTitle": "Recherche par image",
+    "imageSearchSoonBody": "Pointez votre caméra vers un composant pour le trouver. Bientôt disponible."
   },
   "Merchandising": {
     "dealsTitle": "Promotions",
@@ -766,7 +772,11 @@
     "notificationsEnabled": "Les notifications de commande sont activées.",
     "notificationsDeniedBody": "Les notifications sont désactivées. Vous pouvez les activer dans les réglages de votre appareil.",
     "notificationsUnavailableTitle": "Notifications indisponibles",
-    "notificationsUnavailableBody": "Impossible d'activer les notifications sur cet appareil. Réessayez depuis les réglages de votre appareil."
+    "notificationsUnavailableBody": "Impossible d'activer les notifications sur cet appareil. Réessayez depuis les réglages de votre appareil.",
+    "notificationsEmptyBody": "Vous n'avez pas encore de notifications. Le suivi de vos commandes apparaîtra ici.",
+    "notificationsSignInHint": "Connectez-vous pour suivre vos commandes.",
+    "messagesIntro": "Besoin d'aide pour une commande ? Contactez-nous et notre équipe vous répondra.",
+    "messagesOrderHint": "Munissez-vous de votre numéro de commande pour un traitement plus rapide."
   },
   "NotFound": {
     "title": "Page introuvable",

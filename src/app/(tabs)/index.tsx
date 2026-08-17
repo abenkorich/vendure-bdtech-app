@@ -1,14 +1,21 @@
 import {useCallback} from 'react';
-import {RefreshControl, ScrollView, View} from 'react-native';
+import {Alert, RefreshControl, ScrollView} from 'react-native';
 import {StyleSheet, useUnistyles} from 'react-native-unistyles';
-import {Screen, Text, EmptyState} from '@/components/ui';
+import {Screen, EmptyState} from '@/components/ui';
 import {useDeals, useNewArrivals} from '@/features/home/queries';
 import {useCollections} from '@/features/collection/queries';
 import {useBlogRail} from '@/features/blog/queries';
 import {ProductRail} from '@/features/home/components/ProductRail';
 import {CategoryGrid} from '@/features/home/components/CategoryGrid';
 import {BlogRail} from '@/features/home/components/BlogRail';
-import {S, tr} from '@/features/catalogue-strings';
+import {HomeHeader} from '@/features/home/components/HomeHeader';
+import {SearchBar} from '@/features/home/components/SearchBar';
+import {CategoryStrip} from '@/features/home/components/CategoryStrip';
+import {HeroSlider} from '@/features/home/components/HeroSlider';
+import {useSiteConfig} from '@/lib/site-config';
+import {env} from '@/lib/env';
+import {useTranslations} from '@/i18n';
+import {S} from '@/features/catalogue-strings';
 
 /**
  * Home.
@@ -27,6 +34,9 @@ import {S, tr} from '@/features/catalogue-strings';
  */
 export default function HomeScreen() {
     const {theme} = useUnistyles();
+
+    const {config} = useSiteConfig();
+    const tSearch = useTranslations('Search');
 
     const deals = useDeals(12);
     const newArrivals = useNewArrivals(12);
@@ -48,12 +58,20 @@ export default function HomeScreen() {
 
     return (
         <Screen>
-            <View style={styles.header}>
-                <Text variant="micro" color="brand" uppercase>
-                    Dzduino
-                </Text>
-                <Text variant="title">{tr('Home.pageTitle')}</Text>
-            </View>
+            <HomeHeader
+                logoUrl={config.header.logoUrl}
+                siteName={config.header.siteName}
+            />
+
+            <SearchBar
+                placeholderTerm={config.search.popularTerms[0]}
+                onImageSearch={() =>
+                    Alert.alert(
+                        tSearch('imageSearchSoonTitle'),
+                        tSearch('imageSearchSoonBody'),
+                    )
+                }
+            />
 
             {allFailed ? (
                 <EmptyState
@@ -75,6 +93,19 @@ export default function HomeScreen() {
                         />
                     }
                 >
+                    {/* Categories then hero, before any product rail: this is
+                        the marketplace ordering the merchant asked for, and it
+                        puts the two merchant-controlled surfaces above the
+                        fold. */}
+                    <CategoryStrip
+                        slugs={config.popularCategories.collectionSlugs}
+                        collections={collections.data}
+                        isLoading={collections.isPending}
+                        showViewMore={config.popularCategories.showViewMore}
+                    />
+
+                    <HeroSlider hero={config.hero} assetBaseUrl={env.siteUrl} />
+
                     <ProductRail
                         eyebrow={S.newArrivalsEyebrow}
                         title={S.newArrivalsTitle}

@@ -171,5 +171,44 @@
     "showSiteName": false,
     "siteName": "you have the skills, we have the tools",
     "logoUrl": "/customizer/banners/1205f3f9-7909-45d3-8fc6-4440c5ba1c91.png"
+  },
+  "storeInfo": {
+    "storeName": "Dzduino Online Store",
+    "emails": [
+      {
+        "id": "contact-migrated-0",
+        "value": "store@dzduino.com",
+        "label": {
+          "en": "Sales",
+          "fr": "Ventes",
+          "ar": "المبيعات"
+        }
+      }
+    ],
+    "phones": [
+      {
+        "id": "contact-migrated-0",
+        "value": "+213 550 88 88 27",
+        "label": {
+          "en": "Store",
+          "fr": "Magasin",
+          "ar": "متجر"
+        }
+      },
+      {
+        "id": "contact-migrated-1",
+        "value": "+213 550 88 88 29",
+        "label": {
+          "en": "Sales"
+        }
+      },
+      {
+        "id": "contact-migrated-2",
+        "value": "+213 550 88 88 37",
+        "label": {
+          "en": "Support"
+        }
+      }
+    ]
   }
 }

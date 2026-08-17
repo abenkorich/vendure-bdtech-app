@@ -63,11 +63,25 @@ export const headerConfigSchema = z.object({
     logoDarkUrl: z.string().optional(),
 });
 
+/** A contact row: one address with a localized label. */
+const contactRowSchema = z.object({
+    id: z.string().optional(),
+    value: z.string(),
+    label: z.record(z.string(), z.string()).optional(),
+});
+
+export const storeInfoSchema = z.object({
+    storeName: z.string().optional(),
+    emails: z.array(contactRowSchema).default([]),
+    phones: z.array(contactRowSchema).default([]),
+});
+
 export const appSiteConfigSchema = z.object({
     hero: heroSchema.default({autoplay: true, intervalMs: 4000, showDots: true, slides: []}),
     popularCategories: popularCategoriesSchema.default({collectionSlugs: [], showViewMore: true}),
     search: searchConfigSchema.default({popularTerms: [], categorySlugs: []}),
     header: headerConfigSchema.default({showSiteName: false}),
+    storeInfo: storeInfoSchema.default({emails: [], phones: []}),
 });
 
 export type HeroSlide = z.infer<typeof heroSlideSchema>;
@@ -75,6 +89,8 @@ export type HeroConfig = z.infer<typeof heroSchema>;
 export type PopularCategoriesConfig = z.infer<typeof popularCategoriesSchema>;
 export type SearchConfig = z.infer<typeof searchConfigSchema>;
 export type HeaderConfig = z.infer<typeof headerConfigSchema>;
+export type ContactRow = z.infer<typeof contactRowSchema>;
+export type StoreInfo = z.infer<typeof storeInfoSchema>;
 export type AppSiteConfig = z.infer<typeof appSiteConfigSchema>;
 
 /**
@@ -136,4 +152,28 @@ export function slideCopy(
     locale: string,
 ): {eyebrow?: string; title?: string; subtitle?: string; ctaLabel?: string} {
     return slide.copy?.[locale] ?? slide.copy?.en ?? {};
+}
+
+/**
+ * A contact row's label in the active locale, falling back to English and
+ * then to the address itself, so a row always renders something meaningful.
+ */
+export function contactLabel(row: ContactRow, locale: string): string {
+    return row.label?.[locale] ?? row.label?.en ?? row.value;
+}
+
+/**
+ * Resolve a customizer asset path against the storefront origin.
+ *
+ * The customizer stores banner and logo paths relative to the *web* root
+ * (`/customizer/banners/x.jpg`), which resolves to nothing on a phone. Every
+ * image that comes out of site config has to go through this; forgetting it
+ * produces a silently blank image rather than an error.
+ */
+export function absoluteAsset(url: string | undefined, base: string): string | undefined {
+    if (!url) return undefined;
+    if (/^https?:\/\//i.test(url)) return url;
+
+    const origin = base.replace(/\/$/, '');
+    return `${origin}${url.startsWith('/') ? '' : '/'}${url}`;
 }
