@@ -72,13 +72,18 @@ export default function ShopScreen() {
      */
     const candidates = useMemo(
         () =>
-            ordered.flatMap(parent =>
-                (parent.children ?? []).map(child => ({
+            ordered.flatMap(parent => [
+                // The parent itself, so its subtitle can count the products it
+                // holds directly. Most hold none — they are containers — but
+                // some do (Fabrication has 3), and omitting them understated
+                // those categories.
+                {slug: parent.slug, name: parent.name},
+                ...(parent.children ?? []).map(child => ({
                     slug: child.slug,
                     name: child.name,
                     parentName: parent.name,
                 })),
-            ),
+            ]),
         [ordered],
     );
 

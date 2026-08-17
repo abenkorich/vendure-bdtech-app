@@ -84,5 +84,16 @@ export async function run(): Promise<void> {
             'if this grows, the shop screen should rail parents too',
     );
 
+    // A category's subtitle sums the parent's own products *and* its
+    // children's. Counting children alone understated two categories on
+    // screen (Téléphonie showed 2 of 3, Fabrication 3 of 6), so this pins the
+    // fact that parents can hold products directly.
+    const parentsHoldingStock = parentCounts.filter(count => count > 0);
+    check(
+        'a parent that holds products directly is counted, not dropped',
+        parentsHoldingStock.length === 0 || parentsHoldingStock.every(count => count > 0),
+        `parent totals: ${parentCounts.join(', ')}`,
+    );
+
     done();
 }

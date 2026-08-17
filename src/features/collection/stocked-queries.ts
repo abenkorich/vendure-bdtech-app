@@ -43,7 +43,13 @@ export interface StockedCollectionsResult {
 }
 
 export interface StockedCollectionsParams {
-    /** Candidate collections, usually the children of the browsed tree. */
+    /**
+     * Collections to count.
+     *
+     * A candidate with no `parentName` is a top-level category: it is counted
+     * (its subtitle needs the number) but never turned into a rail, since a
+     * parent rail would repeat the products its children already show.
+     */
     candidates: readonly {slug: string; name: string; parentName?: string}[];
     /** Products to sample per collection. */
     take?: number;
@@ -108,6 +114,8 @@ export function useStockedCollections({
             return {
                 rails: found
                     .filter(result => result.totalItems > 0)
+                    // Children only; see `candidates`.
+                    .filter(result => result.parentName !== undefined)
                     .sort((a, b) => b.totalItems - a.totalItems)
                     .slice(0, limit),
                 totals,
