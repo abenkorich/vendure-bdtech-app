@@ -10,3 +10,4 @@ android/
 .env.local
 expo-env.d.ts
 tests/.bundles/
+android/

@@ -14,6 +14,7 @@ const config: ExpoConfig = {
     orientation: 'portrait',
     scheme: 'dzduino',
     userInterfaceStyle: 'automatic',
+    icon: './assets/icon.png',
 
     ios: {
         bundleIdentifier: BUNDLE_ID,
@@ -23,6 +24,10 @@ const config: ExpoConfig = {
 
     android: {
         package: BUNDLE_ID,
+        adaptiveIcon: {
+            foregroundImage: './assets/adaptive-icon.png',
+            backgroundColor: '#0B0F14',
+        },
         // Deep links: https://dzduino.dz/* opens in-app once the site hosts
         // assetlinks.json. Until then the scheme above is the working path.
         intentFilters: [
@@ -46,6 +51,11 @@ const config: ExpoConfig = {
         [
             'expo-splash-screen',
             {
+                // An image is required: without one the Android build fails at
+                // resource linking with "drawable/splashscreen_logo not found",
+                // while iOS silently tolerates it.
+                image: './assets/splash-icon.png',
+                imageWidth: 160,
                 backgroundColor: '#0B0F14',
                 dark: {backgroundColor: '#0B0F14'},
                 resizeMode: 'contain',
