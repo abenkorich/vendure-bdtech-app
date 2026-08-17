@@ -7,6 +7,7 @@ import {Badge} from './Badge';
 import {Price} from './Price';
 import {Skeleton} from './Skeleton';
 import {IconSymbol} from './IconSymbol';
+import {useTranslations} from '@/i18n';
 
 /**
  * Product card — the unit the whole catalogue is built from.
@@ -59,10 +60,12 @@ export function ProductCard({
 }: ProductCardProps) {
     styles.useVariants({layout});
 
+    const t = useTranslations('Product');
     const price = product.priceWithTax;
     const isRange = 'min' in price && 'max' in price && price.min !== price.max;
     const amount = 'value' in price ? price.value : price.min;
     const outOfStock = product.inStock === false;
+    const outOfStockLabel = t('outOfStock');
 
     return (
         <Card
@@ -97,7 +100,7 @@ export function ProductCard({
 
                 {outOfStock ? (
                     <View style={styles.badgeSlot}>
-                        <Badge tone="neutral">Out of stock</Badge>
+                        <Badge tone="neutral">{outOfStockLabel}</Badge>
                     </View>
                 ) : null}
             </View>
