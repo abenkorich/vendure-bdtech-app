@@ -310,11 +310,12 @@ because that route is unauthenticated.
 
 ### To finish the wiring
 
-The endpoint is committed but **production runs the Next storefront**, which
-has no public `GET /api/site-config` (it 404s), so the app shows its bundled
-snapshot: correct copy and categories, and, since 2026-09-05, the snapshot's
-own logo and hero imagery shipped in `assets/customizer/`. Live edits still
-need the Astro storefront deployed; that is the only step.
+**Production runs the Next storefront**, whose deployed build has no public
+`GET /api/site-config` (it 404s), so the app shows its bundled snapshot:
+correct copy and categories, and, since 2026-09-05, the snapshot's own logo
+and hero imagery shipped in `assets/customizer/`. The route was ported to the
+Next repo the same day (branch `feat/app-site-config`, verified against this
+app's contract test locally). Deploying that branch is the only step left.
 
 ### Deliberate limits
 

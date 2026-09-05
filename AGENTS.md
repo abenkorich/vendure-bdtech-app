@@ -223,9 +223,16 @@ verified.
 Next.js` on www.dzduino.dz. That single fact explains the app-visible gap, and
 it is why guessing at server config was wrong:
 
-- `GET /api/site-config` 404s (it 500'd until early September). The Next app
-  has only `enter-preview` and `exit-preview` under `api/site-config`; the
-  public GET route exists **only in the Astro repo**, which is not deployed.
+- `GET /api/site-config` 404s in production (it 500'd until early September).
+  The deployed Next build has only empty `enter-preview` and `exit-preview`
+  folders under `api/site-config`. The route now exists in the Next repo on
+  branch `feat/app-site-config` (2026-09-05): it serves the same
+  `{locale, config}` shape this app parses, built by
+  `src/config/app-site-config.ts` there, with per-block "inherit from web or
+  custom" overrides edited on the customizer's Home pane (Web / Mobile app
+  tabs) and a "Mobile app" sidebar section. The payload adds `version` and
+  `app.{minSupportedVersion, maintenance}`, which this app does not read yet.
+  Until that branch is deployed, production still 404s.
 - `/customizer/banners/<id>.jpg` used to 404. Since early September the server
   answers **any** missing customizer path with the same generic "No image
   available" PNG and a **200**, so the app cannot tell a missing banner from a
