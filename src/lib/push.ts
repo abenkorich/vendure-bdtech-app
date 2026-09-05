@@ -4,6 +4,7 @@ import * as Notifications from 'expo-notifications';
 import {router} from 'expo-router';
 import {prefsStorage} from '@/lib/storage/mmkv';
 import {resolveNotificationUrl} from '@/lib/notification-routes';
+import {tr} from '@/features/catalogue-strings';
 
 /**
  * Push notifications.
@@ -71,8 +72,10 @@ export async function registerForPush(): Promise<string | null> {
 
     if (Platform.OS === 'android') {
         // Android 8+ drops notifications posted to no channel.
+        // The channel name is what Android shows in the app's notification
+        // settings, so it is translated like any other label.
         await Notifications.setNotificationChannelAsync('orders', {
-            name: 'Order updates',
+            name: tr('Account.notificationsTitle'),
             importance: Notifications.AndroidImportance.DEFAULT,
         });
     }

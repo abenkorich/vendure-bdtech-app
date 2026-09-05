@@ -32,6 +32,7 @@ import {
     type Selection,
 } from '@/features/product/variant-selection';
 import {S, tr} from '@/features/catalogue-strings';
+import {galleryImages} from '@/features/product/gallery-images';
 
 /**
  * Product detail.
@@ -225,7 +226,7 @@ export default function ProductScreen() {
             <NavBar />
 
             <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-                <ProductGallery images={product.assets} />
+                <ProductGallery images={galleryImages(product)} />
 
                 <View style={styles.head}>
                     <Breadcrumbs items={product.collections?.[0]?.breadcrumbs ?? []} />

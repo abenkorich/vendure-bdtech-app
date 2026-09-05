@@ -1,4 +1,4 @@
-import {readdirSync, statSync} from 'node:fs';
+import {readdirSync, readFileSync, statSync} from 'node:fs';
 import {join} from 'node:path';
 import {NOTIFICATION_ROUTES} from '@/lib/notification-routes';
 import {check, done} from './harness';
@@ -11,8 +11,11 @@ import {check, done} from './harness';
  * account screen shipped with four dead links. Typed routes catch this for
  * literals, but not for a path built at runtime or delivered in a push payload.
  *
- * This walks `src/app` for real routes and asserts the app's known entry
- * points resolve.
+ * This walks `src/app` for real routes, then scans every source file for the
+ * paths the UI actually pushes and asserts each resolves. The scan replaced a
+ * hand-kept list: that list was how `/account/profile` and
+ * `/account/password` shipped as dead links from the account tab, because
+ * nobody added them to it.
  */
 
 const APP_DIR = join(process.cwd(), 'src', 'app');
@@ -54,35 +57,50 @@ function toPattern(route: string): RegExp {
 }
 
 /**
- * Destinations the UI links to. Extend this when a screen starts linking
- * somewhere new; that is cheaper than discovering a dead link on a device.
+ * Paths the source pushes: string and template literals handed to
+ * `router.push/replace/navigate` or an `href`. A `${…}` segment stands for a
+ * dynamic value. Group segments like `(tabs)` are organisational and stripped,
+ * as expo-router does.
  */
-const LINKED_PATHS = [
-    '/',
-    '/shop',
-    '/search',
-    '/cart',
-    '/account',
-    '/product/some-slug',
-    '/collection/some-slug',
-    '/auth/sign-in',
-    '/auth/register',
-    '/auth/forgot-password',
-    '/auth/reset-password',
-    '/account/orders',
-    '/account/orders/ABC123',
-    '/account/addresses',
-    '/wishlist',
-    '/compare',
-    '/notifications',
-    '/messages',
-    '/tools',
-    '/tools/ohms-law',
-    '/blog',
-    '/blog/some-post',
-    '/checkout',
-    '/order/ABC123',
-];
+const SRC_DIR = join(process.cwd(), 'src');
+
+function sourceFiles(dir: string): string[] {
+    return readdirSync(dir).flatMap(entry => {
+        const full = join(dir, entry);
+        if (statSync(full).isDirectory()) return sourceFiles(full);
+        return /\.(tsx?|ts)$/.test(entry) ? [full] : [];
+    });
+}
+
+const LINK_PATTERN =
+    /(?:router\.(?:push|replace|navigate)\(|\bhref[=:]\s*)\s*(?:['"`])((?:\/)[^'"`\s)]*)['"`]/g;
+
+function normalizePath(raw: string): string {
+    return (
+        raw
+            .replace(/\$\{[^}]*\}/g, 'sample')
+            .replace(/\/\([^/]+\)/g, '')
+            .split('?')[0] || '/'
+    );
+}
+
+/** Every literal path the source links to, with the file it came from. */
+function collectLinkedPaths(): Array<{path: string; file: string}> {
+    const links: Array<{path: string; file: string}> = [];
+    for (const file of sourceFiles(SRC_DIR)) {
+        const source = readFileSync(file, 'utf8');
+        for (const match of source.matchAll(LINK_PATTERN)) {
+            links.push({path: normalizePath(match[1] ?? ''), file: file.replace(process.cwd(), '')});
+        }
+    }
+    return links;
+}
+
+/**
+ * Destinations reached by means the scan cannot see (a backend-supplied URL,
+ * a computed segment), kept small on purpose: the scan is the real guard.
+ */
+const EXTRA_LINKED_PATHS = ['/', '/product/some-slug', '/collection/some-slug', '/order/ABC123'];
 
 export async function run(): Promise<void> {
     const routes = collectRoutes(APP_DIR);
@@ -90,12 +108,18 @@ export async function run(): Promise<void> {
 
     check('routes were discovered', routes.length > 5, `found ${routes.length}`);
 
-    const dead = LINKED_PATHS.filter(path => !patterns.some(pattern => pattern.test(path)));
+    const linked = collectLinkedPaths();
+    check('the source scan found links', linked.length > 20, `found ${linked.length}`);
+
+    const dead = [
+        ...linked,
+        ...EXTRA_LINKED_PATHS.map(path => ({path, file: 'routes.test.ts'})),
+    ].filter(({path}) => !patterns.some(pattern => pattern.test(path)));
 
     check(
         'every linked path resolves to a route',
         dead.length === 0,
-        `dead links: ${dead.join(', ')}\n      routes: ${routes.sort().join(', ')}`,
+        `dead links: ${dead.map(({path, file}) => `${path} (${file})`).join(', ')}\n      routes: ${routes.sort().join(', ')}`,
     );
 
     // The push allow-list is maintained by hand (a payload may target a

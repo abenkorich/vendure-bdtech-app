@@ -4,7 +4,7 @@ import {StyleSheet} from 'react-native-unistyles';
 import {router} from 'expo-router';
 import {Text, IconSymbol} from '@/components/ui';
 import {useTranslations} from '@/i18n';
-import {absoluteAsset} from '@/lib/site-config/schema';
+import {siteImageSource} from '@/lib/site-config/bundled-assets';
 import {env} from '@/lib/env';
 
 /**
@@ -73,15 +73,16 @@ export function HomeHeader({
     const t = useTranslations('Navigation');
 
     // Customizer paths are relative to the web root and resolve to nothing
-    // here; without this the logo silently renders as a blank box.
-    const resolvedLogo = absoluteAsset(logoUrl, env.siteUrl);
+    // here; without this the logo silently renders as a blank box. The
+    // snapshot's own logo ships with the app, so it needs no network at all.
+    const resolvedLogo = siteImageSource(logoUrl, env.siteUrl);
 
     return (
         <View style={styles.root}>
             <View style={styles.brand}>
                 {resolvedLogo ? (
                     <Image
-                        source={{uri: resolvedLogo}}
+                        source={resolvedLogo}
                         style={styles.logo}
                         contentFit="contain"
                         transition={120}

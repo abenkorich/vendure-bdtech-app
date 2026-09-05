@@ -484,6 +484,8 @@
     "lastNameLabel": "اسم العائلة",
     "phoneNumberLabel": "رقم الهاتف (اختياري)",
     "passwordLabel": "كلمة المرور",
+    "showPassword": "إظهار كلمة المرور",
+    "hidePassword": "إخفاء كلمة المرور",
     "confirmPasswordLabel": "تأكيد كلمة المرور",
     "passwordMinLength": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل",
     "passwordsMismatch": "كلمتا المرور غير متطابقتين",

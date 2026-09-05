@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import {StyleSheet, useUnistyles} from 'react-native-unistyles';
 import {Text, IconSymbol, type IconName} from '@/components/ui';
+import {translate} from '../i18n';
 
 /**
  * Form field.
@@ -99,7 +100,9 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
                 {secure ? (
                     <Pressable
                         accessibilityRole="button"
-                        accessibilityLabel={revealed ? 'Hide password' : 'Show password'}
+                        accessibilityLabel={
+                            revealed ? translate('Auth.hidePassword') : translate('Auth.showPassword')
+                        }
                         hitSlop={12}
                         onPress={() => setRevealed(value => !value)}
                     >

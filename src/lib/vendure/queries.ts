@@ -142,6 +142,16 @@ export const GetProductDetailQuery = graphql(`
             name
             description
             slug
+            # Mobile-only addition to the copied document: 109 of the 300 newest
+            # products (measured 2026-09-05) carry a featuredAsset with an
+            # empty 'assets' list, so a gallery built from 'assets' alone showed
+            # a placeholder for a third of the catalogue while the card next to
+            # it showed the photo. See features/product/gallery-images.ts.
+            featuredAsset {
+                id
+                preview
+                source
+            }
             assets {
                 id
                 preview

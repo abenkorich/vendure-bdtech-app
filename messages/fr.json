@@ -484,6 +484,8 @@
     "lastNameLabel": "Nom",
     "phoneNumberLabel": "Numéro de téléphone (facultatif)",
     "passwordLabel": "Mot de passe",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe",
     "confirmPasswordLabel": "Confirmer le mot de passe",
     "passwordMinLength": "Le mot de passe doit contenir au moins 8 caractères",
     "passwordsMismatch": "Les mots de passe ne correspondent pas",

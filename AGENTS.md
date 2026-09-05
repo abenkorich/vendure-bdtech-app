@@ -81,9 +81,10 @@ but:
 configuration. Exercise the flow up to the final confirm, then stop.
 
 Verified channel facts: currency `DZD`, languages `en`/`ar`/`fr`,
-`dealProducts` and `newArrivalProducts` take `ProductListOptions` (**not**
-`MerchandisingListOptions` — this backend predates the merchandising plugin,
-which is why `/deals` and `/new` 500 on the web storefront).
+`dealProducts` and `newArrivalProducts` take `MerchandisingListOptions` since
+the 2026-08-17 deploy (`newArrivalProducts` also requires `options.since`; the
+app's rail uses `products` sorted by `createdAt` instead, see
+`lib/vendure/rails.ts`).
 
 ---
 
@@ -219,39 +220,48 @@ verified.
 
 
 **Production runs the Next storefront, not the Astro one.** `x-powered-by:
-Next.js` on www.dzduino.dz. That single fact explains both app-visible
-failures, and it is why guessing at server config was wrong:
+Next.js` on www.dzduino.dz. That single fact explains the app-visible gap, and
+it is why guessing at server config was wrong:
 
-- `GET /api/site-config` 500s with `content-type: text/plain`. The Next app has
-  only `enter-preview` and `exit-preview` under `api/site-config`; the public
-  GET route exists **only in the Astro repo**, which is not deployed.
-- `/customizer/banners/<id>.jpg` 404s for the same reason.
+- `GET /api/site-config` 404s (it 500'd until early September). The Next app
+  has only `enter-preview` and `exit-preview` under `api/site-config`; the
+  public GET route exists **only in the Astro repo**, which is not deployed.
+- `/customizer/banners/<id>.jpg` used to 404. Since early September the server
+  answers **any** missing customizer path with the same generic "No image
+  available" PNG and a **200**, so the app cannot tell a missing banner from a
+  real one by status. The four images the bundled snapshot names are shipped
+  in `assets/customizer/` and preferred over the network
+  (`lib/site-config/bundled-assets.ts`); anything the merchant uploads later
+  still needs the storefront deployed.
 
 Verified by running the Astro build locally (`node dist/server/entry.mjs`):
-both answer 200 there, so the code is correct and the deployment is the gap.
-Do not work around either in the app; it already falls back to its bundled
-snapshot and a brand plate.
+both answer correctly there, so the code is correct and the deployment is the
+gap. Do not work around the config endpoint in the app; it already falls back
+to its bundled snapshot.
 
 Check which server is live before diagnosing anything here:
 `curl -sI https://www.dzduino.dz/en | grep x-powered-by`
 
 
-**PRODUCTION IS BROKEN: add-to-cart fails (backend, 2026-08-17).**
-`addItemToOrder` returns `column Customer.customFieldsMarketingemailoptin does
-not exist`, so no one can buy anything on the app *or* the website. Browsing is
-unaffected, which is why the store looks healthy.
+**Add-to-cart in production was broken from 2026-08-17 and is fixed.**
+`addItemToOrder` returned `column Customer.customFieldsMarketingemailoptin does
+not exist` because the `campaign-pro` plugin's migration
+(`vendure-ecommerce-platform/src/migrations/1820000000000-campaign-pro-plugin.ts`)
+had not been run against the production database (`synchronize: false`, so
+schema changes only land through migrations). Re-checked 2026-09-05 with a
+bare `addItemToOrder` against the shop api: it answers an `Order` again. If it
+ever regresses, reproduce the same way, with no app involved; nothing in the
+app is the cause.
 
-Diagnosed, not guessed. The `campaign-pro` plugin declares a
-`marketingEmailOptIn` custom field on Customer; the migration that adds the
-column exists at
-`vendure-ecommerce-platform/src/migrations/1820000000000-campaign-pro-plugin.ts`
-(`ADD COLUMN IF NOT EXISTS "customFieldsMarketingemailoptin"`), and
-`vendure-config.ts` sets `synchronize: false`, so schema changes only land when
-migrations are run. It has not been run against the production database.
+**The catalogue moves under the tests.** `stocked-collections.test.ts` once
+asserted top-level collections are empty containers; by 2026-09-05 four of
+seven held products directly. Tests against the live API should assert what a
+screen *needs*, not the shape of the catalogue on the day they were written.
 
-Fix: run the pending migrations on the production Vendure instance. Nothing to
-change in the app. Reproduce with a bare `addItemToOrder` mutation against the
-shop api, no app involved.
+**A third of products have a `featuredAsset` and an empty `assets` list**
+(109 of the 300 newest, measured 2026-09-05). Anything that renders product
+imagery must read both; `features/product/gallery-images.ts` is the one place
+that does.
 
 The same day's work also renamed `dealProducts(options:)` from
 `ProductListOptions` to `MerchandisingListOptions`, handled in

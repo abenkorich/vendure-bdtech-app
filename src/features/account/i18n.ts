@@ -4,6 +4,7 @@ import ar from '../../../messages/ar.json';
 import {formatMessage, type MessageValues} from '@/i18n/format-message';
 import {deviceLocale, type SupportedLocale} from '@/design/locale';
 import {toIntlLocale} from '@/i18n/locale-utils';
+import {useLocale} from '@/i18n';
 
 /**
  * Message lookup for the account/auth/blog/tools areas.
@@ -56,7 +57,12 @@ export function translate(key: string, values?: MessageValues, locale = deviceLo
  * not change when it lands: `const t = useT('Auth'); t('signIn')`.
  */
 export function useT(namespace: string): Translate {
-    return (key, values) => translate(`${namespace}.${key}`, values);
+    // Subscribing to the locale is what makes an open account screen switch
+    // language when the sheet changes it; reading the locale at call time
+    // alone left the screen behind the sheet in the previous language until
+    // it remounted.
+    const {locale} = useLocale();
+    return (key, values) => translate(`${namespace}.${key}`, values, locale);
 }
 
 /** Active display locale. Device-derived until the i18n layer owns it. */

@@ -7,6 +7,8 @@ import {
 } from '@/lib/site-config/schema';
 import fallback from '@/lib/site-config/fallback.json';
 import {resolveAppUrl} from '@/lib/notification-routes';
+import {readdirSync, readFileSync} from 'node:fs';
+import {join} from 'node:path';
 import {check, eq, done} from './harness';
 
 /**
@@ -51,6 +53,29 @@ export async function run(): Promise<void> {
         'the bundled fallback carries categories',
         bundled.popularCategories.collectionSlugs.length > 0,
         `${bundled.popularCategories.collectionSlugs.length} slugs`,
+    );
+
+    // The snapshot names images by web path, and the deployed storefront
+    // answers any path it lacks with a generic placeholder and a 200, so the
+    // app ships its own copy of every image the snapshot uses. A snapshot
+    // update that forgets the file, or the `require` table, would put the
+    // placeholder back on the first screen with nothing failing.
+    const snapshotImages = [
+        bundled.header.logoUrl,
+        ...enabledSlides(bundled.hero).map(slide => slide.imageUrl),
+    ].filter((path): path is string => Boolean(path));
+    const shipped = new Set(readdirSync(join(process.cwd(), 'assets', 'customizer')));
+    const requireTable = readFileSync(
+        join(process.cwd(), 'src', 'lib', 'site-config', 'bundled-assets.ts'),
+        'utf8',
+    );
+    const notShipped = snapshotImages.filter(
+        path => !shipped.has(path.split('/').pop() ?? '') || !requireTable.includes(`'${path}'`),
+    );
+    check(
+        'every image the bundled snapshot names ships with the app',
+        snapshotImages.length > 0 && notShipped.length === 0,
+        `missing from assets/customizer or bundled-assets.ts: ${notShipped.join(', ')}`,
     );
 
     /* -------------------------------------------------------------- helpers */

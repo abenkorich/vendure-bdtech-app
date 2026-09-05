@@ -7,16 +7,17 @@ import type {ProductCardData} from '@/lib/types';
 /**
  * Collections that actually have products, with a sample of each.
  *
- * Built around a fact about this catalogue rather than an assumption: the
- * top-level collections are **empty containers**. Stock lives in their
- * children, and only 11 of 45 children hold any (measured against the live
- * API; two whole top-level categories have zero products anywhere beneath
- * them).
+ * Built around measurement rather than assumption, and re-measured because
+ * the catalogue moves. When this was written, top-level collections were
+ * empty containers and only 11 of 45 children held stock. By 2026-09-05 most
+ * children were stocked, one whole top-level category still had nothing
+ * beneath it, and 4 of 7 parents held products directly (Fabrication &
+ * Prototyping: 209 of its own, more than all its children combined).
  *
- * So a naive "rail per collection" would render mostly empty rails. This asks
- * the search index once per candidate and reports only the ones worth showing,
- * which is what lets the shop screen stay lively instead of displaying a
- * column of blank sections.
+ * So a naive "rail per collection" would still render empty rails for the
+ * dead branches. This asks the search index once per candidate and reports
+ * only the ones worth showing, which is what lets the shop screen stay lively
+ * instead of displaying a column of blank sections.
  *
  * One request per candidate is acceptable because the candidate list is the
  * merchant's handful of highlighted collections, they run in parallel, and the
@@ -47,8 +48,10 @@ export interface StockedCollectionsParams {
      * Collections to count.
      *
      * A candidate with no `parentName` is a top-level category: it is counted
-     * (its subtitle needs the number) but never turned into a rail, since a
-     * parent rail would repeat the products its children already show.
+     * (its subtitle needs the number) but never turned into a rail. The card
+     * above already opens the parent, and the four best-stocked children
+     * out-rank every parent's own count, so a parent rail would only repeat
+     * what is a tap away.
      */
     candidates: readonly {slug: string; name: string; parentName?: string}[];
     /** Products to sample per collection. */

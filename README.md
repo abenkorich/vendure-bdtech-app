@@ -117,14 +117,15 @@ directional icons flip, and switching in or out of it requires an app reload
 `tests/run.mjs` is a dependency-free harness: it bundles each `*.test.ts` with
 esbuild and runs it in Node. Run one file with `node tests/run.mjs <substring>`.
 
-20 files, covering the load-bearing and easy-to-regress rather than UI:
+28 files, covering the load-bearing and easy-to-regress rather than UI:
 
 | Area | Guards |
 | --- | --- |
 | `vendure-contract`, `data-layer-contract`, `checkout-contract` | The copied GraphQL still validates against the **live** API |
 | `messages-parity`, `format-message`, `catalogue-strings` | All three catalogs stay in sync and every string resolves |
-| `routes`, `notification-routes` | No dead links; backend-supplied paths are validated |
-| `site-config`, `site-config-contract` | Merchant config survives hostile input, and the live endpoint still satisfies the app's schema |
+| `routes`, `notification-routes` | No dead links (the source is scanned for every path it pushes); backend-supplied paths are validated |
+| `gallery-images` | A product with only a `featuredAsset` still gets a gallery |
+| `site-config`, `site-config-contract` | Merchant config survives hostile input, every snapshot image ships with the app, and the live endpoint still satisfies the app's schema |
 | `price-format`, `cart-math`, `tools-calculators` | Money in minor units, cart totals, calculator correctness |
 | `adaptive-icon` | The launcher icon stays inside the mask's safe zone |
 

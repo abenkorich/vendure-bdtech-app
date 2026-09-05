@@ -5,7 +5,8 @@ import {StyleSheet} from 'react-native-unistyles';
 import {router} from 'expo-router';
 import {Text, Skeleton} from '@/components/ui';
 import {useLocale} from '@/i18n';
-import {absoluteAsset, enabledSlides, slideCopy, type HeroConfig} from '@/lib/site-config/schema';
+import {enabledSlides, slideCopy, type HeroConfig} from '@/lib/site-config/schema';
+import {siteImageSource} from '@/lib/site-config/bundled-assets';
 import {slideOffset, slideIndex} from '@/features/home/slide-paging';
 import {resolveAppUrl} from '@/lib/notification-routes';
 
@@ -131,7 +132,7 @@ export function HeroSlider({hero, assetBaseUrl, isLoading = false}: HeroSliderPr
 
                             {slide.imageUrl ? (
                                 <Image
-                                    source={{uri: absoluteAsset(slide.imageUrl, assetBaseUrl)}}
+                                    source={siteImageSource(slide.imageUrl, assetBaseUrl)}
                                     style={styles.image}
                                     contentFit="cover"
                                     transition={200}

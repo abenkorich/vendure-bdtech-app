@@ -24,13 +24,18 @@ import type {CollectionTreeNode} from '@/lib/types';
  * The layout is shaped by what this catalogue actually contains, measured
  * against the live API rather than assumed:
  *
- * - **Top-level collections are empty containers.** Their products live in
- *   children, so a card here opens the category rather than promising a
- *   listing that would come back empty.
- * - **Only 11 of 45 child collections carry stock**, and two whole top-level
- *   categories have none at all. So the product rails below are driven by
+ * - **A card opens the category**, whose page lists the products it holds
+ *   directly and its sub-categories. Parents were empty containers when this
+ *   was built; by 2026-09-05 four of seven held products directly, and the
+ *   page handles both.
+ * - **Not every branch has stock.** One whole top-level category still has
+ *   nothing beneath it, so the product rails below are driven by
  *   `useStockedCollections`, which asks first and renders only what exists.
  *   Anything else would be a column of blank sections.
+ * - **The count on a card is the count the page shows**: the parent's own
+ *   products plus each sub-category row's, which is what a shopper can reach
+ *   from it. A product filed under both parent and child is counted once per
+ *   place it appears, the same way the page lists it.
  *
  * The merchant's highlighted categories lead, in their configured order, since
  * that is the shop's own opinion about what matters.
@@ -74,9 +79,8 @@ export default function ShopScreen() {
         () =>
             ordered.flatMap(parent => [
                 // The parent itself, so its subtitle can count the products it
-                // holds directly. Most hold none — they are containers — but
-                // some do (Fabrication has 3), and omitting them understated
-                // those categories.
+                // holds directly. Omitting it understated every category that
+                // files products at the top level (Fabrication holds 209).
                 {slug: parent.slug, name: parent.name},
                 ...(parent.children ?? []).map(child => ({
                     slug: child.slug,

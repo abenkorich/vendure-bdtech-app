@@ -197,7 +197,7 @@ Following the storefront's hard-won lesson that the dangerous bugs are the
 | --- | --- |
 | Home, collections, product detail, search | Verified on device with real data |
 | Cart, checkout (COD, Yalidine/ZRExpress stopdesk), order confirmation | Verified up to the final confirm; **no order was ever placed** |
-| Auth, account, orders, addresses | Built; auth screens verified |
+| Auth, account, orders, addresses, profile, change password | Built; auth screens verified. Profile and password screens landed 2026-09-05: the account tab had linked to them as dead routes, which `tests/routes.test.ts` now catches by scanning the source |
 | Wishlist, compare | Built, device-local (no backend support exists) |
 | Blog, six calculators | Verified on device |
 | i18n (en/fr/ar), RTL, language switcher | Verified in Arabic |
@@ -310,10 +310,11 @@ because that route is unauthenticated.
 
 ### To finish the wiring
 
-The endpoint is committed but **production runs an older deployment**
-(`https://dzduino.dz/api/site-config` currently 404s). Until the storefront is
-deployed the app shows its bundled snapshot: correct copy and categories, but
-no hero imagery and no live edits. Deploying the storefront is the only step.
+The endpoint is committed but **production runs the Next storefront**, which
+has no public `GET /api/site-config` (it 404s), so the app shows its bundled
+snapshot: correct copy and categories, and, since 2026-09-05, the snapshot's
+own logo and hero imagery shipped in `assets/customizer/`. Live edits still
+need the Astro storefront deployed; that is the only step.
 
 ### Deliberate limits
 
