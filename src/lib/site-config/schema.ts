@@ -76,7 +76,95 @@ export const storeInfoSchema = z.object({
     phones: z.array(contactRowSchema).default([]),
 });
 
+/* ------------------------------------------------------------ home sections */
+
+/**
+ * The home screen below the pinned search bar, as the merchant composed it in
+ * the customizer's Mobile app pane. Unknown section kinds are dropped rather
+ * than rendered as something else, so a newer customizer cannot break an
+ * older app; a missing list falls back to the order the app always had.
+ */
+export const homeSectionKeys = ['hero', 'banner', 'rail', 'categoryGrid', 'blog'] as const;
+export type HomeSectionKey = (typeof homeSectionKeys)[number];
+
+export const railSourceKeys = ['newArrivals', 'deals', 'collection', 'manual'] as const;
+export type RailSource = (typeof railSourceKeys)[number];
+
+export const railSortKeys = ['default', 'name-asc', 'price-asc', 'price-desc'] as const;
+export type RailSort = (typeof railSortKeys)[number];
+
+const sectionCopySchema = z
+    .record(
+        z.string(),
+        z.object({
+            eyebrow: z.string().optional(),
+            title: z.string().optional(),
+            subtitle: z.string().optional(),
+        }),
+    )
+    .default({});
+
+export const bannerSectionSchema = z.object({
+    imageUrl: z.string().optional(),
+    href: z.string().optional(),
+    overlayOpacity: z.number().min(0).max(1).default(0.35),
+    copy: sectionCopySchema,
+});
+
+export const railSectionSchema = z.object({
+    source: z.enum(railSourceKeys).catch('collection'),
+    collectionSlug: z.string().optional(),
+    sort: z.enum(railSortKeys).catch('default'),
+    productSlugs: z.array(z.string()).default([]),
+    take: z.number().int().min(1).max(24).catch(12),
+    copy: sectionCopySchema,
+});
+
+export const homeSectionSchema = z.object({
+    id: z.string(),
+    key: z.enum(homeSectionKeys),
+    banner: bannerSectionSchema.optional(),
+    rail: railSectionSchema.optional(),
+});
+
+export type HomeSection = z.infer<typeof homeSectionSchema>;
+export type BannerSection = z.infer<typeof bannerSectionSchema>;
+export type RailSection = z.infer<typeof railSectionSchema>;
+
+/** The order the app shipped with, used when the config carries no list. */
+export function defaultHomeSections(): HomeSection[] {
+    return [
+        {id: 'hero', key: 'hero'},
+        {id: 'rail-new-arrivals', key: 'rail', rail: railSectionSchema.parse({source: 'newArrivals'})},
+        {id: 'rail-deals', key: 'rail', rail: railSectionSchema.parse({source: 'deals'})},
+        {id: 'category-grid', key: 'categoryGrid'},
+        {id: 'blog', key: 'blog'},
+    ];
+}
+
+/**
+ * A list is parsed item by item: one malformed section is dropped, not the
+ * whole list, since the rest of the screen is still worth rendering.
+ */
+const homeSectionsSchema = z
+    .array(z.unknown())
+    .transform(items =>
+        items
+            .map(item => homeSectionSchema.safeParse(item))
+            .filter(result => result.success)
+            .map(result => result.data),
+    );
+
+export const homeSchema = z
+    .object({
+        sections: homeSectionsSchema.optional(),
+    })
+    .transform(home => ({sections: home.sections ?? defaultHomeSections()}));
+
+export type HomeConfig = z.infer<typeof homeSchema>;
+
 export const appSiteConfigSchema = z.object({
+    home: homeSchema.prefault({}),
     hero: heroSchema.default({autoplay: true, intervalMs: 4000, showDots: true, slides: []}),
     popularCategories: popularCategoriesSchema.default({collectionSlugs: [], showViewMore: true}),
     search: searchConfigSchema.default({popularTerms: [], categorySlugs: []}),
@@ -92,6 +180,14 @@ export type HeaderConfig = z.infer<typeof headerConfigSchema>;
 export type ContactRow = z.infer<typeof contactRowSchema>;
 export type StoreInfo = z.infer<typeof storeInfoSchema>;
 export type AppSiteConfig = z.infer<typeof appSiteConfigSchema>;
+
+/** Copy for a banner or rail in the active locale, falling back to English. */
+export function sectionCopy(
+    copy: Record<string, {eyebrow?: string; title?: string; subtitle?: string}> | undefined,
+    locale: string,
+): {eyebrow?: string; title?: string; subtitle?: string} {
+    return copy?.[locale] ?? copy?.en ?? {};
+}
 
 /**
  * Parse a payload from `/api/site-config`, never throwing.

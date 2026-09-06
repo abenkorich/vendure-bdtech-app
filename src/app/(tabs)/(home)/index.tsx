@@ -2,16 +2,19 @@ import {useCallback} from 'react';
 import {Alert, RefreshControl, ScrollView, View} from 'react-native';
 import {StyleSheet, useUnistyles} from 'react-native-unistyles';
 import {Screen, EmptyState} from '@/components/ui';
-import {useDeals, useNewArrivals} from '@/features/home/queries';
+import {useQueryClient} from '@tanstack/react-query';
 import {useCollections} from '@/features/collection/queries';
 import {useBlogRail} from '@/features/blog/queries';
-import {ProductRail} from '@/features/home/components/ProductRail';
 import {CategoryGrid} from '@/features/home/components/CategoryGrid';
 import {BlogRail} from '@/features/home/components/BlogRail';
 import {HomeHeader} from '@/features/home/components/HomeHeader';
 import {SearchBar} from '@/features/home/components/SearchBar';
 import {CategoryStrip} from '@/features/home/components/CategoryStrip';
 import {HeroSlider} from '@/features/home/components/HeroSlider';
+import {PromoBanner} from '@/features/home/components/PromoBanner';
+import {ConfiguredRail} from '@/features/home/components/ConfiguredRail';
+import {CATALOGUE_ROOT} from '@/lib/query-keys';
+import type {HomeSection} from '@/lib/site-config/schema';
 import {useSiteConfig} from '@/lib/site-config';
 import {env} from '@/lib/env';
 import {useTranslations} from '@/i18n';
@@ -25,9 +28,15 @@ import {S} from '@/features/catalogue-strings';
  * place rather than blanking the screen, and one slow rail must not hold the
  * others back.
  *
- * The whole screen is only treated as failed when *every* section failed, which
- * is the signature of the connection being down rather than a resolver
- * misbehaving.
+ * Which sections, and in what order, is the merchant's call: the customizer's
+ * Mobile app pane composes hero, banners, product rails, the category grid and
+ * the blog into `config.home.sections`, and this screen renders that list. The
+ * bundled snapshot carries no list, so it falls back to the order the app
+ * always had.
+ *
+ * The whole screen is only treated as failed when the collection tree failed
+ * with nothing cached: that is the one query every layout needs, so it is the
+ * signature of the connection being down rather than a resolver misbehaving.
  *
  * A plain `ScrollView` hosts the sections rather than a virtualized list: the
  * page is a fixed handful of sections, and each rail is virtualized internally.
@@ -43,23 +52,48 @@ export default function HomeScreen() {
     const {config} = useSiteConfig();
     const tSearch = useTranslations('Search');
 
-    const deals = useDeals(12);
-    const newArrivals = useNewArrivals(12);
+    const queryClient = useQueryClient();
     const collections = useCollections();
     const blog = useBlogRail(6);
 
-    const refreshing =
-        deals.isRefetching || newArrivals.isRefetching || collections.isRefetching;
+    const refreshing = collections.isRefetching;
 
     const onRefresh = useCallback(() => {
-        void deals.refetch();
-        void newArrivals.refetch();
         void collections.refetch();
         void blog.refetch();
-    }, [deals, newArrivals, collections, blog]);
+        // Every configured rail shares this key prefix; see useRailProducts.
+        void queryClient.invalidateQueries({queryKey: [CATALOGUE_ROOT, 'app-rail']});
+    }, [collections, blog, queryClient]);
 
-    const allFailed =
-        Boolean(newArrivals.error) && Boolean(collections.error) && Boolean(deals.error);
+    const allFailed = Boolean(collections.error) && !collections.data;
+
+    const renderSection = (section: HomeSection) => {
+        switch (section.key) {
+            case 'hero':
+                return <HeroSlider key={section.id} hero={config.hero} assetBaseUrl={env.siteUrl} />;
+            case 'banner':
+                return section.banner ? <PromoBanner key={section.id} banner={section.banner} /> : null;
+            case 'rail':
+                return section.rail ? <ConfiguredRail key={section.id} rail={section.rail} /> : null;
+            case 'categoryGrid':
+                return (
+                    <CategoryGrid
+                        key={section.id}
+                        collections={collections.data}
+                        isLoading={collections.isPending}
+                    />
+                );
+            case 'blog':
+                return (
+                    <BlogRail
+                        key={section.id}
+                        posts={blog.data}
+                        isLoading={blog.isPending}
+                        error={blog.error}
+                    />
+                );
+        }
+    };
 
     const header = (
         <HomeHeader
@@ -129,41 +163,7 @@ export default function HomeScreen() {
                     />
                 </View>
 
-                <HeroSlider hero={config.hero} assetBaseUrl={env.siteUrl} />
-
-                <ProductRail
-                    eyebrow={S.newArrivalsEyebrow}
-                    title={S.newArrivalsTitle}
-                    products={newArrivals.data?.products}
-                    isLoading={newArrivals.isPending}
-                    error={newArrivals.error}
-                    onRetry={() => void newArrivals.refetch()}
-                    hideWhenEmpty={false}
-                />
-
-                {/* Deals is empty on this channel until a product carries a
-                    deal flag; `hideWhenEmpty` keeps that from rendering a
-                    permanently blank section header. */}
-                <ProductRail
-                    eyebrow={S.dealsTitle}
-                    title={S.dealsTitle}
-                    subtitle={S.dealsSubtitle}
-                    products={deals.data?.products}
-                    isLoading={deals.isPending}
-                    error={deals.error}
-                    onRetry={() => void deals.refetch()}
-                />
-
-                <CategoryGrid
-                    collections={collections.data}
-                    isLoading={collections.isPending}
-                />
-
-                <BlogRail
-                    posts={blog.data}
-                    isLoading={blog.isPending}
-                    error={blog.error}
-                />
+                {config.home.sections.map(renderSection)}
             </ScrollView>
         </Screen>
     );

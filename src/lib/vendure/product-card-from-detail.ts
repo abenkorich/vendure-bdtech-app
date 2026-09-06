@@ -5,6 +5,8 @@ export interface ProductCardBySlugSource {
     id: string;
     name: string;
     slug: string;
+    /** Mobile-only: preferred over `assets[0]`, which is empty for a third of this catalogue. */
+    featuredAsset?: {id: string; preview: string} | null;
     assets: Array<{id: string; preview: string}>;
     variants: Array<{id: string; priceWithTax: number; stockLevel: string}>;
 }
@@ -17,7 +19,7 @@ export function toProductCardFragment(
     const prices = product.variants.map((variant) => variant.priceWithTax);
     const min = prices.length > 0 ? Math.min(...prices) : 0;
     const max = prices.length > 0 ? Math.max(...prices) : 0;
-    const asset = product.assets[0] ?? null;
+    const asset = product.featuredAsset ?? product.assets[0] ?? null;
     const inStock = product.variants.some((variant) => variant.stockLevel !== 'OUT_OF_STOCK');
     const preferredVariant =
         product.variants.find((variant) => variant.stockLevel !== 'OUT_OF_STOCK') ?? product.variants[0];

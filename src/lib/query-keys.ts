@@ -54,6 +54,8 @@ export const queryKeys = {
 
     deals: (params?: Record<string, unknown>) =>
         [CATALOGUE_ROOT, 'deals', stableParams(params)] as const,
+    /** A merchant-configured home rail; params carry its whole config. */
+    appRail: (params: Record<string, unknown>) => [CATALOGUE_ROOT, 'app-rail', params] as const,
     newArrivals: (params?: Record<string, unknown>) =>
         [CATALOGUE_ROOT, 'new-arrivals', stableParams(params)] as const,
 

@@ -213,6 +213,13 @@ export const GetProductCardBySlugQuery = graphql(`
             id
             name
             slug
+            # Mobile-only addition, same reason as GetProductDetail: a third of
+            # the catalogue has a featuredAsset and no assets list, and a
+            # hand-picked rail card with no photo reads as broken.
+            featuredAsset {
+                id
+                preview
+            }
             assets {
                 id
                 preview

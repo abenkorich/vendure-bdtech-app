@@ -4,6 +4,7 @@ import {
     slideCopy,
     absoluteAsset,
     contactLabel,
+    sectionCopy,
 } from '@/lib/site-config/schema';
 import fallback from '@/lib/site-config/fallback.json';
 import {resolveAppUrl} from '@/lib/notification-routes';
@@ -77,6 +78,40 @@ export async function run(): Promise<void> {
         snapshotImages.length > 0 && notShipped.length === 0,
         `missing from assets/customizer or bundled-assets.ts: ${notShipped.join(', ')}`,
     );
+
+    /* --------------------------------------------------------- home sections */
+
+    // No list at all (the bundled snapshot, or an older storefront) renders
+    // the order the app always had.
+    eq(
+        'a config without sections falls back to the classic home order',
+        parseSiteConfig({}).home.sections.map(section => section.key).join(','),
+        'hero,rail,rail,categoryGrid,blog',
+    );
+
+    const composed = parseSiteConfig({
+        home: {
+            sections: [
+                {id: 'b1', key: 'banner', banner: {imageUrl: 'https://cdn/x.jpg', copy: {fr: {title: 'Promo'}}}},
+                {id: 'r1', key: 'rail', rail: {source: 'collection', collectionSlug: 'robotics', sort: 'price-asc', take: 8}},
+                {id: 'weird', key: 'carousel3d'},
+                {id: 'r2', key: 'rail', rail: {source: 'teleport', sort: 'random', take: 999}},
+                'not even an object',
+                {id: 'blog', key: 'blog'},
+            ],
+        },
+    });
+    eq(
+        'unknown section kinds and malformed entries are dropped, the rest keep their order',
+        composed.home.sections.map(section => section.id).join(','),
+        'b1,r1,r2,blog',
+    );
+    eq('a rail with an unknown source degrades to a collection rail', composed.home.sections[2]?.rail?.source, 'collection');
+    eq('a rail with an unknown sort degrades to relevance', composed.home.sections[2]?.rail?.sort, 'default');
+    eq('an out-of-range take degrades to the default', composed.home.sections[2]?.rail?.take, 12);
+    eq('section copy falls back to English then to nothing', sectionCopy({fr: {title: 'Promo'}}, 'ar').title, undefined);
+    eq('section copy prefers the active locale', sectionCopy({en: {title: 'Sale'}, fr: {title: 'Promo'}}, 'fr').title, 'Promo');
+    check('a merchant-emptied list stays empty rather than reverting to defaults', parseSiteConfig({home: {sections: []}}).home.sections.length === 0);
 
     /* -------------------------------------------------------------- helpers */
 
