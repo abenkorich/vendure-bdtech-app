@@ -14,6 +14,11 @@ import {useTranslations} from '@/i18n';
  * Each tab uses its outline glyph when inactive and the filled one when
  * active. That reads as a state change at a glance, where a color shift alone
  * is easy to miss on a small, dark tab bar.
+ *
+ * Every tab is a group with its own stack (`(home)`, `(shop)`, …) rather than
+ * a bare screen. Product and collection pages used to live in the root stack,
+ * which covered the tab bar the moment a shopper opened anything; they are now
+ * shared routes inside every tab group, so the bar is always present.
  */
 
 function tabIcon(base: IconName, filled: IconName) {
@@ -38,23 +43,23 @@ export default function TabsLayout() {
                 },
             }}>
             <Tabs.Screen
-                name="index"
+                name="(home)"
                 options={{title: t('home'), tabBarIcon: tabIcon('home', 'homeFilled')}}
             />
             <Tabs.Screen
-                name="shop"
+                name="(shop)"
                 options={{title: t('shop'), tabBarIcon: tabIcon('shop', 'shopFilled')}}
             />
             <Tabs.Screen
-                name="search"
+                name="(search)"
                 options={{title: t('search'), tabBarIcon: tabIcon('search', 'searchFilled')}}
             />
             <Tabs.Screen
-                name="cart"
+                name="(cart)"
                 options={{title: t('cart'), tabBarIcon: tabIcon('cart', 'cartFilled')}}
             />
             <Tabs.Screen
-                name="account"
+                name="(account)"
                 options={{title: t('account'), tabBarIcon: tabIcon('account', 'accountFilled')}}
             />
         </Tabs>

@@ -8,15 +8,17 @@ import {siteImageSource} from '@/lib/site-config/bundled-assets';
 import {env} from '@/lib/env';
 
 /**
- * Home header: brand on the leading side, actions on the trailing side.
+ * Home header: messages on the leading side, the brand centred, notifications
+ * on the trailing side.
  *
- * Modelled on the marketplace pattern the merchant asked for (AliExpress and
- * friends): the logo anchors the leading edge, and notifications and messages
- * sit opposite as icon buttons with unread badges.
+ * Modelled on the marketplace pattern the merchant asked for: the logo sits
+ * between the two icon buttons, and both buttons carry unread badges. The two
+ * side slots have the same fixed width so the logo is centred on the screen,
+ * not merely between whatever the icons happen to measure.
  *
  * "Leading" and "trailing" rather than left and right on purpose. In Arabic
- * the whole row mirrors, and hardcoding left/right here would put the logo on
- * the wrong side for a third of this store's customers.
+ * the whole row mirrors, and hardcoding left/right here would put the icons
+ * on the wrong sides for a third of this store's customers.
  */
 
 export interface HomeHeaderProps {
@@ -79,6 +81,15 @@ export function HomeHeader({
 
     return (
         <View style={styles.root}>
+            <View style={styles.side}>
+                <ActionButton
+                    icon="chat"
+                    count={unreadMessages}
+                    label={t('messages')}
+                    onPress={() => router.push('/messages')}
+                />
+            </View>
+
             <View style={styles.brand}>
                 {resolvedLogo ? (
                     <Image
@@ -97,18 +108,12 @@ export function HomeHeader({
                 )}
             </View>
 
-            <View style={styles.actions}>
+            <View style={[styles.side, styles.sideEnd]}>
                 <ActionButton
                     icon="bell"
                     count={unreadNotifications}
                     label={t('notifications')}
                     onPress={() => router.push('/notifications')}
-                />
-                <ActionButton
-                    icon="chat"
-                    count={unreadMessages}
-                    label={t('messages')}
-                    onPress={() => router.push('/messages')}
                 />
             </View>
         </View>
@@ -119,26 +124,27 @@ const styles = StyleSheet.create(theme => ({
     root: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: theme.spacing.lg,
+        paddingHorizontal: theme.spacing.md,
         paddingVertical: theme.spacing.sm,
-        gap: theme.spacing.md,
+    },
+    /** Equal-width slots either side, so the brand is centred on the screen. */
+    side: {
+        width: 44,
+        alignItems: 'flex-start',
+    },
+    sideEnd: {
+        alignItems: 'flex-end',
     },
     brand: {
         flex: 1,
+        alignItems: 'center',
         justifyContent: 'center',
+        paddingHorizontal: theme.spacing.sm,
     },
     logo: {
-        width: 132,
-        height: 32,
-        // Logos are authored for a light web header, so they are aligned to
-        // the leading edge and left to size themselves within that box.
-        alignSelf: 'flex-start',
-    },
-    actions: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: theme.spacing.xs,
+        width: 180,
+        maxWidth: '100%',
+        height: 44,
     },
     action: {
         width: 44,

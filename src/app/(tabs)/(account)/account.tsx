@@ -233,7 +233,7 @@ function RecentOrders() {
             <Section title={t('recentOrders')}>
                 <Card padding="lg" style={styles.emptyCard}>
                     <Text variant="bodyStrong">{t('noOrdersTitle')}</Text>
-                    <Button size="sm" onPress={() => router.push('/(tabs)/shop')}>
+                    <Button size="sm" onPress={() => router.push('/shop')}>
                         {t('startShopping')}
                     </Button>
                 </Card>

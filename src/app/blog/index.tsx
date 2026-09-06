@@ -45,7 +45,7 @@ export default function BlogScreen() {
                     message={t('subtitle')}
                     action={{
                         label: translate('NotFound.browseProducts'),
-                        onPress: () => router.push('/(tabs)/shop'),
+                        onPress: () => router.push('/shop'),
                     }}
                 />
             ) : (

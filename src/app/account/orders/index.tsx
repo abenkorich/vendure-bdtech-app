@@ -96,7 +96,7 @@ export default function OrdersScreen() {
                     message={filter === 'all' ? t('noOrders') : t('noMatchingOrders')}
                     action={
                         filter === 'all'
-                            ? {label: t('startShopping'), onPress: () => router.push('/(tabs)/shop')}
+                            ? {label: t('startShopping'), onPress: () => router.push('/shop')}
                             : {label: t('clearFilters'), onPress: () => setFilter('all')}
                     }
                 />

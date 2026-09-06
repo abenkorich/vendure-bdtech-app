@@ -48,7 +48,7 @@ export default function RegisterScreen() {
             {
                 onSuccess: result => {
                     if (result.requiresVerification) setVerificationSent(true);
-                    else router.replace('/(tabs)/account');
+                    else router.replace('/account');
                 },
             },
         );

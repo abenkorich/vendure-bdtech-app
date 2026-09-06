@@ -35,7 +35,7 @@ export default function SignInScreen() {
                     // `useSignIn` awaits the customer refetch before resolving,
                     // so the account screen never flickers "signed out".
                     if (router.canGoBack()) router.back();
-                    else router.replace('/(tabs)/account');
+                    else router.replace('/account');
                 },
             },
         );

@@ -49,7 +49,7 @@ export default function ResetPasswordScreen() {
                     message={t('checkYourEmailDescription')}
                     action={{
                         label: t('signIn'),
-                        onPress: () => router.replace('/(tabs)/account'),
+                        onPress: () => router.replace('/account'),
                     }}
                 />
             </Screen>
