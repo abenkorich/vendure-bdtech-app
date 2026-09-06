@@ -220,26 +220,24 @@ verified.
 
 
 **Production runs the Next storefront, not the Astro one.** `x-powered-by:
-Next.js` on www.dzduino.dz. That single fact explains the app-visible gap, and
-it is why guessing at server config was wrong:
+Next.js` on www.dzduino.dz.
 
-- `GET /api/site-config` 404s in production (it 500'd until early September).
-  The deployed Next build has only empty `enter-preview` and `exit-preview`
-  folders under `api/site-config`. The route now exists in the Next repo on
-  branch `feat/app-site-config` (2026-09-05): it serves the same
-  `{locale, config}` shape this app parses, built by
-  `src/config/app-site-config.ts` there, with per-block "inherit from web or
-  custom" overrides edited on the customizer's Home pane (Web / Mobile app
-  tabs) and a "Mobile app" sidebar section. The payload adds `version` and
-  `app.{minSupportedVersion, maintenance}`, which this app does not read yet.
-  Until that branch is deployed, production still 404s.
-- `/customizer/banners/<id>.jpg` used to 404. Since early September the server
-  answers **any** missing customizer path with the same generic "No image
-  available" PNG and a **200**, so the app cannot tell a missing banner from a
-  real one by status. The four images the bundled snapshot names are shipped
-  in `assets/customizer/` and preferred over the network
-  (`lib/site-config/bundled-assets.ts`); anything the merchant uploads later
-  still needs the storefront deployed.
+- `GET /api/site-config` is **live in production since 2026-09-06** (version 1
+  of the payload, from the Next repo's `feat/app-site-config` branch). It
+  serves the merchant's real hero, categories, logo and contacts, with
+  absolute image URLs on `https://dzduino.dz/customizer/assets/…`. The
+  deployed build predates `home.sections`, so the app falls back to its
+  classic home order until the storefront is redeployed from the same
+  branch's later commits.
+- The bare host `dzduino.dz` now presents a **valid** certificate (verified
+  2026-09-06: `curl -sI https://dzduino.dz/customizer/assets/…` answers 200),
+  so the images the endpoint points at load on device. The refusal in
+  `lib/env.ts` for a bare-host `siteUrl` is therefore about an old
+  deployment; keep `www` in `.env` regardless, it costs nothing.
+- Missing `/customizer/banners/*` paths still answer a generic "No image
+  available" PNG with a 200, so a status code cannot detect a missing
+  banner. The four images the bundled snapshot names ship in
+  `assets/customizer/` and are preferred over the network.
 
 Verified by running the Astro build locally (`node dist/server/entry.mjs`):
 both answer correctly there, so the code is correct and the deployment is the
