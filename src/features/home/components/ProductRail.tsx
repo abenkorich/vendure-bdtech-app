@@ -9,6 +9,7 @@ import {ProductCard, ProductCardSkeleton, EmptyState, Text} from '@/components/u
 import {readProductCards, type ProductCardData} from '@/lib/types';
 import {SectionHeader} from './SectionHeader';
 import {S} from '@/features/catalogue-strings';
+import {QuickAddButton} from '@/features/cart/components/QuickAddButton';
 
 /**
  * Horizontal product rail.
@@ -64,6 +65,7 @@ export function ProductRail({
                 layout="rail"
                 product={item}
                 onPress={() => router.push(`/product/${item.slug}`)}
+                action={<QuickAddButton product={item} />}
             />
         ),
         [],

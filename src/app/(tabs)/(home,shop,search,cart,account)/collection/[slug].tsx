@@ -21,6 +21,7 @@ import {SortControl} from '@/features/collection/components/SortControl';
 import {CollectionTile} from '@/features/collection/components/CollectionTile';
 import {S, tr} from '@/features/catalogue-strings';
 import {recordCollectionVisit} from '@/features/explore/visited-collections';
+import {QuickAddButton} from '@/features/cart/components/QuickAddButton';
 
 /**
  * Collection listing.
@@ -179,6 +180,7 @@ export default function CollectionScreen() {
                             <ProductCard
                                 product={item}
                                 onPress={() => router.push(`/product/${item.slug}`)}
+                                action={<QuickAddButton product={item} />}
                             />
                         </View>
                     )}

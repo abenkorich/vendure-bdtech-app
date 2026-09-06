@@ -6,6 +6,7 @@ import {ProductCard, ProductCardSkeleton, Button, IconSymbol, Text} from '@/comp
 import {useTranslations} from '@/i18n';
 import {SectionHeader} from '@/features/home/components/SectionHeader';
 import {useExploreFeed} from './queries';
+import {QuickAddButton} from '@/features/cart/components/QuickAddButton';
 
 /**
  * "Explore more": the open-ended tail of the home screen.
@@ -67,6 +68,7 @@ export function ExploreFeed({slugs, personalised}: ExploreFeedProps) {
                               <ProductCard
                                   product={product}
                                   onPress={() => router.push(`/product/${product.slug}`)}
+                                  action={<QuickAddButton product={product} />}
                               />
                           </View>
                       ))}

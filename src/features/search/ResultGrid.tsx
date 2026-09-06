@@ -4,6 +4,7 @@ import {FlashList} from '@shopify/flash-list';
 import {StyleSheet} from 'react-native-unistyles';
 import {ProductCard, ProductCardSkeleton} from '@/components/ui';
 import type {SearchCard} from './use-filtered-search';
+import {QuickAddButton} from '@/features/cart/components/QuickAddButton';
 
 /**
  * The 2-column result grid.
@@ -38,6 +39,7 @@ export function ResultGrid({
                 <ProductCard
                     product={item}
                     onPress={() => onPressProduct(item.slug)}
+                    action={<QuickAddButton product={item} />}
                 />
             </View>
         ),

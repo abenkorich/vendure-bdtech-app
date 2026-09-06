@@ -35,6 +35,8 @@ export interface ProductCardData {
     /** Integer minor units. */
     priceWithTax: ProductCardPrice;
     currencyCode: string;
+    /** The variant a quick add targets; the search index's preferred one. */
+    productVariantId?: string;
 }
 
 export interface ProductCardProps {
@@ -49,6 +51,12 @@ export interface ProductCardProps {
     showPriceRange?: boolean;
     /** Slot under the price, e.g. an add-to-cart button. */
     footer?: React.ReactNode;
+    /**
+     * Round control pinned to the card's lower trailing corner (lower right
+     * in LTR, lower left in Arabic), e.g. `QuickAddButton`. The body keeps
+     * clear of it so the price never runs underneath.
+     */
+    action?: React.ReactNode;
 }
 
 export function ProductCard({
@@ -57,6 +65,7 @@ export function ProductCard({
     layout = 'grid',
     showPriceRange = true,
     footer,
+    action,
 }: ProductCardProps) {
     styles.useVariants({layout});
 
@@ -105,7 +114,7 @@ export function ProductCard({
                 ) : null}
             </View>
 
-            <View style={styles.body}>
+            <View style={[styles.body, action ? styles.bodyWithAction : null]}>
                 <Text variant="body" numberOfLines={2} style={styles.title}>
                     {product.productName}
                 </Text>
@@ -126,6 +135,8 @@ export function ProductCard({
 
                 {footer}
             </View>
+
+            {action ? <View style={styles.action}>{action}</View> : null}
         </Card>
     );
 }
@@ -188,6 +199,15 @@ const styles = StyleSheet.create(theme => ({
     body: {
         padding: theme.spacing.md,
         gap: theme.spacing.sm,
+    },
+    bodyWithAction: {
+        // Room for the 36pt control plus its gutter.
+        paddingEnd: theme.spacing.md + 36 + theme.spacing.sm,
+    },
+    action: {
+        position: 'absolute',
+        bottom: theme.spacing.sm,
+        end: theme.spacing.sm,
     },
     title: {
         // Two lines reserved: a mixed one/two-line grid leaves prices on a
