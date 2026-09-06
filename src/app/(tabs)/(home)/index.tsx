@@ -1,5 +1,12 @@
-import {useCallback} from 'react';
-import {Alert, RefreshControl, ScrollView, View} from 'react-native';
+import {useCallback, useState} from 'react';
+import {
+    Alert,
+    RefreshControl,
+    ScrollView,
+    View,
+    type NativeScrollEvent,
+    type NativeSyntheticEvent,
+} from 'react-native';
 import {StyleSheet, useUnistyles} from 'react-native-unistyles';
 import {Screen, EmptyState} from '@/components/ui';
 import {useQueryClient} from '@tanstack/react-query';
@@ -74,6 +81,19 @@ export default function HomeScreen() {
 
     const allFailed = Boolean(collections.error) && !collections.data;
 
+    /**
+     * Within this many points of the bottom, the Explore feed loads its next
+     * page. About two rows of cards: early enough that a steady scroll never
+     * hits the end, late enough that a glance at the hero costs no request.
+     */
+    const NEAR_END = 700;
+    const [nearEnd, setNearEnd] = useState(false);
+    const onScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
+        const remaining = contentSize.height - (contentOffset.y + layoutMeasurement.height);
+        setNearEnd(remaining < NEAR_END);
+    }, []);
+
     const renderSection = (section: HomeSection) => {
         switch (section.key) {
             case 'hero':
@@ -145,6 +165,8 @@ export default function HomeScreen() {
                 // Index 1 is the search + categories block; the brand row at
                 // index 0 scrolls away.
                 stickyHeaderIndices={[1]}
+                onScroll={onScroll}
+                scrollEventThrottle={120}
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}
@@ -175,7 +197,11 @@ export default function HomeScreen() {
                 {/* Always last, and not a configurable section: it is the
                     open-ended tail that keeps the screen worth scrolling
                     once the merchant's sections run out. */}
-                <ExploreFeed slugs={exploreSlugs} personalised={visited.length > 0} />
+                <ExploreFeed
+                    slugs={exploreSlugs}
+                    personalised={visited.length > 0}
+                    nearEnd={nearEnd}
+                />
             </ScrollView>
         </Screen>
     );

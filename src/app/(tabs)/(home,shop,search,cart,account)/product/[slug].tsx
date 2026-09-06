@@ -9,6 +9,7 @@ import {
     Button,
     Price,
     Badge,
+    Stepper,
     Divider,
     Skeleton,
     EmptyState,
@@ -71,6 +72,7 @@ export default function ProductScreen() {
     const [selection, setSelection] = useState<Selection | null>(null);
     const [sheetOpen, setSheetOpen] = useState(false);
     const [added, setAdded] = useState(false);
+    const [quantity, setQuantity] = useState(1);
 
     const addToCart = useAddToCart();
     const wishlist = useWishlist();
@@ -109,7 +111,7 @@ export default function ProductScreen() {
         if (!variant) return;
         void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         addToCart.mutate(
-            {variantId: variant.id, quantity: 1},
+            {variantId: variant.id, quantity},
             {
                 onSuccess: () => {
                     setAdded(true);
@@ -121,7 +123,7 @@ export default function ProductScreen() {
                 },
             },
         );
-    }, [variant, addToCart]);
+    }, [variant, quantity, addToCart]);
 
     /**
      * The payload both lists store. Enough to render a card offline (name,
@@ -256,10 +258,12 @@ export default function ProductScreen() {
                                 />
                             ) : null}
 
+                            {/* Red, not grey: out of stock is the one state
+                                that changes what the shopper can do here. */}
                             <Badge
                                 tone={
                                     outOfStock
-                                        ? 'neutral'
+                                        ? 'danger'
                                         : state === 'low-stock'
                                           ? 'sale'
                                           : 'success'
@@ -269,10 +273,32 @@ export default function ProductScreen() {
                             </Badge>
                         </View>
 
+                        {/* Reference and quantity on one bar: the two facts
+                            a buyer checks right before the button. */}
                         {variant ? (
-                            <Text variant="micro" color="textMuted" tabular>
-                                {`${S.sku} ${variant.sku}`}
-                            </Text>
+                            <View style={styles.skuQtyBar}>
+                                <View style={styles.skuCell}>
+                                    <Text variant="micro" color="textMuted" uppercase>
+                                        {S.sku}
+                                    </Text>
+                                    <Text variant="caption" tabular numberOfLines={1}>
+                                        {variant.sku}
+                                    </Text>
+                                </View>
+                                <View style={styles.qtyCell}>
+                                    <Text variant="micro" color="textMuted" uppercase>
+                                        {tr('Product.quantity')}
+                                    </Text>
+                                    <Stepper
+                                        value={quantity}
+                                        onChange={setQuantity}
+                                        min={1}
+                                        size="sm"
+                                        disabled={outOfStock}
+                                        label={product.name}
+                                    />
+                                </View>
+                            </View>
                         ) : null}
                     </View>
 
@@ -414,6 +440,27 @@ function stripHtml(html: string): string {
 }
 
 const styles = StyleSheet.create(theme => ({
+    skuQtyBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: theme.spacing.md,
+        marginTop: theme.spacing.sm,
+        paddingVertical: theme.spacing.sm,
+        paddingHorizontal: theme.spacing.md,
+        borderRadius: theme.radius.md,
+        borderWidth: theme.elevation.card.borderWidth,
+        borderColor: theme.colors.border,
+        backgroundColor: theme.colors.surface,
+    },
+    skuCell: {
+        flex: 1,
+        gap: 2,
+    },
+    qtyCell: {
+        alignItems: 'flex-end',
+        gap: theme.spacing.xs,
+    },
     navBar: {
         flexDirection: 'row',
         alignItems: 'center',

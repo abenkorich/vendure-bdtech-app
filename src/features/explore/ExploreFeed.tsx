@@ -1,4 +1,4 @@
-import {useMemo} from 'react';
+import {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {StyleSheet} from 'react-native-unistyles';
 import {router} from 'expo-router';
@@ -13,10 +13,10 @@ import {QuickAddButton} from '@/features/cart/components/QuickAddButton';
  *
  * Draws from the collections this device browsed, or from the merchant's
  * highlighted ones until there is a history, newest products first, and
- * grows on demand. Load more is a button rather than an infinite scroll: the
- * home screen is a `ScrollView` that already hosts the merchant's sections,
- * and an auto-loading feed inside it would fight the pull-to-refresh and the
- * pinned search bar for the same gesture.
+ * grows as the shopper scrolls: the home screen reports when its scroll view
+ * is near the end (`nearEnd`) and the next page loads. A centred text link
+ * remains for anyone who stops short of the threshold, and as the visible
+ * sign that there is more.
  *
  * The grid is a plain wrapping row, not a virtualised list, because it lives
  * inside that ScrollView; a few dozen cards is what a shopper actually pages
@@ -28,14 +28,24 @@ export interface ExploreFeedProps {
     slugs: readonly string[];
     /** Whether `slugs` came from this device's history. Changes the subtitle only. */
     personalised: boolean;
+    /** True while the hosting scroll view is within reach of its end. */
+    nearEnd?: boolean;
 }
 
 const SKELETONS = [0, 1, 2, 3];
 
-export function ExploreFeed({slugs, personalised}: ExploreFeedProps) {
+export function ExploreFeed({slugs, personalised, nearEnd = false}: ExploreFeedProps) {
     const t = useTranslations('Explore');
     const tCommon = useTranslations('Common');
     const feed = useExploreFeed(slugs);
+
+    const {hasNextPage, isFetchingNextPage, fetchNextPage} = feed;
+    const pageCount = feed.data?.pages.length ?? 0;
+    useEffect(() => {
+        // Re-evaluated when a page lands (pageCount), so a short page that
+        // leaves the end still in reach fetches the next one.
+        if (nearEnd && hasNextPage && !isFetchingNextPage) void fetchNextPage();
+    }, [nearEnd, hasNextPage, isFetchingNextPage, fetchNextPage, pageCount]);
 
     const cards = useMemo(() => {
         const seen = new Set<string>();
@@ -77,12 +87,11 @@ export function ExploreFeed({slugs, personalised}: ExploreFeedProps) {
             <View style={styles.footer}>
                 {feed.hasNextPage ? (
                     <Button
-                        variant="secondary"
+                        variant="ghost"
                         loading={feed.isFetchingNextPage}
                         onPress={() => void feed.fetchNextPage()}
-                        iconEnd="chevronDown"
                     >
-                        {tCommon('loadMore')}
+                        {feed.isFetchingNextPage ? tCommon('loading') : tCommon('loadMore')}
                     </Button>
                 ) : cards.length > 0 ? (
                     <View style={styles.end}>

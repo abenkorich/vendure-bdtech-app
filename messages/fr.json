@@ -190,6 +190,7 @@
     "errorTitle": "Erreur",
     "errorAddToCart": "Impossible d'ajouter l'article au panier",
     "sku": "SKU : {sku}",
+    "quantity": "Quantité",
     "from": "À partir de",
     "noImage": "Aucune image",
     "quickView": "Aperçu rapide",

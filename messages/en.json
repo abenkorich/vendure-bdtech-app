@@ -190,6 +190,7 @@
     "errorTitle": "Error",
     "errorAddToCart": "Failed to add item to cart",
     "sku": "SKU: {sku}",
+    "quantity": "Quantity",
     "from": "From",
     "noImage": "No image",
     "quickView": "Quick view",

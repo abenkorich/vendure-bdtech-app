@@ -109,7 +109,7 @@ export function ProductCard({
 
                 {outOfStock ? (
                     <View style={styles.badgeSlot}>
-                        <Badge tone="neutral">{outOfStockLabel}</Badge>
+                        <Badge tone="danger">{outOfStockLabel}</Badge>
                     </View>
                 ) : null}
             </View>

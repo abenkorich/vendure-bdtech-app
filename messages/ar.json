@@ -190,6 +190,7 @@
     "errorTitle": "خطأ",
     "errorAddToCart": "فشلت إضافة المنتج إلى السلة",
     "sku": "رمز المنتج: {sku}",
+    "quantity": "الكمية",
     "from": "من",
     "noImage": "لا توجد صورة",
     "quickView": "عرض سريع",
