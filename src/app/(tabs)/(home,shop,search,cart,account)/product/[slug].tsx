@@ -1,4 +1,4 @@
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {View, ScrollView, Alert} from 'react-native';
 import {StyleSheet} from 'react-native-unistyles';
 import * as Haptics from 'expo-haptics';
@@ -33,6 +33,7 @@ import {
 } from '@/features/product/variant-selection';
 import {S, tr} from '@/features/catalogue-strings';
 import {galleryImages} from '@/features/product/gallery-images';
+import {recordCollectionVisit} from '@/features/explore/visited-collections';
 
 /**
  * Product detail.
@@ -55,6 +56,17 @@ const CURRENCY = 'DZD';
 export default function ProductScreen() {
     const {slug} = useLocalSearchParams<{slug: string}>();
     const {data: product, isPending, error, refetch} = useProduct(slug);
+
+    // Opening a product is a visit to the collection it lives in, for the
+    // home screen's Explore more. The deepest one, since a product filed
+    // under "Sensors" says more than its ancestor "Electronics".
+    useEffect(() => {
+        if (!product) return;
+        const deepest = [...(product.collections ?? [])].sort(
+            (a, b) => (b.breadcrumbs?.length ?? 0) - (a.breadcrumbs?.length ?? 0),
+        )[0];
+        recordCollectionVisit(deepest?.slug);
+    }, [product]);
 
     const [selection, setSelection] = useState<Selection | null>(null);
     const [sheetOpen, setSheetOpen] = useState(false);

@@ -1,4 +1,4 @@
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {FlashList} from '@shopify/flash-list';
 import {StyleSheet, useUnistyles} from 'react-native-unistyles';
@@ -20,6 +20,7 @@ import {Breadcrumbs} from '@/features/collection/components/Breadcrumbs';
 import {SortControl} from '@/features/collection/components/SortControl';
 import {CollectionTile} from '@/features/collection/components/CollectionTile';
 import {S, tr} from '@/features/catalogue-strings';
+import {recordCollectionVisit} from '@/features/explore/visited-collections';
 
 /**
  * Collection listing.
@@ -47,6 +48,12 @@ export default function CollectionScreen() {
         sort,
         take,
     });
+
+    // Feeds the home screen's Explore more. Recorded once the collection
+    // resolved, so a mistyped deep link does not count as interest.
+    useEffect(() => {
+        if (data?.collection) recordCollectionVisit(data.collection.slug);
+    }, [data?.collection]);
 
     const products = data ? readProductCards(data.products) : [];
     const total = data?.totalItems ?? 0;

@@ -59,6 +59,13 @@
       }
     }
   },
+  "Explore": {
+    "eyebrow": "Continuez",
+    "title": "Explorer davantage",
+    "fromHistory": "Les nouveautés des catégories que vous avez parcourues.",
+    "fromStore": "Les nouveautés de nos catégories populaires.",
+    "caughtUp": "Vous avez tout vu"
+  },
   "HomeSections": {
     "viewAll": "Tout voir",
     "featured": {

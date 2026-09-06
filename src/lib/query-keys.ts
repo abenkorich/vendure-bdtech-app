@@ -54,6 +54,8 @@ export const queryKeys = {
 
     deals: (params?: Record<string, unknown>) =>
         [CATALOGUE_ROOT, 'deals', stableParams(params)] as const,
+    /** The Explore more feed for a set of collections; paged by TanStack. */
+    exploreFeed: (slugs: readonly string[]) => [CATALOGUE_ROOT, 'explore-feed', ...slugs] as const,
     /** A merchant-configured home rail; params carry its whole config. */
     appRail: (params: Record<string, unknown>) => [CATALOGUE_ROOT, 'app-rail', params] as const,
     newArrivals: (params?: Record<string, unknown>) =>

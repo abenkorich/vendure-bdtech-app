@@ -59,6 +59,13 @@
       }
     }
   },
+  "Explore": {
+    "eyebrow": "Keep browsing",
+    "title": "Explore more",
+    "fromHistory": "Newest products from the categories you browsed.",
+    "fromStore": "Newest products from our popular categories.",
+    "caughtUp": "You're all caught up"
+  },
   "HomeSections": {
     "viewAll": "View all",
     "featured": {

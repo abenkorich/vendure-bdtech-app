@@ -13,6 +13,8 @@ import {CategoryStrip} from '@/features/home/components/CategoryStrip';
 import {HeroSlider} from '@/features/home/components/HeroSlider';
 import {PromoBanner} from '@/features/home/components/PromoBanner';
 import {ConfiguredRail} from '@/features/home/components/ConfiguredRail';
+import {ExploreFeed} from '@/features/explore/ExploreFeed';
+import {useVisitedCollections} from '@/features/explore/visited-collections';
 import {CATALOGUE_ROOT} from '@/lib/query-keys';
 import type {HomeSection} from '@/lib/site-config/schema';
 import {useSiteConfig} from '@/lib/site-config';
@@ -54,6 +56,10 @@ export default function HomeScreen() {
 
     const queryClient = useQueryClient();
     const collections = useCollections();
+    // The Explore feed follows what this device browsed; a fresh install
+    // follows the merchant's highlighted categories until it has a history.
+    const visited = useVisitedCollections();
+    const exploreSlugs = visited.length > 0 ? visited : config.popularCategories.collectionSlugs;
     const blog = useBlogRail(6);
 
     const refreshing = collections.isRefetching;
@@ -63,6 +69,7 @@ export default function HomeScreen() {
         void blog.refetch();
         // Every configured rail shares this key prefix; see useRailProducts.
         void queryClient.invalidateQueries({queryKey: [CATALOGUE_ROOT, 'app-rail']});
+        void queryClient.invalidateQueries({queryKey: [CATALOGUE_ROOT, 'explore-feed']});
     }, [collections, blog, queryClient]);
 
     const allFailed = Boolean(collections.error) && !collections.data;
@@ -164,6 +171,11 @@ export default function HomeScreen() {
                 </View>
 
                 {config.home.sections.map(renderSection)}
+
+                {/* Always last, and not a configurable section: it is the
+                    open-ended tail that keeps the screen worth scrolling
+                    once the merchant's sections run out. */}
+                <ExploreFeed slugs={exploreSlugs} personalised={visited.length > 0} />
             </ScrollView>
         </Screen>
     );
