@@ -64,10 +64,16 @@ const config: ExpoConfig = {
                 // An image is required: without one the Android build fails at
                 // resource linking with "drawable/splashscreen_logo not found",
                 // while iOS silently tolerates it.
-                image: './assets/splash-icon.png',
-                imageWidth: 160,
-                backgroundColor: '#0B0F14',
-                dark: {backgroundColor: '#0B0F14'},
+                //
+                // The wordmark, on the theme's own background colours, so the
+                // JS boot overlay (`components/ui/BootSplash`) can take over
+                // with the identical picture and start it beating without a
+                // visible cut. Keep these colours equal to `tokens.ts`
+                // background: white in light, slate950 in dark.
+                image: './assets/splash-logo.png',
+                imageWidth: 200,
+                backgroundColor: '#ffffff',
+                dark: {image: './assets/splash-logo.png', backgroundColor: '#020618'},
                 resizeMode: 'contain',
             },
         ],
