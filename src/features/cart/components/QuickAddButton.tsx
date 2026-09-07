@@ -8,7 +8,10 @@ import {useAddToCart} from '@/features/cart/queries';
 import {useTranslations} from '@/i18n';
 
 /**
- * The round "+" on a product card.
+ * The round cart button on a product card.
+ *
+ * Green while the product can be bought, which makes the button itself the
+ * availability signal a shopper scans a grid for; grey when it cannot.
  *
  * Adds the card's variant straight to the cart, with one exception: a price
  * *range* means the product has variants at different prices, so the tap
@@ -91,7 +94,7 @@ export function QuickAddButton({product}: QuickAddButtonProps) {
             {busy ? (
                 <ActivityIndicator size="small" color={theme.colors.onBrand} />
             ) : (
-                <IconSymbol name={added ? 'check' : 'add'} size={18} color="onBrand" />
+                <IconSymbol name={added ? 'check' : 'cart'} size={18} color="onBrand" />
             )}
         </Pressable>
     );
@@ -102,7 +105,7 @@ const styles = StyleSheet.create(theme => ({
         width: 36,
         height: 36,
         borderRadius: theme.radius.full,
-        backgroundColor: theme.colors.brand,
+        backgroundColor: theme.colors.success,
         alignItems: 'center',
         justifyContent: 'center',
         // Lifted, so it reads as a control sitting on the card rather than
@@ -111,7 +114,7 @@ const styles = StyleSheet.create(theme => ({
         borderColor: theme.colors.background,
     },
     buttonAdded: {
-        backgroundColor: theme.colors.success,
+        backgroundColor: theme.colors.brand,
     },
     buttonDisabled: {
         backgroundColor: theme.colors.border,
