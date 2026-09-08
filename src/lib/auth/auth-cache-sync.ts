@@ -11,9 +11,13 @@ import {onAuthTokenChange} from '@/lib/auth/token-store';
  * *previous* session's data — someone else's cart or, worse, their address
  * book — until a refetch happens to land.
  *
- * So every token transition removes the whole `customer` subtree. `remove`,
+ * So every token transition resets the whole `customer` subtree. `reset`,
  * not `invalidate`: invalidation keeps the stale data visible while the
- * refetch runs, which is the exact frame we cannot afford.
+ * refetch runs, which is the exact frame we cannot afford. And `reset`, not
+ * `remove`: removing a query that a mounted screen is observing detaches
+ * that observer from the cache, so it never hears the refetch and the
+ * screen sits on its loading state until it remounts. A reset drops the
+ * data the same way and refetches for anyone still watching.
  *
  * Catalogue queries are left alone. They are identical for every user, and
  * dropping them would make sign-out look like a cold start.
@@ -26,7 +30,7 @@ export function startAuthCacheSync(): () => void {
     started = true;
 
     const unsubscribe = onAuthTokenChange(() => {
-        queryClient.removeQueries({queryKey: [CUSTOMER_ROOT]});
+        void queryClient.resetQueries({queryKey: [CUSTOMER_ROOT]});
     });
 
     return () => {

@@ -43,12 +43,14 @@ async function fetchActiveCustomer(signal?: AbortSignal): Promise<SessionCustome
     if (!token) return null;
 
     const {data} = await query(GetActiveCustomerQuery, {}, {useAuthToken: true, signal});
-    if (!data.activeCustomer) {
-        // The token is stale. Dropping it here keeps every later request from
-        // re-attempting a session the server has already forgotten.
-        await clearAuthToken();
-        return null;
-    }
+    // A token with no customer behind it is not stale: it is a *guest*
+    // session, and the guest's cart lives on it. This used to clear the
+    // token here, which emptied the cart the moment the account tab opened
+    // and, because clearing removes the customer subtree from the cache,
+    // detached this very query and left the tab on its skeleton for good.
+    // An expired token needs no cleanup either: Vendure answers it with a
+    // fresh session token, which the API client stores on the way in.
+    if (!data.activeCustomer) return null;
     return readFragment(ActiveCustomerFragment, data.activeCustomer);
 }
 
