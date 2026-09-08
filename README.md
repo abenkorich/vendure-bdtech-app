@@ -34,6 +34,40 @@ SecureStore all ship native code.
 
 ---
 
+## Android demo build
+
+A signed APK that runs standalone on a real phone (JS bundled, no Metro).
+
+**Requirements:** Android SDK, and **JDK 17** — newer JDKs fail the build; see
+[`AGENTS.md`](AGENTS.md).
+
+```bash
+export JAVA_HOME=/opt/homebrew/opt/openjdk@17
+export ANDROID_HOME=$HOME/Library/Android/sdk
+npx expo prebuild --platform android --no-install
+cd android && ./gradlew assembleRelease
+```
+
+The APK lands at `android/app/build/outputs/apk/release/app-release.apk`
+(~125 MB, all four ABIs). Install it over USB with debugging enabled:
+
+```bash
+$ANDROID_HOME/platform-tools/adb install -r android/app/build/outputs/apk/release/app-release.apk
+```
+
+Without a cable, serve the folder and open the address on the phone:
+
+```bash
+cd android/app/build/outputs/apk/release && python3 -m http.server 8000
+```
+
+It is signed with the **debug** keystore, which installs on a device but
+cannot go to Play. `.env` is read at build time, so the API URL, channel
+token and site origin are baked into the APK; check them with
+`unzip -p <apk> assets/app.config`.
+
+---
+
 ## Environment
 
 | Variable | Required | Notes |

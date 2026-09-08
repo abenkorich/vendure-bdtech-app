@@ -152,6 +152,17 @@ dump` gives exact coordinates. Estimating a button's position from a
 screenshot wastes a lot of time looking like a broken button when the tap
 simply landed on empty space.
 
+**The Android build needs JDK 17, and fails obscurely on anything newer.**
+Android Studio ships a JDK 25 JBR; with it every `configureCMake*` task dies
+with `WARNING: A restricted method in java.lang.System has been called` and
+nothing else — no CMake log, because CMake never runs. That warning is the
+whole error: AGP forks prefab in a JVM and treats any stderr as failure, and
+JDK 24+ prints it. 28 minutes of build time to learn it. Set
+`JAVA_HOME=/opt/homebrew/opt/openjdk@17` (`brew install openjdk@17`, no sudo).
+Gradle downloads the NDK itself on the first run, so the *first* build can
+also fail on modules whose CMake step started before that download finished;
+re-running is enough.
+
 **Adding a native module needs `pod install` on iOS, not just a rebuild.**
 `npx expo run:ios` can reuse a cached workspace and produce an app *without*
 the new pod, which then crashes at the first use of that module. Run
