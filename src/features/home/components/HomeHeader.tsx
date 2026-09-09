@@ -21,6 +21,17 @@ import {env} from '@/lib/env';
  * on the wrong sides for a third of this store's customers.
  */
 
+/**
+ * The brand row's height, fixed rather than measured.
+ *
+ * Home collapses this row on scroll by clipping it, and a clipped view cannot
+ * report its own height: the first `onLayout` came back 0, the clip stayed at
+ * 0, and nothing ever re-laid it out, so the logo spilled over the status bar.
+ * A constant breaks that circularity, and a brand row is a fixed-height object
+ * anyway — the logo is drawn to a fixed box.
+ */
+export const HOME_HEADER_HEIGHT = 60;
+
 export interface HomeHeaderProps {
     /** Merchant logo from the customizer; falls back to the wordmark. */
     logoUrl?: string;
@@ -125,7 +136,7 @@ const styles = StyleSheet.create(theme => ({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: theme.spacing.md,
-        paddingVertical: theme.spacing.sm,
+        height: HOME_HEADER_HEIGHT,
     },
     /** Equal-width slots either side, so the brand is centred on the screen. */
     side: {
