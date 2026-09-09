@@ -32,7 +32,10 @@ const config: ExpoConfig = {
         permissions: ['android.permission.POST_NOTIFICATIONS'],
         adaptiveIcon: {
             foregroundImage: './assets/adaptive-icon.png',
-            backgroundColor: '#0B0F14',
+            // White, matching the iOS icon and the brand mark's own ground:
+            // the mark carries white inside it (the centre disc, the tools,
+            // the cap), which the old near-black plate fought.
+            backgroundColor: '#ffffff',
         },
         // Deep links: both hosts, because `dzduino.dz` currently redirects to
         // `www` and a link that lands on the redirect target must still open

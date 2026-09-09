@@ -15,6 +15,12 @@ import {check, done} from './harness';
  *
  * A first fix cleared the boundary by one pixel out of 338, which is a
  * coincidence rather than a margin. This asserts real headroom.
+ *
+ * What it measures is the furthest *drawn* pixel from the centre, which is
+ * exactly what a round mask clips. It used to measure the corners of the
+ * bounding box instead, which is the same thing only for art that fills its
+ * box: the brand mark is a hexagon with empty corners, and the box reading
+ * shrank it by a third for clearance it did not need.
  */
 
 const SAFE_FRACTION = 0.66;
@@ -23,13 +29,12 @@ const MAX_UTILISATION = 0.9;
 
 interface Bounds {
     width: number;
-    minX: number;
-    minY: number;
-    maxX: number;
-    maxY: number;
+    /** Furthest distance from the canvas centre at which anything is drawn. */
+    radius: number;
+    drawn: boolean;
 }
 
-/** Bounding box of non-transparent pixels in a non-interlaced RGBA8 PNG. */
+/** Reach of the non-transparent pixels in a non-interlaced RGBA8 PNG. */
 function opaqueBounds(path: string): Bounds {
     const raw = readFileSync(path);
 
@@ -67,11 +72,11 @@ function opaqueBounds(path: string): Bounds {
 
     const pixels = inflateSync(Buffer.concat(idat));
     const stride = width * 4 + 1;
+    const centreX = width / 2;
+    const centreY = height / 2;
 
-    let minX = width;
-    let minY = height;
-    let maxX = 0;
-    let maxY = 0;
+    let radius = 0;
+    let drawn = false;
 
     for (let y = 0; y < height; y += 1) {
         // Byte 0 of each row is the filter type; the generator uses 0 (none).
@@ -81,33 +86,27 @@ function opaqueBounds(path: string): Bounds {
         for (let x = 0; x < width; x += 1) {
             const alpha = pixels[y * stride + 1 + x * 4 + 3]!;
             if (alpha === 0) continue;
-            if (x < minX) minX = x;
-            if (x > maxX) maxX = x;
-            if (y < minY) minY = y;
-            if (y > maxY) maxY = y;
+            drawn = true;
+            // The pixel's far corner, so a pixel is only counted as clear when
+            // all of it is.
+            const distance = Math.hypot(
+                Math.abs(x + 0.5 - centreX) + 0.5,
+                Math.abs(y + 0.5 - centreY) + 0.5,
+            );
+            if (distance > radius) radius = distance;
         }
     }
 
-    return {width, minX, minY, maxX, maxY};
+    return {width, radius, drawn};
 }
 
 export async function run(): Promise<void> {
     const path = join(process.cwd(), 'assets', 'adaptive-icon.png');
-    const {width, minX, minY, maxX, maxY} = opaqueBounds(path);
+    const {width, radius, drawn} = opaqueBounds(path);
 
     check('the icon is square', width > 0, `width ${width}`);
-    check('the icon draws something', maxX > minX && maxY > minY, 'canvas is empty');
+    check('the icon draws something', drawn, 'canvas is empty');
 
-    const centre = width / 2;
-    const corners: Array<[number, number]> = [
-        [minX, minY],
-        [minX, maxY],
-        [maxX, minY],
-        [maxX, maxY],
-    ];
-    const radius = Math.max(
-        ...corners.map(([x, y]) => Math.hypot(x - centre, y - centre)),
-    );
     const safeRadius = (width * SAFE_FRACTION) / 2;
     const utilisation = radius / safeRadius;
 
