@@ -24,4 +24,3 @@ export {Stepper, type StepperProps} from './Stepper';
 export {IconSymbol, type IconSymbolProps, type IconName} from './IconSymbol';
 
 export {formatPrice, discountPercent, toMajorUnits} from '@/design/format-price';
-export {BootSplash} from './BootSplash';
