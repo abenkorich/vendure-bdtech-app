@@ -1,5 +1,6 @@
-import {StyleSheet} from 'react-native-unistyles';
+import {StyleSheet, UnistylesRuntime} from 'react-native-unistyles';
 import {lightTheme, darkTheme} from '@/design/tokens';
+import {readThemePreference} from '@/design/theme-preference';
 
 /**
  * Unistyles registration.
@@ -30,3 +31,14 @@ StyleSheet.configure({
         adaptiveThemes: true,
     },
 });
+
+/**
+ * A shopper who has used the switch in the header overrides that default.
+ * Applied here, as the runtime is configured, so the very first frame is
+ * already in the right theme rather than flipping once a screen mounts.
+ */
+const preference = readThemePreference();
+if (preference !== 'system') {
+    UnistylesRuntime.setAdaptiveThemes(false);
+    UnistylesRuntime.setTheme(preference);
+}

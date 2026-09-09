@@ -894,6 +894,8 @@
     "siteDescription": "Shop the best products at {siteName}. Quality products, competitive prices, and fast delivery.",
     "language": "Language",
     "restartToApplyDirection": "The app needs to restart to switch the layout direction.",
+    "switchToDark": "Switch to dark mode",
+    "switchToLight": "Switch to light mode",
     "restartNow": "Restart now",
     "back": "Back",
     "loadMore": "Load more",

@@ -894,6 +894,8 @@
     "siteDescription": "Achetez les meilleurs produits sur {siteName}. Produits de qualité, prix compétitifs et livraison rapide.",
     "language": "Langue",
     "restartToApplyDirection": "L'application doit redémarrer pour changer le sens de la mise en page.",
+    "switchToDark": "Passer en mode sombre",
+    "switchToLight": "Passer en mode clair",
     "restartNow": "Redémarrer maintenant",
     "back": "Retour",
     "loadMore": "Voir plus",

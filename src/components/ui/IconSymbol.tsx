@@ -82,6 +82,8 @@ const ICONS = {
     chip: 'hardware-chip-outline',
     globe: 'globe-outline',
     bell: 'notifications-outline',
+    sun: 'sunny-outline',
+    moon: 'moon-outline',
     chat: 'chatbubble-ellipses-outline',
     grid: 'apps-outline',
 } as const satisfies Record<string, React.ComponentProps<typeof Ionicons>['name']>;

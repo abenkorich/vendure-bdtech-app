@@ -2,19 +2,20 @@ import {View, Pressable} from 'react-native';
 import {Image} from 'expo-image';
 import {StyleSheet} from 'react-native-unistyles';
 import {router} from 'expo-router';
-import {Text, IconSymbol} from '@/components/ui';
+import {Text, IconSymbol, ThemeToggle} from '@/components/ui';
 import {useTranslations} from '@/i18n';
 import {siteImageSource} from '@/lib/site-config/bundled-assets';
 import {env} from '@/lib/env';
 
 /**
- * Home header: messages on the leading side, the brand centred, notifications
- * on the trailing side.
+ * Home header: messages on the leading side, the brand centred, the
+ * light/dark switch and notifications on the trailing side.
  *
  * Modelled on the marketplace pattern the merchant asked for: the logo sits
- * between the two icon buttons, and both buttons carry unread badges. The two
- * side slots have the same fixed width so the logo is centred on the screen,
- * not merely between whatever the icons happen to measure.
+ * between the icon buttons, which carry unread badges. Both side slots are
+ * the same fixed width — wide enough for the two controls on the trailing
+ * side — so the logo stays centred on the screen rather than drifting to
+ * wherever the icons happen to end.
  *
  * "Leading" and "trailing" rather than left and right on purpose. In Arabic
  * the whole row mirrors, and hardcoding left/right here would put the icons
@@ -30,7 +31,7 @@ import {env} from '@/lib/env';
  * A constant breaks that circularity, and a brand row is a fixed-height object
  * anyway — the logo is drawn to a fixed box.
  */
-export const HOME_HEADER_HEIGHT = 60;
+export const HOME_HEADER_HEIGHT = 68;
 
 export interface HomeHeaderProps {
     /** Merchant logo from the customizer; falls back to the wordmark. */
@@ -120,6 +121,7 @@ export function HomeHeader({
             </View>
 
             <View style={[styles.side, styles.sideEnd]}>
+                <ThemeToggle />
                 <ActionButton
                     icon="bell"
                     count={unreadNotifications}
@@ -138,13 +140,19 @@ const styles = StyleSheet.create(theme => ({
         paddingHorizontal: theme.spacing.md,
         height: HOME_HEADER_HEIGHT,
     },
-    /** Equal-width slots either side, so the brand is centred on the screen. */
+    /**
+     * Equal-width slots either side, so the brand is centred on the screen.
+     * Two controls fit on the trailing side, so the leading slot reserves the
+     * same width even though it holds one.
+     */
     side: {
-        width: 44,
-        alignItems: 'flex-start',
+        width: 88,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
     },
     sideEnd: {
-        alignItems: 'flex-end',
+        justifyContent: 'flex-end',
     },
     brand: {
         flex: 1,
@@ -153,9 +161,9 @@ const styles = StyleSheet.create(theme => ({
         paddingHorizontal: theme.spacing.sm,
     },
     logo: {
-        width: 180,
+        width: 210,
         maxWidth: '100%',
-        height: 44,
+        height: 52,
     },
     action: {
         width: 44,
