@@ -108,12 +108,13 @@ export default function HomeScreen() {
 
     const scrollY = useSharedValue(0);
 
-    /** Clips the brand row as it slides away, so nothing bleeds into the notch. */
-    const brandClipStyle = useAnimatedStyle(() => ({
-        height: Math.max(0, brandHeight - Math.min(scrollY.value, brandHeight)),
-    }));
-
-    /** Slides and fades the row inside that clip, rather than cropping it. */
+    /**
+     * Both halves move by transform alone. An earlier version animated the
+     * clip's `height`, which looks identical and is not: a height is laid out,
+     * so every frame of every scroll ran a layout pass over the whole screen
+     * and the home tab juddered while the others stayed smooth. Transforms
+     * are composited, and cost nothing per frame.
+     */
     const brandSlideStyle = useAnimatedStyle(() => {
         const collapsed = Math.min(scrollY.value, brandHeight);
         return {
@@ -121,6 +122,11 @@ export default function HomeScreen() {
             opacity: brandHeight > 0 ? 1 - collapsed / brandHeight : 1,
         };
     });
+
+    /** The pinned block rides up into the space the brand row vacates. */
+    const pinnedSlideStyle = useAnimatedStyle(() => ({
+        transform: [{translateY: -Math.min(scrollY.value, brandHeight)}],
+    }));
 
     /* -------------------------------------------------------------- feed */
 
@@ -234,20 +240,31 @@ export default function HomeScreen() {
             </Animated.ScrollView>
 
             {/* After the scroll view, so it draws — and receives touches —
-                above it on both platforms. */}
-            <View style={[styles.header, {paddingTop: headerPadTop}]}>
-                <Animated.View style={[styles.brandClip, brandClipStyle]}>
-                    <Animated.View style={brandSlideStyle}>{brandRow}</Animated.View>
-                </Animated.View>
+                above it on both platforms. `box-none` throughout: once the
+                brand row has collapsed the lower part of this box is empty,
+                and a scroll started there has to reach the list. */}
+            <View style={[styles.header, {height: headerHeight}]} pointerEvents="box-none">
+                {/* The strip behind the status bar. Opaque on its own, so the
+                    box below it can stay transparent. */}
+                <View style={[styles.statusStrip, {height: headerPadTop}]} />
 
-                <View onLayout={event => setPinnedHeight(event.nativeEvent.layout.height)}>
-                    {searchBar}
-                    <CategoryStrip
-                        slugs={config.popularCategories.collectionSlugs}
-                        collections={collections.data}
-                        isLoading={collections.isPending}
-                        showViewMore={config.popularCategories.showViewMore}
-                    />
+                <View style={{paddingTop: headerPadTop}} pointerEvents="box-none">
+                    <View style={[styles.brandClip, {height: brandHeight}]}>
+                        <Animated.View style={brandSlideStyle}>{brandRow}</Animated.View>
+                    </View>
+
+                    <Animated.View
+                        style={[styles.pinnedBlock, pinnedSlideStyle]}
+                        onLayout={event => setPinnedHeight(event.nativeEvent.layout.height)}
+                    >
+                        {searchBar}
+                        <CategoryStrip
+                            slugs={config.popularCategories.collectionSlugs}
+                            collections={collections.data}
+                            isLoading={collections.isPending}
+                            showViewMore={config.popularCategories.showViewMore}
+                        />
+                    </Animated.View>
                 </View>
             </View>
         </Screen>
@@ -258,16 +275,29 @@ const styles = StyleSheet.create(theme => ({
     content: {
         paddingBottom: theme.spacing['3xl'],
     },
+    /** Static height, so the row is cropped by the clip rather than by a
+        height that changes every frame. */
     brandClip: {
         overflow: 'hidden',
+        backgroundColor: theme.colors.background,
+    },
+    pinnedBlock: {
+        backgroundColor: theme.colors.background,
+    },
+    statusStrip: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: theme.colors.background,
     },
     header: {
         position: 'absolute',
         top: 0,
         left: 0,
         right: 0,
-        // Opaque: the list scrolls underneath it.
-        backgroundColor: theme.colors.background,
+        // Transparent: each band paints its own background, so the space the
+        // collapsed brand row leaves behind shows the list through it.
         overflow: 'hidden',
         zIndex: 10,
     },

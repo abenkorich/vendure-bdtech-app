@@ -3,6 +3,7 @@ import type {ColorValue} from 'react-native';
 import {useUnistyles} from 'react-native-unistyles';
 import {IconSymbol, type IconName} from '@/components/ui';
 import {useTranslations} from '@/i18n';
+import {CartTabIcon} from '@/features/cart/components/CartTabIcon';
 
 /**
  * Bottom tab navigation.
@@ -54,9 +55,11 @@ export default function TabsLayout() {
                 name="(search)"
                 options={{title: t('search'), tabBarIcon: tabIcon('search', 'searchFilled')}}
             />
+            {/* Cart draws its own icon: it carries the item count and kicks
+                when something is added, from wherever in the app. */}
             <Tabs.Screen
                 name="(cart)"
-                options={{title: t('cart'), tabBarIcon: tabIcon('cart', 'cartFilled')}}
+                options={{title: t('cart'), tabBarIcon: CartTabIcon}}
             />
             <Tabs.Screen
                 name="(account)"
