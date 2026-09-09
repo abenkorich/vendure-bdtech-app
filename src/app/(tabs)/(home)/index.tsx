@@ -2,11 +2,11 @@ import {useCallback, useState} from 'react';
 import {Alert, RefreshControl, View} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Animated, {
-    runOnJS,
     useAnimatedScrollHandler,
     useAnimatedStyle,
     useSharedValue,
 } from 'react-native-reanimated';
+import {FlashList} from '@shopify/flash-list';
 import {StyleSheet, useUnistyles} from 'react-native-unistyles';
 import {Screen, EmptyState} from '@/components/ui';
 import {useQueryClient} from '@tanstack/react-query';
@@ -20,7 +20,14 @@ import {CategoryStrip} from '@/features/home/components/CategoryStrip';
 import {HeroSlider} from '@/features/home/components/HeroSlider';
 import {PromoBanner} from '@/features/home/components/PromoBanner';
 import {ConfiguredRail} from '@/features/home/components/ConfiguredRail';
-import {ExploreFeed} from '@/features/explore/ExploreFeed';
+import {
+    ExploreFooter,
+    ExploreHeading,
+    ExploreRow,
+    ExploreSkeletonRow,
+    useExploreCards,
+    type ExploreRowData,
+} from '@/features/explore/ExploreFeed';
 import {useVisitedCollections} from '@/features/explore/visited-collections';
 import {CATALOGUE_ROOT} from '@/lib/query-keys';
 import type {HomeSection} from '@/lib/site-config/schema';
@@ -47,8 +54,13 @@ import {S} from '@/features/catalogue-strings';
  * with nothing cached: that is the one query every layout needs, so it is the
  * signature of the connection being down rather than a resolver misbehaving.
  *
- * A plain `ScrollView` hosts the sections rather than a virtualized list: the
- * page is a fixed handful of sections, and each rail is virtualized internally.
+ * **The screen is one virtualised list.** It was a `ScrollView`, which is fine
+ * for the merchant's handful of sections but not for the Explore feed under
+ * them: that feed has no end, so a shopper who kept loading held every card
+ * and every image mounted at once. Android showed it first — the tab juddered
+ * there while the simulator stayed smooth, and every screen that was already
+ * a `FlashList` was fine. The sections ride in the list header, which keeps
+ * them mounted as before; the feed's rows recycle.
  *
  * **The header is a sibling of the scroll view, not a sticky child.** It used
  * to be `stickyHeaderIndices`, and on Android that silently cost the search
@@ -58,6 +70,17 @@ import {S} from '@/features/catalogue-strings';
  * the brand row collapses on scroll — the same effect (logo scrolls away,
  * search and categories stay) on a view that reliably receives touches.
  */
+/**
+ * Reanimated needs its own wrapper to drive the header from the scroll
+ * position on the UI thread; the package's own `AnimatedFlashList` is the
+ * React Native Animated one, which cannot take a worklet handler.
+ */
+const AnimatedFlashList = Animated.createAnimatedComponent(
+    FlashList as unknown as React.ComponentType<
+        React.ComponentProps<typeof FlashList<ExploreRowData>>
+    >,
+);
+
 export default function HomeScreen() {
     const {theme} = useUnistyles();
     const insets = useSafeAreaInsets();
@@ -130,27 +153,15 @@ export default function HomeScreen() {
 
     /* -------------------------------------------------------------- feed */
 
-    /**
-     * Within this many points of the bottom, the Explore feed loads its next
-     * page. About two rows of cards: early enough that a steady scroll never
-     * hits the end, late enough that a glance at the hero costs no request.
-     */
-    const NEAR_END = 700;
-    const [nearEnd, setNearEnd] = useState(false);
-    const nearEndFlag = useSharedValue(false);
+    const explore = useExploreCards(exploreSlugs);
 
+    /**
+     * Only the header follows the scroll now — the list asks for its own next
+     * page through `onEndReached`, so nothing has to hop back to React on
+     * every frame to work out how close the end is.
+     */
     const onScroll = useAnimatedScrollHandler(event => {
         scrollY.value = event.contentOffset.y;
-
-        const remaining =
-            event.contentSize.height - (event.contentOffset.y + event.layoutMeasurement.height);
-        const next = remaining < NEAR_END;
-        // Crossing the threshold is rare; the header follows every frame on
-        // the UI thread, and only this hop reaches React.
-        if (next !== nearEndFlag.value) {
-            nearEndFlag.value = next;
-            runOnJS(setNearEnd)(next);
-        }
     });
 
     const renderSection = (section: HomeSection) => {
@@ -194,6 +205,33 @@ export default function HomeScreen() {
         />
     );
 
+    /**
+     * Skeleton rows stand in while the first page loads, so the feed has the
+     * grid's real geometry rather than appearing from nothing.
+     */
+    const rows: ExploreRowData[] = explore.isPending
+        ? [
+              {key: 'skeleton-0', products: []},
+              {key: 'skeleton-1', products: []},
+          ]
+        : explore.rows;
+
+    const renderRow = ({item}: {item: ExploreRowData}) =>
+        explore.isPending ? <ExploreSkeletonRow /> : <ExploreRow products={item.products} />;
+
+    /**
+     * The merchant's sections ride in the header: a fixed handful, always
+     * mounted, exactly as they were. Only the endless part below recycles.
+     */
+    const listHeader = (
+        <>
+            {config.home.sections.map(renderSection)}
+            {explore.hasCards || explore.isPending ? (
+                <ExploreHeading personalised={visited.length > 0} />
+            ) : null}
+        </>
+    );
+
     if (allFailed) {
         return (
             <Screen>
@@ -212,8 +250,22 @@ export default function HomeScreen() {
 
     return (
         <Screen edges={[]}>
-            <Animated.ScrollView
-                contentContainerStyle={[styles.content, {paddingTop: headerHeight}]}
+            <AnimatedFlashList
+                data={rows}
+                keyExtractor={(item: ExploreRowData) => item.key}
+                renderItem={renderRow}
+                ListHeaderComponent={listHeader}
+                ListFooterComponent={
+                    <ExploreFooter
+                        hasCards={explore.hasCards}
+                        hasNextPage={explore.hasNextPage}
+                        isFetchingNextPage={explore.isFetchingNextPage}
+                        onLoadMore={explore.loadMore}
+                    />
+                }
+                onEndReached={explore.loadMore}
+                onEndReachedThreshold={0.8}
+                contentContainerStyle={{paddingTop: headerHeight}}
                 showsVerticalScrollIndicator={false}
                 onScroll={onScroll}
                 scrollEventThrottle={16}
@@ -226,18 +278,7 @@ export default function HomeScreen() {
                         progressViewOffset={headerHeight}
                     />
                 }
-            >
-                {config.home.sections.map(renderSection)}
-
-                {/* Always last, and not a configurable section: it is the
-                    open-ended tail that keeps the screen worth scrolling
-                    once the merchant's sections run out. */}
-                <ExploreFeed
-                    slugs={exploreSlugs}
-                    personalised={visited.length > 0}
-                    nearEnd={nearEnd}
-                />
-            </Animated.ScrollView>
+            />
 
             {/* After the scroll view, so it draws — and receives touches —
                 above it on both platforms. `box-none` throughout: once the
