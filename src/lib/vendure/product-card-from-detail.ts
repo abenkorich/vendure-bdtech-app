@@ -1,5 +1,6 @@
 import type {FragmentOf} from '@/graphql';
 import {ProductCardFragment} from './fragments';
+import {stockLevelToDisplayQuantity} from '@/lib/product-card-extras';
 
 export interface ProductCardBySlugSource {
     id: string;
@@ -8,7 +9,7 @@ export interface ProductCardBySlugSource {
     /** Mobile-only: preferred over `assets[0]`, which is empty for a third of this catalogue. */
     featuredAsset?: {id: string; preview: string} | null;
     assets: Array<{id: string; preview: string}>;
-    variants: Array<{id: string; priceWithTax: number; stockLevel: string}>;
+    variants: Array<{id: string; sku?: string | null; priceWithTax: number; stockLevel: string}>;
 }
 
 /** Build a ProductCard search fragment from a shop `product` query result. */
@@ -29,6 +30,9 @@ export function toProductCardFragment(
         productName: product.name,
         slug: product.slug,
         productVariantId: preferredVariant?.id ?? '',
+        sku: preferredVariant?.sku ?? null,
+        // Only when the channel returns a real count; see product-card-extras.
+        stockQuantity: stockLevelToDisplayQuantity(preferredVariant?.stockLevel),
         inStock,
         productAsset: asset ? {id: asset.id, preview: asset.preview} : null,
         priceWithTax:

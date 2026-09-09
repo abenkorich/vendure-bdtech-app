@@ -37,6 +37,14 @@ export interface ProductCardData {
     currencyCode: string;
     /** The variant a quick add targets; the search index's preferred one. */
     productVariantId?: string;
+    /** Shown in the meta bar. Absent on sources that do not carry it. */
+    sku?: string | null;
+    /**
+     * On-hand count, when the channel reports a real number. Null where stock
+     * is masked behind IN_STOCK / LOW_STOCK: see `lib/product-card-extras`,
+     * which refuses to invent a figure from an enum.
+     */
+    stockQuantity?: number | null;
 }
 
 export interface ProductCardProps {
@@ -76,6 +84,13 @@ export function ProductCard({
     const outOfStock = product.inStock === false;
     const outOfStockLabel = t('outOfStock');
 
+    // The reference and the count, on one line under the picture — the same
+    // bar the web storefront puts there. Each side appears only when its
+    // value is known, and the count stays on the trailing edge either way.
+    const skuLabel = product.sku?.trim() || undefined;
+    const quantityLabel =
+        typeof product.stockQuantity === 'number' ? String(product.stockQuantity) : undefined;
+
     return (
         <Card
             padding="none"
@@ -113,6 +128,26 @@ export function ProductCard({
                     </View>
                 ) : null}
             </View>
+
+            {skuLabel || quantityLabel ? (
+                <View style={styles.metaBar}>
+                    {skuLabel ? (
+                        <Text
+                            variant="micro"
+                            color="textMuted"
+                            numberOfLines={1}
+                            style={styles.metaSku}
+                        >
+                            {skuLabel}
+                        </Text>
+                    ) : null}
+                    {quantityLabel ? (
+                        <Text variant="micro" color="textMuted" tabular style={styles.metaQuantity}>
+                            {quantityLabel}
+                        </Text>
+                    ) : null}
+                </View>
+            ) : null}
 
             <View style={[styles.body, action ? styles.bodyWithAction : null]}>
                 <Text variant="body" numberOfLines={2} style={styles.title}>
@@ -195,6 +230,22 @@ const styles = StyleSheet.create(theme => ({
         bottom: 0,
         start: 0,
         padding: theme.spacing.sm,
+    },
+    metaBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: theme.spacing.sm,
+        paddingHorizontal: theme.spacing.md,
+        paddingVertical: theme.spacing.xs,
+        borderBottomWidth: theme.elevation.card.borderWidth,
+        borderBottomColor: theme.colors.border,
+    },
+    metaSku: {
+        flexShrink: 1,
+    },
+    metaQuantity: {
+        // Trailing edge even when there is no SKU beside it.
+        marginStart: 'auto',
     },
     body: {
         padding: theme.spacing.md,

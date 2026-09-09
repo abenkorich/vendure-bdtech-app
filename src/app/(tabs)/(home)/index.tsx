@@ -265,6 +265,13 @@ export default function HomeScreen() {
                 }
                 onEndReached={explore.loadMore}
                 onEndReachedThreshold={0.8}
+                // FlashList 2 anchors the visible content when anything above
+                // it changes size. That is right for a chat and wrong here:
+                // the sections in the list header grow as the hero image and
+                // the rails arrive, so the list slid down to keep the feed
+                // steady and the screen opened below the hero. Home always
+                // opens at the top.
+                maintainVisibleContentPosition={{disabled: true}}
                 contentContainerStyle={{paddingTop: headerHeight}}
                 showsVerticalScrollIndicator={false}
                 onScroll={onScroll}

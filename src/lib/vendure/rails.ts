@@ -44,6 +44,7 @@ const RAIL_PRODUCT_FIELDS = `
     }
     variants {
         id
+        sku
         priceWithTax
         stockLevel
         currencyCode
@@ -79,6 +80,7 @@ export interface RailProduct {
     featuredAsset?: {id: string; preview: string} | null;
     variants: Array<{
         id: string;
+        sku?: string | null;
         priceWithTax: number;
         stockLevel: string;
         currencyCode?: string | null;
@@ -132,6 +134,7 @@ export function railItemsToCards(
                         : [],
                     variants: item.variants.map(variant => ({
                         id: variant.id,
+                        sku: variant.sku,
                         priceWithTax: variant.priceWithTax,
                         stockLevel: variant.stockLevel,
                     })),
