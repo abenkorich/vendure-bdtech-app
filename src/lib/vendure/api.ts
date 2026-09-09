@@ -20,12 +20,19 @@ import {getAuthToken, setAuthToken} from '@/lib/auth/token-store';
 
 const AUTH_TOKEN_HEADER = 'vendure-auth-token';
 const CHANNEL_TOKEN_HEADER = 'vendure-token';
+const CAPTCHA_TOKEN_HEADER = 'x-captcha-token';
 
 export interface VendureRequestOptions {
     /** Explicit bearer token; falls back to the stored session when `useAuthToken`. */
     token?: string;
     /** Attach the stored session token. Required for anything customer-scoped. */
     useAuthToken?: boolean;
+    /**
+     * Google reCAPTCHA response, sent as `x-captcha-token`. The backend
+     * rejects login, registration and password reset without it; see
+     * `features/auth/captcha.tsx` for where the token comes from on a phone.
+     */
+    captchaToken?: string;
     channelToken?: string;
     languageCode?: string;
     currencyCode?: string;
@@ -68,7 +75,8 @@ async function request<TResult>(
     variables: unknown,
     options: VendureRequestOptions = {},
 ): Promise<{data: TResult; token?: string}> {
-    const {token, useAuthToken, channelToken, languageCode, currencyCode, signal} = options;
+    const {token, useAuthToken, captchaToken, channelToken, languageCode, currencyCode, signal} =
+        options;
 
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
@@ -81,6 +89,11 @@ async function request<TResult>(
     }
     if (authToken) {
         headers.Authorization = `Bearer ${authToken}`;
+    }
+
+    const trimmedCaptcha = captchaToken?.trim();
+    if (trimmedCaptcha) {
+        headers[CAPTCHA_TOKEN_HEADER] = trimmedCaptcha;
     }
 
     // Vendure takes language/currency as query params, not headers.

@@ -15,6 +15,7 @@ import {readFragment} from '@/graphql';
 import {ActiveCustomerFragment} from '@/lib/vendure/fragments';
 import type {ResultOf} from '@/graphql';
 import {unwrapResult, VendureResultError} from '@/lib/types';
+import {useCaptcha} from './captcha';
 
 /**
  * Session hooks.
@@ -92,11 +93,13 @@ export interface SignInInput {
  */
 export function useSignIn() {
     const client = useQueryClient();
+    const captcha = useCaptcha();
 
     return useMutation({
         mutationKey: [CUSTOMER_ROOT, 'sign-in'],
         mutationFn: async ({username, password}: SignInInput) => {
-            const {data} = await mutate(LoginMutation, {username, password});
+            const captchaToken = await captcha.execute('login');
+            const {data} = await mutate(LoginMutation, {username, password}, {captchaToken});
             return unwrapResult(data.login);
         },
         onSuccess: async () => {
@@ -152,11 +155,13 @@ export interface RegisterInput {
  */
 export function useRegister() {
     const client = useQueryClient();
+    const captcha = useCaptcha();
 
     return useMutation({
         mutationKey: [CUSTOMER_ROOT, 'register'],
         mutationFn: async (input: RegisterInput) => {
-            const {data} = await mutate(RegisterCustomerAccountMutation, {input});
+            const captchaToken = await captcha.execute('register');
+            const {data} = await mutate(RegisterCustomerAccountMutation, {input}, {captchaToken});
             unwrapResult(data.registerCustomerAccount);
             const customer = await fetchActiveCustomer();
             return {requiresVerification: customer === null, customer};
@@ -168,10 +173,17 @@ export function useRegister() {
 }
 
 export function useRequestPasswordReset() {
+    const captcha = useCaptcha();
+
     return useMutation({
         mutationKey: [CUSTOMER_ROOT, 'request-password-reset'],
         mutationFn: async (emailAddress: string) => {
-            const {data} = await mutate(RequestPasswordResetMutation, {emailAddress});
+            const captchaToken = await captcha.execute('password_reset');
+            const {data} = await mutate(
+                RequestPasswordResetMutation,
+                {emailAddress},
+                {captchaToken},
+            );
             return unwrapResult(data.requestPasswordReset);
         },
     });
@@ -179,11 +191,17 @@ export function useRequestPasswordReset() {
 
 export function useResetPassword() {
     const client = useQueryClient();
+    const captcha = useCaptcha();
 
     return useMutation({
         mutationKey: [CUSTOMER_ROOT, 'reset-password'],
         mutationFn: async ({token, password}: {token: string; password: string}) => {
-            const {data} = await mutate(ResetPasswordMutation, {token, password});
+            const captchaToken = await captcha.execute('password_reset');
+            const {data} = await mutate(
+                ResetPasswordMutation,
+                {token, password},
+                {captchaToken},
+            );
             return unwrapResult(data.resetPassword);
         },
         onSuccess: async () => {

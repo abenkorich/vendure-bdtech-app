@@ -9,6 +9,7 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {StatusBar} from 'expo-status-bar';
 import {DataProvider} from '@/lib/data-provider';
 import {useNotificationRouting} from '@/lib/push';
+import {CaptchaProvider} from '@/features/auth/captcha';
 import {useCollections} from '@/features/collection/queries';
 
 /**
@@ -29,11 +30,16 @@ export default function RootLayout() {
     return (
         <GestureHandlerRootView style={{flex: 1}}>
             <DataProvider>
-                <StatusBar style="auto" />
-                <Stack screenOptions={{headerShown: false}}>
-                    <Stack.Screen name="(tabs)" />
-                </Stack>
-                <Boot />
+                {/* Above the router: the auth mutations reach for a captcha
+                    token, and the hidden web view that mints one must outlive
+                    the screen that asked. */}
+                <CaptchaProvider>
+                    <StatusBar style="auto" />
+                    <Stack screenOptions={{headerShown: false}}>
+                        <Stack.Screen name="(tabs)" />
+                    </Stack>
+                    <Boot />
+                </CaptchaProvider>
             </DataProvider>
         </GestureHandlerRootView>
     );

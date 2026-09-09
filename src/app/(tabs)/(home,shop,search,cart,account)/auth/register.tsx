@@ -8,6 +8,7 @@ import {registerSchema} from '@/features/auth/schemas';
 import {useForm} from '@/features/auth/use-form';
 import {Field} from '@/features/account/components/Field';
 import {BackHeader, ErrorBanner, FormBody} from '@/features/account/components/chrome';
+import {CaptchaNotice} from '@/features/auth/CaptchaNotice';
 import {useT} from '@/features/account/i18n';
 
 /**
@@ -163,6 +164,7 @@ export default function RegisterScreen() {
                         {t('signInLink')}
                     </Button>
                 </View>
+                <CaptchaNotice action="register" />
             </FormBody>
         </Screen>
     );

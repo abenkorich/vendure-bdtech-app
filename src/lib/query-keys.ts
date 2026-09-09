@@ -68,6 +68,7 @@ export const queryKeys = {
     blogPost: (slug: string) => [CATALOGUE_ROOT, 'blog-post', slug] as const,
 
     channel: () => [CATALOGUE_ROOT, 'channel'] as const,
+    captchaConfig: () => [CATALOGUE_ROOT, 'captcha-config'] as const,
     countries: () => [CATALOGUE_ROOT, 'countries'] as const,
 
     // --- customer-scoped: never persisted to MMKV ------------------------

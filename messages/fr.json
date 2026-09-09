@@ -492,6 +492,8 @@
     "lastNameLabel": "Nom",
     "phoneNumberLabel": "Numéro de téléphone (facultatif)",
     "passwordLabel": "Mot de passe",
+    "captchaFailed": "Impossible de confirmer que vous êtes humain. Veuillez réessayer.",
+    "recaptchaNotice": "Protégé par reCAPTCHA. La politique de confidentialité et les conditions d'utilisation de Google s'appliquent.",
     "showPassword": "Afficher le mot de passe",
     "hidePassword": "Masquer le mot de passe",
     "confirmPasswordLabel": "Confirmer le mot de passe",

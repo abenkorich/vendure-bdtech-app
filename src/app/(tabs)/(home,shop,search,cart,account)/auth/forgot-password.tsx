@@ -5,6 +5,7 @@ import {forgotPasswordSchema} from '@/features/auth/schemas';
 import {useForm} from '@/features/auth/use-form';
 import {Field} from '@/features/account/components/Field';
 import {BackHeader, ErrorBanner, FormBody} from '@/features/account/components/chrome';
+import {CaptchaNotice} from '@/features/auth/CaptchaNotice';
 import {useT} from '@/features/account/i18n';
 
 /**
@@ -72,6 +73,7 @@ export default function ForgotPasswordScreen() {
                 <Button variant="ghost" fullWidth onPress={() => router.replace('/auth/sign-in')}>
                     {t('backToSignIn')}
                 </Button>
+                <CaptchaNotice action="password_reset" />
             </FormBody>
         </Screen>
     );

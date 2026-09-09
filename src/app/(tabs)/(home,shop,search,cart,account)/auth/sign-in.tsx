@@ -7,6 +7,7 @@ import {signInSchema} from '@/features/auth/schemas';
 import {useForm} from '@/features/auth/use-form';
 import {Field} from '@/features/account/components/Field';
 import {BackHeader, ErrorBanner, FormBody} from '@/features/account/components/chrome';
+import {CaptchaNotice} from '@/features/auth/CaptchaNotice';
 import {useT} from '@/features/account/i18n';
 
 /**
@@ -103,6 +104,7 @@ export default function SignInScreen() {
                     <Feature icon="lock" label={`${t('featureSecure')} ${t('featurePayments')}`} />
                     <Feature icon="package" label={`${t('featureEasy')} ${t('featureReturns')}`} />
                 </View>
+                <CaptchaNotice action="login" />
             </FormBody>
         </Screen>
     );

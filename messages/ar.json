@@ -492,6 +492,8 @@
     "lastNameLabel": "اسم العائلة",
     "phoneNumberLabel": "رقم الهاتف (اختياري)",
     "passwordLabel": "كلمة المرور",
+    "captchaFailed": "تعذّر التأكد من أنك لست روبوتًا. يرجى المحاولة مرة أخرى.",
+    "recaptchaNotice": "محمي بواسطة reCAPTCHA. تُطبَّق سياسة خصوصية Google وشروط الخدمة.",
     "showPassword": "إظهار كلمة المرور",
     "hidePassword": "إخفاء كلمة المرور",
     "confirmPasswordLabel": "تأكيد كلمة المرور",
