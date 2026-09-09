@@ -35,3 +35,22 @@ export function stockLevelToDisplayQuantity(stockLevel: string | null | undefine
     if (STOCK_ENUMS.has(trimmed.toUpperCase())) return null;
     return numberFromUnknown(trimmed);
 }
+
+export interface StockVariant {
+    stockLevel?: string | null;
+}
+
+/**
+ * The number a card prints for a product with several variants: the one the
+ * card's price and quick-add already point at — the first variant that is not
+ * out of stock, else the first.
+ *
+ * Shared so the two paths that fill this in cannot disagree: the rails build
+ * their cards from a product query, and the grids look the count up
+ * afterwards, and a card must not change its number depending on where it was
+ * rendered.
+ */
+export function preferredStockQuantity(variants: readonly StockVariant[]): number | null {
+    const preferred = variants.find(variant => variant.stockLevel !== 'OUT_OF_STOCK') ?? variants[0];
+    return stockLevelToDisplayQuantity(preferred?.stockLevel);
+}

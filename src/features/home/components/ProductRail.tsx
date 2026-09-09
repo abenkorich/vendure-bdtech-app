@@ -7,6 +7,7 @@ import {StyleSheet, useUnistyles} from 'react-native-unistyles';
 import {router} from 'expo-router';
 import {ProductCard, ProductCardSkeleton, EmptyState, Text} from '@/components/ui';
 import {readProductCards, type ProductCardData} from '@/lib/types';
+import {useCardsWithStock} from '@/features/product/card-stock';
 import {SectionHeader} from './SectionHeader';
 import {S} from '@/features/catalogue-strings';
 import {QuickAddButton} from '@/features/cart/components/QuickAddButton';
@@ -57,7 +58,9 @@ export function ProductRail({
 }: ProductRailProps) {
     const {theme} = useUnistyles();
 
-    const cards = products ? readProductCards(products) : [];
+    // A rail built from `products` already knows its counts; one built from a
+    // search does not, and this fills those in.
+    const cards = useCardsWithStock(products ? readProductCards(products) : []);
 
     const renderItem = useCallback(
         ({item}: ListRenderItemInfo<RailCard>) => (

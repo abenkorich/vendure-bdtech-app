@@ -69,6 +69,8 @@ export const queryKeys = {
 
     channel: () => [CATALOGUE_ROOT, 'channel'] as const,
     captchaConfig: () => [CATALOGUE_ROOT, 'captcha-config'] as const,
+    cardStock: (productIds: readonly string[]) =>
+        [CATALOGUE_ROOT, 'card-stock', ...productIds] as const,
     socialLoginProviders: () => [CATALOGUE_ROOT, 'social-login-providers'] as const,
     countries: () => [CATALOGUE_ROOT, 'countries'] as const,
 

@@ -15,6 +15,7 @@ import {
 import {useCollection} from '@/features/collection/queries';
 import {useStockedCollections} from '@/features/collection/stocked-queries';
 import {readProductCards} from '@/lib/types';
+import {useCardsWithStock} from '@/features/product/card-stock';
 import type {SortKey} from '@/lib/search-input';
 import {Breadcrumbs} from '@/features/collection/components/Breadcrumbs';
 import {SortControl} from '@/features/collection/components/SortControl';
@@ -56,7 +57,7 @@ export default function CollectionScreen() {
         if (data?.collection) recordCollectionVisit(data.collection.slug);
     }, [data?.collection]);
 
-    const products = data ? readProductCards(data.products) : [];
+    const products = useCardsWithStock(data ? readProductCards(data.products) : []);
     const total = data?.totalItems ?? 0;
     const hasMore = products.length < total;
 

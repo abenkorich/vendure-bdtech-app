@@ -1,6 +1,6 @@
 import type {FragmentOf} from '@/graphql';
 import {ProductCardFragment} from './fragments';
-import {stockLevelToDisplayQuantity} from '@/lib/product-card-extras';
+import {preferredStockQuantity} from '@/lib/product-card-extras';
 
 export interface ProductCardBySlugSource {
     id: string;
@@ -32,7 +32,7 @@ export function toProductCardFragment(
         productVariantId: preferredVariant?.id ?? '',
         sku: preferredVariant?.sku ?? null,
         // Only when the channel returns a real count; see product-card-extras.
-        stockQuantity: stockLevelToDisplayQuantity(preferredVariant?.stockLevel),
+        stockQuantity: preferredStockQuantity(product.variants),
         inStock,
         productAsset: asset ? {id: asset.id, preview: asset.preview} : null,
         priceWithTax:

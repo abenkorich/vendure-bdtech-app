@@ -5,6 +5,7 @@ import {StyleSheet} from 'react-native-unistyles';
 import {ProductCard, ProductCardSkeleton} from '@/components/ui';
 import type {SearchCard} from './use-filtered-search';
 import {QuickAddButton} from '@/features/cart/components/QuickAddButton';
+import {useCardsWithStock} from '@/features/product/card-stock';
 
 /**
  * The 2-column result grid.
@@ -33,6 +34,9 @@ export function ResultGrid({
     footer,
     onEndReached,
 }: ResultGridProps) {
+    // Search results carry no stock count; this looks up the ones on screen.
+    const cards = useCardsWithStock(products);
+
     const renderItem = useCallback(
         ({item}: {item: SearchCard}) => (
             <View style={styles.cell}>
@@ -48,7 +52,7 @@ export function ResultGrid({
 
     return (
         <FlashList
-            data={products as SearchCard[]}
+            data={cards as SearchCard[]}
             numColumns={2}
             keyExtractor={item => item.productId}
             renderItem={renderItem}

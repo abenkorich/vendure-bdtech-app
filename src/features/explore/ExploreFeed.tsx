@@ -7,6 +7,7 @@ import {useTranslations} from '@/i18n';
 import {SectionHeader} from '@/features/home/components/SectionHeader';
 import {QuickAddButton} from '@/features/cart/components/QuickAddButton';
 import {useExploreFeed, type FeedPage} from './queries';
+import {useCardsWithStock} from '@/features/product/card-stock';
 
 /**
  * "Explore more": the open-ended tail of the home screen.
@@ -45,21 +46,26 @@ export function useExploreCards(slugs: readonly string[]): ExploreCards {
     const feed = useExploreFeed(slugs);
     const {hasNextPage = false, isFetchingNextPage, fetchNextPage} = feed;
 
-    const rows = useMemo(() => {
+    const flat = useMemo(() => {
         const seen = new Set<string>();
         const all = (feed.data?.pages ?? []).flatMap(page => page.products);
         // Pages overlap only when a product sits in two collections read on
         // different pages; the second sighting is dropped.
-        const cards = all.filter(
-            item => !seen.has(item.productId) && seen.add(item.productId),
-        );
+        return all.filter(item => !seen.has(item.productId) && seen.add(item.productId));
+    }, [feed.data]);
+
+    // The feed reads the search index, which has no counts; this looks them up
+    // for the products already on screen.
+    const cards = useCardsWithStock(flat);
+
+    const rows = useMemo(() => {
         const grouped: ExploreRowData[] = [];
         for (let index = 0; index < cards.length; index += PER_ROW) {
             const products = cards.slice(index, index + PER_ROW);
             grouped.push({key: `explore-${products[0]?.productId ?? index}`, products});
         }
         return grouped;
-    }, [feed.data]);
+    }, [cards]);
 
     return {
         rows,
