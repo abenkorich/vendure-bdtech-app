@@ -1,4 +1,5 @@
 import {stockLevelToDisplayQuantity} from '@/lib/product-card-extras';
+import {toProductCardFragment} from '@/lib/vendure/product-card-from-detail';
 import {eq, done} from './harness';
 
 /**
@@ -22,6 +23,43 @@ export async function run(): Promise<void> {
     eq('empty is unknown', stockLevelToDisplayQuantity('   '), null);
     eq('nonsense is unknown', stockLevelToDisplayQuantity('plenty'), null);
     eq('a negative count is not a count', stockLevelToDisplayQuantity('-3'), null);
+
+    /* ------------------------------------------------ the rail card path */
+
+    /**
+     * The home rails build their cards from the `products` query, which does
+     * carry a variant, so those cards must arrive with both halves of the
+     * meta bar filled in. This is the join that actually puts a number on
+     * screen, and it is invisible to the type system: `readFragment` is an
+     * identity at runtime, so the extra field rides along even though the
+     * GraphQL fragment does not declare it.
+     */
+    const card = toProductCardFragment(
+        {
+            id: '1',
+            name: 'Mini Smart Access Control',
+            slug: 'mini-smart-access-control',
+            assets: [],
+            variants: [{id: '10', sku: 'DZD007334', priceWithTax: 1290000, stockLevel: '2'}],
+        },
+        'DZD',
+    ) as unknown as {sku: string | null; stockQuantity: number | null};
+
+    eq('a rail card carries its SKU', card.sku, 'DZD007334');
+    eq('a rail card carries its stock count', card.stockQuantity, 2);
+
+    const masked = toProductCardFragment(
+        {
+            id: '2',
+            name: 'Masked stock',
+            slug: 'masked',
+            assets: [],
+            variants: [{id: '20', sku: 'DZD000001', priceWithTax: 100, stockLevel: 'IN_STOCK'}],
+        },
+        'DZD',
+    ) as unknown as {stockQuantity: number | null};
+
+    eq('a channel that masks stock yields no number to print', masked.stockQuantity, null);
 
     done();
 }

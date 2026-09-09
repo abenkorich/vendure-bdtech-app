@@ -237,6 +237,10 @@ const styles = StyleSheet.create(theme => ({
         gap: theme.spacing.sm,
         paddingHorizontal: theme.spacing.md,
         paddingVertical: theme.spacing.xs,
+        // Ruled top and bottom, so the bar reads as its own band between the
+        // picture and the title rather than as a caption under the image.
+        borderTopWidth: theme.elevation.card.borderWidth,
+        borderTopColor: theme.colors.border,
         borderBottomWidth: theme.elevation.card.borderWidth,
         borderBottomColor: theme.colors.border,
     },
