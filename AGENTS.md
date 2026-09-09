@@ -163,6 +163,13 @@ Gradle downloads the NDK itself on the first run, so the *first* build can
 also fail on modules whose CMake step started before that download finished;
 re-running is enough.
 
+**CocoaPods needs a UTF-8 locale, or it dies pretending to be something
+else.** `brew install cocoapods` (no sudo) is enough to have it, but running
+`expo prebuild --platform ios` without `LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8`
+fails inside CocoaPods' own *error reporter* — the trace names
+`unicode_normalize/normalize.rb` and `Encoding::CompatibilityError`, which
+hides whatever the real problem was. Export both and it runs.
+
 **Adding a native module needs `pod install` on iOS, not just a rebuild.**
 `npx expo run:ios` can reuse a cached workspace and produce an app *without*
 the new pod, which then crashes at the first use of that module. Run
