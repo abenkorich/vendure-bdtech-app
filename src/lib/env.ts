@@ -15,6 +15,8 @@ interface Extra {
     vendureShopApiUrl: string;
     vendureChannelToken: string;
     siteUrl: string;
+    /** Optional: without it the app simply offers no Google sign-in. */
+    googleIosClientId?: string;
 }
 
 function readExtra(): Extra {
@@ -58,6 +60,7 @@ function readExtra(): Extra {
         vendureShopApiUrl: extra.vendureShopApiUrl,
         vendureChannelToken: extra.vendureChannelToken,
         siteUrl,
+        googleIosClientId: extra.googleIosClientId?.trim() || undefined,
     };
 }
 

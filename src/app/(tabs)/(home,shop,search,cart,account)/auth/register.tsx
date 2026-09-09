@@ -9,6 +9,7 @@ import {useForm} from '@/features/auth/use-form';
 import {Field} from '@/features/account/components/Field';
 import {BackHeader, ErrorBanner, FormBody} from '@/features/account/components/chrome';
 import {CaptchaNotice} from '@/features/auth/CaptchaNotice';
+import {GoogleSignInButton} from '@/features/auth/google';
 import {useT} from '@/features/account/i18n';
 
 /**
@@ -164,6 +165,12 @@ export default function RegisterScreen() {
                         {t('signInLink')}
                     </Button>
                 </View>
+                <GoogleSignInButton
+                    onSignedIn={() => {
+                        if (router.canGoBack()) router.back();
+                        else router.replace('/account');
+                    }}
+                />
                 <CaptchaNotice action="register" />
             </FormBody>
         </Screen>

@@ -7,6 +7,29 @@ import type {ExpoConfig} from 'expo/config';
  */
 const BUNDLE_ID = 'dz.dzduino.app';
 
+/**
+ * Google's iOS sign-in returns through a URL scheme that is the client id
+ * reversed: `123-abc.apps.googleusercontent.com` becomes
+ * `com.googleusercontent.apps.123-abc`. Derived here so the id is written
+ * once, in `.env`, and the scheme cannot drift from it.
+ *
+ * Android needs nothing in the build: its OAuth client is matched by package
+ * name and signing fingerprint, both registered in the Google console.
+ *
+ * Absent or malformed, the plugin is left out entirely and the app simply
+ * shows no Google button — which is also what happens when the merchant has
+ * not enabled the provider on the backend.
+ */
+const GOOGLE_CLIENT_SUFFIX = '.apps.googleusercontent.com';
+
+function googleSignInPlugin(): NonNullable<ExpoConfig['plugins']> {
+    const clientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID?.trim();
+    if (!clientId?.endsWith(GOOGLE_CLIENT_SUFFIX)) return [];
+
+    const scheme = `com.googleusercontent.apps.${clientId.slice(0, -GOOGLE_CLIENT_SUFFIX.length)}`;
+    return [['@react-native-google-signin/google-signin', {iosUrlScheme: scheme}]];
+}
+
 const config: ExpoConfig = {
     name: 'Dzduino',
     slug: 'vendure-bdtech-app',
@@ -80,6 +103,7 @@ const config: ExpoConfig = {
                 resizeMode: 'contain',
             },
         ],
+        ...googleSignInPlugin(),
     ],
 
     experiments: {
@@ -99,6 +123,10 @@ const config: ExpoConfig = {
         // platforms. Every customizer image resolves against this origin, so
         // the bare host would blank the hero and the category strip.
         siteUrl: process.env.EXPO_PUBLIC_SITE_URL ?? 'https://www.dzduino.dz',
+        // The one Google value the app holds; the web client id it signs
+        // against comes from the backend. Public by design: it is in the
+        // binary's URL scheme either way.
+        googleIosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
     },
 };
 
