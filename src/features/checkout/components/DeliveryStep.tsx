@@ -85,6 +85,8 @@ export function DeliveryStep({
     const centers = useYalidinePickupCenters(pickupCarrier === 'yalidine');
     const desks = useDhdPickupDesks(pickupCarrier === 'dhd');
     const pickupQuery = pickupCarrier === 'dhd' ? desks : centers;
+    // DHD accounts without an office endpoint list the stop-desk cities instead.
+    const desksAreCities = pickupCarrier === 'dhd' && Boolean(desks.data?.fromCommunes);
 
     // Seed the mode from whatever is already chosen, else the cheapest group,
     // which is stop-desk when the wilaya has one.
@@ -262,7 +264,11 @@ export function DeliveryStep({
             {needsCenter ? (
                 <View style={styles.centerBlock}>
                     <Text variant="caption" color="textMuted">
-                        {t('selectPickupCenterHint')}
+                        {pickupCarrier === 'yalidine'
+                            ? t('selectPickupCenterHint')
+                            : desksAreCities
+                              ? t('selectPickupCenterHintDhdCity')
+                              : t('selectPickupCenterHintDhd')}
                     </Text>
                     <Picker
                         label={t('selectPickupCenter')}

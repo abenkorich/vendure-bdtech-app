@@ -21,6 +21,11 @@ export type DhdPickupDesksResult = {
     desks: DhdPickupDesk[];
     suggestedDeskId?: number | null;
     selectedDeskId?: number | null;
+    /**
+     * True when the rows are the cities DHD runs a stop desk in, rather than
+     * named offices — this DHD account publishes no office list.
+     */
+    fromCommunes?: boolean | null;
 };
 
 export const GetDhdPickupDesksQuery = graphqlUnsafe(`
@@ -38,6 +43,7 @@ export const GetDhdPickupDesksQuery = graphqlUnsafe(`
             }
             suggestedDeskId
             selectedDeskId
+            fromCommunes
         }
     }
 `);

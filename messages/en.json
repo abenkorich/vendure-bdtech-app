@@ -392,6 +392,8 @@
     "continueToPayment": "Continue to payment",
     "selectPickupCenter": "Select pickup center",
     "selectPickupCenterHint": "Choose a Yalidine office to collect your order.",
+    "selectPickupCenterHintDhd": "Choose a DHD office to collect your order.",
+    "selectPickupCenterHintDhdCity": "Choose the city where you'll collect your order — DHD assigns the office serving it.",
     "loadingPickupCenters": "Loading pickup centers…",
     "noPickupCenters": "No pickup centers available for this province.",
     "noPickupCentersMatch": "No centers match your search.",

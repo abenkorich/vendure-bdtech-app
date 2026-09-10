@@ -413,6 +413,8 @@
     "stateProvinceRequired": "الولاية/المقاطعة مطلوبة",
     "selectPickupCenter": "اختر مركز الاستلام",
     "selectPickupCenterHint": "اختر مكتب ياليدين لاستلام طلبك.",
+    "selectPickupCenterHintDhd": "اختر مكتب DHD لاستلام طلبك.",
+    "selectPickupCenterHintDhdCity": "اختر المدينة التي ستستلم منها طلبك — يحدد DHD المكتب الذي يخدمها.",
     "loadingPickupCenters": "جارٍ تحميل مراكز الاستلام…",
     "noPickupCenters": "لا توجد مراكز استلام متاحة لهذه الولاية.",
     "noPickupCentersMatch": "لا توجد مراكز تطابق بحثك.",
