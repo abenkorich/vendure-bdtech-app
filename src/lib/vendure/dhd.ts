@@ -6,6 +6,50 @@ import {graphql} from '@/graphql';
  */
 const graphqlUnsafe = graphql as unknown as (source: string) => ReturnType<typeof graphql>;
 
+export type DhdPickupDesk = {
+    deskId: number;
+    name: string;
+    address?: string | null;
+    communeName?: string | null;
+    wilayaId: number;
+    wilayaName: string;
+    phone?: string | null;
+    mapUrl?: string | null;
+};
+
+export type DhdPickupDesksResult = {
+    desks: DhdPickupDesk[];
+    suggestedDeskId?: number | null;
+    selectedDeskId?: number | null;
+};
+
+export const GetDhdPickupDesksQuery = graphqlUnsafe(`
+    query GetDhdPickupDesks {
+        dhdPickupDesks {
+            desks {
+                deskId
+                name
+                address
+                communeName
+                wilayaId
+                wilayaName
+                phone
+                mapUrl
+            }
+            suggestedDeskId
+            selectedDeskId
+        }
+    }
+`);
+
+export const SetDhdPickupDeskMutation = graphqlUnsafe(`
+    mutation SetDhdPickupDesk($deskId: Int) {
+        setDhdPickupDesk(deskId: $deskId) {
+            id
+        }
+    }
+`);
+
 export type DhdShippingQuoteOption = {
     code: string;
     price: number;
@@ -56,6 +100,7 @@ export type DhdShopOrderTracking = {
         labels?: string | null;
         lastStatus?: string | null;
         isStopdesk?: boolean | null;
+        deskId?: number | null;
     } | null;
     history: DhdShopHistoryItem[];
 };
@@ -68,6 +113,7 @@ export const GetDhdOrderTrackingQuery = graphqlUnsafe(`
                 labels
                 lastStatus
                 isStopdesk
+                deskId
             }
             history {
                 tracking

@@ -1,3 +1,4 @@
+import {isDhdStopdeskMethod} from '@/lib/vendure/dhd';
 import {isYalidineStopdeskMethod} from '@/lib/vendure/yalidine';
 import {isZrexpressStopdeskMethod} from '@/lib/vendure/zrexpress';
 
@@ -11,10 +12,8 @@ import {isZrexpressStopdeskMethod} from '@/lib/vendure/zrexpress';
  * carriers listed underneath, rather than as one flat list where the cheap
  * option is buried third.
  *
- * The stop-desk predicates are the copied ones from `lib/vendure/{yalidine,
- * zrexpress}.ts`; DHD's module ships no such helper, so its code is matched
- * here (verified live: the channel exposes `dhd-home` only, but the plugin
- * names a stop-desk variant the same way its siblings do).
+ * The stop-desk predicates are the copied ones from
+ * `lib/vendure/{yalidine,dhd,zrexpress}.ts`.
  *
  * `in-store-pickup` is neither: it is collection from the shop itself, with no
  * courier and no fee, and folding it into "stop-desk" would tell a customer in
@@ -33,10 +32,6 @@ export interface DeliveryMethodLike {
 
 const IN_STORE_PICKUP_CODE = 'in-store-pickup';
 
-function isDhdStopdeskMethod(code: string): boolean {
-    return code === 'dhd-stopdesk';
-}
-
 export function deliveryModeOf(code: string): DeliveryMode {
     if (code === IN_STORE_PICKUP_CODE) return 'pickup';
     if (
@@ -50,14 +45,23 @@ export function deliveryModeOf(code: string): DeliveryMode {
     return 'home';
 }
 
+/** Which carrier owns the pickup-point list behind a stop-desk method. */
+export type PickupCarrier = 'yalidine' | 'dhd';
+
 /**
- * Only Yalidine exposes a pickup-centre list on this backend
- * (`yalidinePickupCenters` / `setYalidinePickupCenter`). A ZR Express stop-desk
- * is chosen by the courier from the address, so asking the customer to pick a
- * centre we cannot persist would be a form that does nothing.
+ * Yalidine and DHD each expose a pickup-point list on this backend
+ * (`yalidinePickupCenters` / `dhdPickupDesks`, with a matching setter). A ZR
+ * Express stop-desk is chosen by the courier from the address, so asking the
+ * customer to pick a point we cannot persist would be a form that does nothing.
  */
+export function pickupCarrierOf(code: string | null | undefined): PickupCarrier | null {
+    if (isYalidineStopdeskMethod(code)) return 'yalidine';
+    if (isDhdStopdeskMethod(code)) return 'dhd';
+    return null;
+}
+
 export function requiresPickupCenter(code: string | null | undefined): boolean {
-    return isYalidineStopdeskMethod(code);
+    return pickupCarrierOf(code) != null;
 }
 
 export interface DeliveryGroup<T extends DeliveryMethodLike> {

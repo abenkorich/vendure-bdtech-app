@@ -11,13 +11,15 @@ import {
     useSetShippingMethod,
     useYalidinePickupCenters,
     useSetYalidinePickupCenter,
+    useDhdPickupDesks,
+    useSetDhdPickupDesk,
     type EligibleShippingMethod,
 } from '../queries';
 import {
     deliveryModeOf,
     groupDeliveryMethods,
     plainDescription,
-    requiresPickupCenter,
+    pickupCarrierOf,
     type DeliveryMode,
 } from '../delivery';
 import {OptionRow} from './OptionRow';
@@ -62,6 +64,7 @@ export function DeliveryStep({
     const methods = useEligibleShippingMethods(addressReady);
     const setShippingMethod = useSetShippingMethod();
     const setPickupCenter = useSetYalidinePickupCenter();
+    const setPickupDesk = useSetDhdPickupDesk();
 
     const [methodId, setMethodId] = useState<string | null>(initialMethodId);
     const [mode, setMode] = useState<DeliveryMode | null>(null);
@@ -75,9 +78,13 @@ export function DeliveryStep({
     const selectedMethod: EligibleShippingMethod | undefined = list.find(
         method => method.id === methodId,
     );
-    const needsCenter = requiresPickupCenter(selectedMethod?.code);
+    // Which carrier's pickup-point list this method draws from, if any.
+    const pickupCarrier = pickupCarrierOf(selectedMethod?.code);
+    const needsCenter = pickupCarrier != null;
 
-    const centers = useYalidinePickupCenters(needsCenter);
+    const centers = useYalidinePickupCenters(pickupCarrier === 'yalidine');
+    const desks = useDhdPickupDesks(pickupCarrier === 'dhd');
+    const pickupQuery = pickupCarrier === 'dhd' ? desks : centers;
 
     // Seed the mode from whatever is already chosen, else the cheapest group,
     // which is stop-desk when the wilaya has one.
@@ -94,24 +101,41 @@ export function DeliveryStep({
         }
     }, [list, methodId]);
 
-    // Adopt the backend's suggestion for the wilaya as the default centre.
+    // Switching carrier makes the previous carrier's id meaningless. Declared
+    // *before* the adopt effect: on the render where the carrier changes both
+    // fire, and the later one wins — clearing after adopting would drop the
+    // suggestion the new carrier just supplied.
     useEffect(() => {
-        if (!needsCenter || !centers.data) return;
-        setCenterId(current => {
-            if (current != null) return current;
-            return centers.data.selectedCenterId ?? centers.data.suggestedCenterId ?? null;
-        });
-    }, [needsCenter, centers.data]);
+        setCenterId(null);
+    }, [pickupCarrier]);
 
-    const centerOptions: PickerOption[] = useMemo(
-        () =>
-            (centers.data?.centers ?? []).map(center => ({
-                value: String(center.centerId),
-                label: center.name,
-                detail: [center.address, center.communeName].filter(Boolean).join(' · '),
-            })),
-        [centers.data],
-    );
+    // Adopt the backend's suggestion for the wilaya as the default pickup point.
+    useEffect(() => {
+        if (pickupCarrier === 'yalidine' && centers.data) {
+            const {selectedCenterId, suggestedCenterId} = centers.data;
+            setCenterId(current => current ?? selectedCenterId ?? suggestedCenterId ?? null);
+            return;
+        }
+        if (pickupCarrier === 'dhd' && desks.data) {
+            const {selectedDeskId, suggestedDeskId} = desks.data;
+            setCenterId(current => current ?? selectedDeskId ?? suggestedDeskId ?? null);
+        }
+    }, [pickupCarrier, centers.data, desks.data]);
+
+    const centerOptions: PickerOption[] = useMemo(() => {
+        if (pickupCarrier === 'dhd') {
+            return (desks.data?.desks ?? []).map(desk => ({
+                value: String(desk.deskId),
+                label: desk.name,
+                detail: [desk.address, desk.communeName].filter(Boolean).join(' · '),
+            }));
+        }
+        return (centers.data?.centers ?? []).map(center => ({
+            value: String(center.centerId),
+            label: center.name,
+            detail: [center.address, center.communeName].filter(Boolean).join(' · '),
+        }));
+    }, [pickupCarrier, centers.data, desks.data]);
 
     const modeOptions = useMemo(
         () =>
@@ -132,7 +156,10 @@ export function DeliveryStep({
         setCenterError(null);
         if (!methodId) return;
 
-        if (needsCenter && centerId == null) {
+        // With no pickup points listed there is nothing to choose: a DHD
+        // stop-desk parcel still ships (Ecotrack's create/order carries no desk
+        // id), so an empty list must not trap the customer on this step.
+        if (needsCenter && centerOptions.length > 0 && centerId == null) {
             setCenterError(t('pickupCenterRequired'));
             return;
         }
@@ -140,11 +167,17 @@ export function DeliveryStep({
         setShippingMethod.mutate(methodId, {
             onError: caught => setFailure(presentError(caught)),
             onSuccess: () => {
-                // Clearing a stale centre matters as much as setting a new one.
-                const centerValue = needsCenter ? centerId : null;
-                setPickupCenter.mutate(centerValue, {
-                    onSuccess: onComplete,
-                    onError: caught => setFailure(presentError(caught)),
+                // Clearing a stale pickup point matters as much as setting a new
+                // one — and switching carrier has to clear the other one's too.
+                const onError = (caught: unknown) => setFailure(presentError(caught));
+                setPickupCenter.mutate(pickupCarrier === 'yalidine' ? centerId : null, {
+                    onError,
+                    onSuccess: () => {
+                        setPickupDesk.mutate(pickupCarrier === 'dhd' ? centerId : null, {
+                            onSuccess: onComplete,
+                            onError,
+                        });
+                    },
                 });
             },
         });
@@ -236,7 +269,7 @@ export function DeliveryStep({
                         placeholder={t('selectPickupCenter')}
                         value={centerId == null ? null : String(centerId)}
                         options={centerOptions}
-                        loading={centers.isPending}
+                        loading={pickupQuery.isPending}
                         error={centerError}
                         onChange={value => {
                             setCenterError(null);
@@ -254,7 +287,11 @@ export function DeliveryStep({
                 size="lg"
                 fullWidth
                 disabled={!methodId}
-                loading={setShippingMethod.isPending || setPickupCenter.isPending}
+                loading={
+                    setShippingMethod.isPending ||
+                    setPickupCenter.isPending ||
+                    setPickupDesk.isPending
+                }
                 onPress={handleContinue}
             >
                 {t('continueToPayment')}
