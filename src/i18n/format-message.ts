@@ -1,14 +1,16 @@
 /**
  * Minimal ICU MessageFormat evaluator covering exactly what the ported
- * translation catalogs use: `{placeholder}` substitution and
- * `{count, plural, =0 {...} one {# ...} other {# ...}}`.
+ * translation catalogs use: `{placeholder}` substitution,
+ * `{count, plural, =0 {...} one {# ...} other {# ...}}`, and
+ * `{kind, select, a {...} other {...}}`.
  *
  * A full ICU library (intl-messageformat, ~40kB) would be the right call if
- * the catalogs grow date/number skeletons or `select` clauses; today all 2240
- * strings across en/fr/ar are simple interpolation plus 7 plural forms, so
- * this keeps the client bundle small. `formatMessage` throws on syntax it
- * does not understand rather than silently mis-rendering, so any future
- * message using richer ICU fails loudly in tests.
+ * the catalogs grow date or number skeletons; today they are simple
+ * interpolation plus a handful of plural and select forms, so this keeps the
+ * client bundle small. `formatMessage` throws on syntax it does not
+ * understand rather than silently mis-rendering, and `format-message.test.ts`
+ * runs every string in all three catalogs through it — which is how a `select`
+ * arriving in the catalogs before this supported one was caught.
  */
 
 export type MessageValues = Record<string, string | number | boolean | null | undefined>;
@@ -42,7 +44,7 @@ function matchBrace(input: string, open: number): number {
     return -1;
 }
 
-/** Parse `=0 {...} one {# x} other {# y}` into a branch map. */
+/** Parse `=0 {...} one {# x} other {# y}`, or a select's keyword branches. */
 function parseBranches(body: string): Map<string, string> {
     const branches = new Map<string, string>();
     let index = 0;
@@ -100,11 +102,28 @@ export function formatMessage(
             const typeMatch = /^(\w+)\s*,?\s*/.exec(rest);
             const type = typeMatch?.[1];
 
-            if (type !== 'plural' && type !== 'selectordinal') {
+            if (type !== 'plural' && type !== 'selectordinal' && type !== 'select') {
                 throw new Error(
                     `Unsupported ICU argument type "${type}" in message: ${message}. ` +
-                        `Only {name} and {name, plural, ...} are implemented.`,
+                        `Only {name}, {name, plural, ...} and {name, select, ...} are implemented.`,
                 );
+            }
+
+            if (type === 'select') {
+                // Plain keyword match, no plural rules and no `#`: the value
+                // names the branch. A missing or unknown value takes `other`,
+                // which ICU requires every select to define — so a caller that
+                // passes nothing still gets a sentence rather than a blank.
+                const branches = parseBranches(rest.slice(typeMatch![0].length));
+                const selector = values[name];
+                const key = selector === undefined || selector === null ? '' : String(selector);
+                output += formatMessage(
+                    branches.get(key) ?? branches.get('other') ?? '',
+                    values,
+                    locale,
+                );
+                index = close + 1;
+                continue;
             }
 
             const raw = Number(values[name] ?? 0);

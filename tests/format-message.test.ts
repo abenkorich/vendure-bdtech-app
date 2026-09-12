@@ -55,15 +55,33 @@ check('arabic selects "few" for 3', formatMessage(arabic, {count: 3}, 'ar').incl
 // number formatting of #
 eq('# uses locale number format', formatMessage('{count, plural, other {# items}}', {count: 1234}, 'en'), '1,234 items');
 
-// unsupported ICU fails loudly instead of mis-rendering
+// select: keyword branches, with `other` as the catch-all ICU requires
+{
+    const pick = '{gender, select, male {he} female {she} other {they}}';
+    eq('select matches a branch', formatMessage(pick, {gender: 'male'}), 'he');
+    eq('select falls back to other', formatMessage(pick, {gender: 'robot'}), 'they');
+    // The catalogs' own `Errors.invalidCredentials` renders with no value at
+    // all: the sign-in field takes an email *or* a mobile, so the caller often
+    // does not know which was typed and the neutral branch is the right one.
+    eq('select with no value takes other', formatMessage(pick, {}), 'they');
+    eq(
+        'select composes with surrounding text',
+        formatMessage('Invalid {kind, select, email {email} other {email or mobile}} or password.', {
+            kind: 'email',
+        }),
+        'Invalid email or password.',
+    );
+}
+
+// unsupported ICU still fails loudly instead of mis-rendering
 {
     let threw = false;
     try {
-        formatMessage('{gender, select, male {he} female {she} other {they}}', {gender: 'male'});
+        formatMessage('{when, date, short}', {when: 0});
     } catch {
         threw = true;
     }
-    check('unsupported {select} throws', threw);
+    check('unsupported {date} throws', threw);
 }
 
 // malformed input degrades safely
