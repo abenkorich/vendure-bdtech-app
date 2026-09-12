@@ -3,10 +3,9 @@ import type {IconName} from '@/components/ui';
 /**
  * Payment method registry.
  *
- * Today this store takes cash on delivery and nothing else. That is not a
- * simplification of the checkout, it is the Algerian market: the card network
- * (SATIM / CIB / Edahabia) is a separate integration with its own hosted
- * redirect, and it is not live on this backend.
+ * Eligible methods come from the backend. COD is the usual path; bank transfer
+ * and manual card use the shared configurable handler. SATIM (CIB / Edahabia)
+ * is a separate hosted-redirect integration and is not live yet.
  *
  * The point of this file is that adding it later is *adding a row here*, not
  * restructuring the payment step. Everything the step needs to render and
@@ -19,8 +18,9 @@ import type {IconName} from '@/components/ui';
  *     why the discriminant exists before there is a second member... and why
  *     `describe()` returns a shape rather than a boolean.
  *
- * Codes come from the live backend (verified): `yalidine-cod`, `zrexpress-cod`,
- * `dhd-cod`, `country-resident-cod`. `pos-*` methods are eligible on the Shop
+ * Codes come from the live backend: `yalidine-cod`, `zrexpress-cod`,
+ * `dhd-cod`, `country-resident-cod`, plus any Admin-configured methods
+ * (`bank-transfer`, `card`, …). `pos-*` methods are eligible on the Shop
  * API too but belong to the in-store register, and offering "Cash at POS" to a
  * customer on their phone would be nonsense, so they are filtered out.
  */
@@ -53,11 +53,43 @@ const COD_PRESENTATION: PaymentMethodPresentation = {
  */
 export function describePaymentMethod(code: string): PaymentMethodPresentation {
     if (isCashOnDelivery(code)) return COD_PRESENTATION;
+    if (isBankTransfer(code)) {
+        return {kind: 'immediate', icon: 'receipt', hintKey: 'bankTransferHint'};
+    }
+    if (isCardPayment(code)) {
+        return {kind: 'immediate', icon: 'creditCard', hintKey: 'cardHint'};
+    }
+    if (isCheckPayment(code)) {
+        return {kind: 'immediate', icon: 'receipt', hintKey: 'checkHint'};
+    }
     return {kind: 'immediate', icon: 'creditCard'};
 }
 
 export function isCashOnDelivery(code: string): boolean {
     return code.endsWith('-cod') || code === 'cod';
+}
+
+export function isBankTransfer(code: string): boolean {
+    const normalized = code.toLowerCase();
+    return (
+        normalized.includes('bank') ||
+        normalized.includes('transfer') ||
+        normalized.includes('virement')
+    );
+}
+
+export function isCardPayment(code: string): boolean {
+    const normalized = code.toLowerCase();
+    return (
+        normalized.includes('card') ||
+        normalized.includes('cib') ||
+        normalized.includes('edahabia')
+    );
+}
+
+export function isCheckPayment(code: string): boolean {
+    const normalized = code.toLowerCase();
+    return normalized.includes('check') || normalized.includes('cheque');
 }
 
 /** Drop the register-only methods from an eligible list. */

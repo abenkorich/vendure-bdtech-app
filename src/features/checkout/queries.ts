@@ -22,6 +22,11 @@ import {
     SetYalidinePickupCenterMutation,
     type YalidinePickupCentersResult,
 } from '@/lib/vendure/yalidine';
+import {
+    GetDhdPickupDesksQuery,
+    SetDhdPickupDeskMutation,
+    type DhdPickupDesksResult,
+} from '@/lib/vendure/dhd';
 import type {VariablesOf} from '@/graphql';
 import {unwrapResult} from '@/lib/types';
 
@@ -231,6 +236,45 @@ export function useSetYalidinePickupCenter() {
             const result = (data as {setYalidinePickupCenter?: {id?: string}})
                 .setYalidinePickupCenter;
             if (!result?.id) throw new Error('Failed to set the pickup centre');
+            return result;
+        },
+        onSuccess: () => invalidateOrder(client),
+    });
+}
+
+/**
+ * DHD stop-desk offices for the order's wilaya.
+ *
+ * Same shape and same server-side address resolution as the Yalidine centres —
+ * DHD calls them "bureaux" (`GET api/v1/get/desks`) and gives them no id, so the
+ * server hands back a stable one derived from wilaya + name.
+ */
+export function useDhdPickupDesks(
+    enabled: boolean,
+): UseQueryResult<DhdPickupDesksResult, Error> {
+    return useQuery({
+        queryKey: [...queryKeys.activeOrderForCheckout(), 'dhd-desks'] as const,
+        enabled,
+        staleTime: 0,
+        gcTime: 0,
+        queryFn: async ({signal}) => {
+            const {data} = await query(GetDhdPickupDesksQuery, {}, {...AUTH, signal});
+            const result = (data as {dhdPickupDesks?: DhdPickupDesksResult}).dhdPickupDesks;
+            return result ?? {desks: [], suggestedDeskId: null, selectedDeskId: null};
+        },
+    });
+}
+
+/** Persist (or clear, with `null`) the chosen DHD stop-desk office on the order. */
+export function useSetDhdPickupDesk() {
+    const client = useQueryClient();
+
+    return useMutation({
+        mutationKey: ['checkout', 'set-pickup-desk'],
+        mutationFn: async (deskId: number | null) => {
+            const {data} = await mutate(SetDhdPickupDeskMutation, {deskId}, AUTH);
+            const result = (data as {setDhdPickupDesk?: {id?: string}}).setDhdPickupDesk;
+            if (!result?.id) throw new Error('Failed to set the pickup office');
             return result;
         },
         onSuccess: () => invalidateOrder(client),

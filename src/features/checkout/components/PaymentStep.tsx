@@ -15,12 +15,10 @@ import {OptionRow} from './OptionRow';
 /**
  * Payment step.
  *
- * Cash on delivery is the only thing this store takes, and the eligible list
- * comes from the backend rather than being hard-coded, because *which* COD
- * method applies depends on the carrier chosen in the previous step
- * (`yalidine-cod` with a Yalidine parcel, `country-resident-cod` with in-store
- * pickup, and so on). Hard-coding "Cash on Delivery" here would attach a
- * payment method the carrier does not collect.
+ * The eligible list comes from the backend rather than being hard-coded, because
+ * *which* method applies depends on shipping and Admin config (carrier COD,
+ * bank transfer, card, …). Hard-coding a single method here would attach a
+ * payment the order is not eligible for.
  *
  * SATIM (the Algerian card network) is deliberately **not** implemented. The
  * structure that makes adding it a one-file change lives in
