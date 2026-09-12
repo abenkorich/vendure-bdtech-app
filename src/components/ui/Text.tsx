@@ -85,6 +85,8 @@ const styles = StyleSheet.create(theme => ({
                 onBrand: {color: theme.colors.onBrand},
                 brandMuted: {color: theme.colors.brandMuted},
                 sale: {color: theme.colors.sale},
+                notify: {color: theme.colors.notify},
+                onNotify: {color: theme.colors.onNotify},
                 success: {color: theme.colors.success},
                 danger: {color: theme.colors.danger},
                 skeleton: {color: theme.colors.skeleton},

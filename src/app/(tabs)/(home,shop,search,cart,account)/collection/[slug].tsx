@@ -23,6 +23,7 @@ import {CollectionTile} from '@/features/collection/components/CollectionTile';
 import {S, tr} from '@/features/catalogue-strings';
 import {recordCollectionVisit} from '@/features/explore/visited-collections';
 import {QuickAddButton} from '@/features/cart/components/QuickAddButton';
+import {WishlistButton} from '@/features/wishlist/components/WishlistButton';
 
 /**
  * Collection listing.
@@ -182,6 +183,7 @@ export default function CollectionScreen() {
                                 product={item}
                                 onPress={() => router.push(`/product/${item.slug}`)}
                                 action={<QuickAddButton product={item} />}
+                                favorite={<WishlistButton product={item} />}
                             />
                         </View>
                     )}

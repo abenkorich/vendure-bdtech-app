@@ -34,6 +34,7 @@ import {
 } from '@/features/product/variant-selection';
 import {S, tr} from '@/features/catalogue-strings';
 import {galleryImages} from '@/features/product/gallery-images';
+import {StockAlertSheet} from '@/features/product/stock-alert';
 import {recordCollectionVisit} from '@/features/explore/visited-collections';
 
 /**
@@ -73,6 +74,7 @@ export default function ProductScreen() {
     const [sheetOpen, setSheetOpen] = useState(false);
     const [added, setAdded] = useState(false);
     const [quantity, setQuantity] = useState(1);
+    const [notifyOpen, setNotifyOpen] = useState(false);
 
     const addToCart = useAddToCart();
     const wishlist = useWishlist();
@@ -316,23 +318,39 @@ export default function ProductScreen() {
                     ) : null}
 
                     <View style={styles.cta}>
-                        <Button
-                            variant="primary"
-                            size="lg"
-                            fullWidth
-                            icon={added ? 'check' : 'cart'}
-                            disabled={!variant || outOfStock}
-                            loading={addToCart.isPending}
-                            onPress={onAdd}
-                        >
-                            {outOfStock
-                                ? S.outOfStock
-                                : added
-                                  ? S.addedToCart
-                                  : addToCart.isPending
-                                    ? S.adding
-                                    : S.addToCart}
-                        </Button>
+                        {/* Sold out is not the end of the visit: the button
+                            becomes the offer to be told when it returns,
+                            exactly as it does on the website. A disabled
+                            control here would throw away the one thing this
+                            page can still collect. */}
+                        {outOfStock ? (
+                            <Button
+                                variant="notify"
+                                size="lg"
+                                fullWidth
+                                icon="bell"
+                                disabled={!variant}
+                                onPress={() => setNotifyOpen(true)}
+                            >
+                                {tProduct('notifyMe')}
+                            </Button>
+                        ) : (
+                            <Button
+                                variant="primary"
+                                size="lg"
+                                fullWidth
+                                icon={added ? 'check' : 'cart'}
+                                disabled={!variant}
+                                loading={addToCart.isPending}
+                                onPress={onAdd}
+                            >
+                                {added
+                                    ? S.addedToCart
+                                    : addToCart.isPending
+                                      ? S.adding
+                                      : S.addToCart}
+                            </Button>
+                        )}
 
                         {/* Save and compare live beside the cart CTA rather
                             than in the header: they are secondary to buying,
@@ -405,6 +423,18 @@ export default function ProductScreen() {
                     currencyCode={CURRENCY}
                 />
             ) : null}
+
+            {/* Keyed on the variant: on a product with several options the
+                shopper may switch to a different sold-out one, and the sheet
+                must then be a fresh form rather than still showing the last
+                one's success state. */}
+            <StockAlertSheet
+                key={variant?.id ?? 'no-variant'}
+                open={notifyOpen}
+                onClose={() => setNotifyOpen(false)}
+                variantId={variant?.id}
+                productName={product.name}
+            />
         </Screen>
     );
 }

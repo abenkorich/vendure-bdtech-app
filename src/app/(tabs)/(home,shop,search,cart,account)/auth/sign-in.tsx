@@ -10,28 +10,39 @@ import {BackHeader, ErrorBanner, FormBody} from '@/features/account/components/c
 import {CaptchaNotice} from '@/features/auth/CaptchaNotice';
 import {GoogleSignInButton} from '@/features/auth/google';
 import {useT} from '@/features/account/i18n';
+import {useTranslations} from '@/i18n';
 
 /**
  * Sign in.
  *
- * The failure path is the design work here. `useSignIn` throws either a
- * `VendureResultError` carrying the server's own message ("The provided
- * credentials are invalid") or a `ServerUnreachableError`; `ErrorBanner`
- * renders those differently, so "wrong password" and "no connection" are never
- * the same screen. A single "Something went wrong" would leave a user retyping
- * a correct password on a dead connection.
+ * **Google comes first.** It is one tap against five fields plus a password
+ * nobody remembers, so it is the top of the screen and the credentials form
+ * is the alternative below the rule — not the other way round.
+ *
+ * The identifier field takes an email *or* a mobile, because registration
+ * accepts either: an account created with a mobile and no address has no
+ * email to type here. `useSignIn` maps whichever was typed onto the
+ * identifier the account actually carries.
+ *
+ * The failure path is the other piece of design work. `useSignIn` throws
+ * either a `VendureResultError` carrying the server's own message ("The
+ * provided credentials are invalid") or a `ServerUnreachableError`;
+ * `ErrorBanner` renders those differently, so "wrong password" and "no
+ * connection" are never the same screen. A single "Something went wrong"
+ * would leave a user retyping a correct password on a dead connection.
  */
 export default function SignInScreen() {
     const t = useT('Auth');
+    const tCommon = useTranslations('Common');
     const router = useRouter();
     const signIn = useSignIn();
-    const form = useForm(signInSchema, {email: '', password: ''});
+    const form = useForm(signInSchema, {identifier: '', password: ''});
 
     const onSubmit = () => {
         const parsed = form.submit();
         if (!parsed) return;
         signIn.mutate(
-            {username: parsed.email, password: parsed.password},
+            {username: parsed.identifier, password: parsed.password},
             {
                 onSuccess: () => {
                     // `useSignIn` awaits the customer refetch before resolving,
@@ -48,17 +59,25 @@ export default function SignInScreen() {
             <BackHeader title={t('signIn')} subtitle={t('enterCredentials')} />
 
             <FormBody>
+                <GoogleSignInButton
+                    separatorAfter={tCommon('or')}
+                    onSignedIn={() => {
+                        if (router.canGoBack()) router.back();
+                        else router.replace('/account');
+                    }}
+                />
+
                 <ErrorBanner error={signIn.error} />
 
                 <Field
-                    label={t('email')}
+                    label={t('emailOrMobileLabel')}
                     icon="mail"
-                    value={form.values.email}
-                    onChangeText={value => form.setValue('email', value)}
-                    onBlur={() => form.blur('email')}
-                    error={form.errors.email}
+                    value={form.values.identifier}
+                    onChangeText={value => form.setValue('identifier', value)}
+                    onBlur={() => form.blur('identifier')}
+                    error={form.errors.identifier}
                     autoCapitalize="none"
-                    autoComplete="email"
+                    autoComplete="username"
                     keyboardType="email-address"
                     textContentType="username"
                     returnKeyType="next"
@@ -105,12 +124,7 @@ export default function SignInScreen() {
                     <Feature icon="lock" label={`${t('featureSecure')} ${t('featurePayments')}`} />
                     <Feature icon="package" label={`${t('featureEasy')} ${t('featureReturns')}`} />
                 </View>
-                <GoogleSignInButton
-                    onSignedIn={() => {
-                        if (router.canGoBack()) router.back();
-                        else router.replace('/account');
-                    }}
-                />
+
                 <CaptchaNotice action="login" />
             </FormBody>
         </Screen>

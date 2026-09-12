@@ -8,8 +8,8 @@ import {useOrders, useAddresses} from '@/features/account/queries';
 import {LinkRow, RowGroup, ScreenHeader} from '@/features/account/components/chrome';
 import {useT, translate} from '@/features/account/i18n';
 import {LanguageSheet} from '@/features/account/components/LanguageSheet';
-import {NotificationOptIn} from '@/features/account/components/NotificationOptIn';
-import {useLocale} from '@/i18n';
+import {GoogleSignInButton} from '@/features/auth/google';
+import {useLocale, useTranslations} from '@/i18n';
 import {localeNames} from '@/i18n/routing';
 
 /**
@@ -70,18 +70,21 @@ export default function AccountScreen() {
                             subtitle={t('changePasswordDescription')}
                             onPress={() => router.push('/account/password')}
                         />
+                        {/* Play requires an in-app route to account deletion
+                            for any app that lets people register. Last in the
+                            group and in the danger tone: reachable, never the
+                            thing a thumb lands on by accident. */}
+                        <LinkRow
+                            icon="trash"
+                            tone="danger"
+                            title={t('deleteAccount')}
+                            subtitle={t('deleteAccountDescription')}
+                            onPress={() => router.push('/account/delete')}
+                        />
                     </RowGroup>
                 </Section>
 
                 <RecentOrders />
-
-                {/* Signed-in only: this is the one caller of registerForPush,
-                    and offering order updates to someone with no orders (and
-                    spending iOS's single permission prompt on them) is the
-                    wrong moment to ask. */}
-                <View style={styles.optIn}>
-                    <NotificationOptIn />
-                </View>
 
                 <Section title={tNav('links')}>
                     <BrowseLinks />
@@ -98,6 +101,7 @@ export default function AccountScreen() {
 function SignedOut() {
     const t = useT('Auth');
     const tNav = useT('Navigation');
+    const tCommon = useTranslations('Common');
     const router = useRouter();
 
     return (
@@ -113,6 +117,14 @@ function SignedOut() {
                     <Text variant="body" color="textMuted">
                         {t('welcomeBack')}
                     </Text>
+
+                    {/* Google leads here for the same reason it leads the
+                        sign-in screen: it is one tap, where both buttons
+                        below open a form. The rule under it disappears with
+                        the button when the merchant has not enabled Google,
+                        so the card never shows an "or" with nothing above. */}
+                    <GoogleSignInButton separatorAfter={tCommon('or')} />
+
                     <Button fullWidth size="lg" onPress={() => router.push('/auth/sign-in')}>
                         {t('signIn')}
                     </Button>
@@ -356,7 +368,6 @@ const styles = StyleSheet.create(theme => ({
         borderColor: theme.colors.border,
         backgroundColor: theme.colors.surface,
     },
-    optIn: {paddingHorizontal: theme.spacing.lg},
     stats: {
         flexDirection: 'row',
         gap: theme.spacing.sm,

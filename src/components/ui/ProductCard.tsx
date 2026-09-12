@@ -65,6 +65,13 @@ export interface ProductCardProps {
      * clear of it so the price never runs underneath.
      */
     action?: React.ReactNode;
+    /**
+     * Control pinned to the *upper* trailing corner, over the photo, e.g.
+     * `WishlistButton`. A slot rather than the button itself, for the same
+     * reason as `action`: the design system does not import feature code, and
+     * saving a product needs the wishlist store.
+     */
+    favorite?: React.ReactNode;
 }
 
 export function ProductCard({
@@ -74,6 +81,7 @@ export function ProductCard({
     showPriceRange = true,
     footer,
     action,
+    favorite,
 }: ProductCardProps) {
     styles.useVariants({layout});
 
@@ -127,6 +135,10 @@ export function ProductCard({
                         <Badge tone="danger">{outOfStockLabel}</Badge>
                     </View>
                 ) : null}
+
+                {/* Above the photo and opposite the badge, so the two never
+                    collide however tall the badge's label wraps. */}
+                {favorite ? <View style={styles.favoriteSlot}>{favorite}</View> : null}
             </View>
 
             {skuLabel || quantityLabel ? (
@@ -230,6 +242,13 @@ const styles = StyleSheet.create(theme => ({
         bottom: 0,
         start: 0,
         padding: theme.spacing.sm,
+    },
+    favoriteSlot: {
+        position: 'absolute',
+        top: 0,
+        // `end`, not `right`: top right in English, top left in Arabic.
+        end: 0,
+        padding: theme.spacing.xs,
     },
     metaBar: {
         flexDirection: 'row',

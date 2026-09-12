@@ -16,6 +16,7 @@ import {ActiveCustomerFragment} from '@/lib/vendure/fragments';
 import type {ResultOf} from '@/graphql';
 import {unwrapResult, VendureResultError} from '@/lib/types';
 import {useCaptcha} from './captcha';
+import {normalizeLoginIdentifier} from '@/lib/contact-details';
 
 /**
  * Session hooks.
@@ -78,6 +79,7 @@ export function useSession(): Session {
 }
 
 export interface SignInInput {
+    /** What the customer typed: an email address or a mobile number. */
     username: string;
     password: string;
 }
@@ -99,7 +101,15 @@ export function useSignIn() {
         mutationKey: [CUSTOMER_ROOT, 'sign-in'],
         mutationFn: async ({username, password}: SignInInput) => {
             const captchaToken = await captcha.execute('login');
-            const {data} = await mutate(LoginMutation, {username, password}, {captchaToken});
+            // A mobile is not a Vendure identifier; it maps to the synthetic
+            // address registration wrote for it. Sent as one candidate, never
+            // as a list of guesses — see `lib/contact-details.ts`.
+            const identifier = normalizeLoginIdentifier(username);
+            const {data} = await mutate(
+                LoginMutation,
+                {username: identifier, password},
+                {captchaToken},
+            );
             return unwrapResult(data.login);
         },
         onSuccess: async () => {

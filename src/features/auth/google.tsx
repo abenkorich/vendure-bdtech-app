@@ -1,9 +1,10 @@
 import {useEffect} from 'react';
-import {Platform, View} from 'react-native';
+import {ActivityIndicator, Platform, Pressable, View} from 'react-native';
 import {GoogleSignin, statusCodes} from '@react-native-google-signin/google-signin';
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {StyleSheet} from 'react-native-unistyles';
-import {Button, Divider, Text} from '@/components/ui';
+import {Divider, Text} from '@/components/ui';
+import {GoogleMark} from './GoogleMark';
 import {mutate, query} from '@/lib/vendure/api';
 import {queryKeys, CUSTOMER_ROOT} from '@/lib/query-keys';
 import {
@@ -111,9 +112,32 @@ export function useGoogleSignIn() {
 export interface GoogleSignInButtonProps {
     /** Called after a real sign-in, so the screen can leave. Not on cancel. */
     onSignedIn?: () => void;
+    /** "or" rule above the button — for screens where the form comes first. */
+    separatorBefore?: string;
+    /** "or" rule below it — for screens where Google leads. */
+    separatorAfter?: string;
 }
 
-export function GoogleSignInButton({onSignedIn}: GoogleSignInButtonProps) {
+/**
+ * The button, with Google's own mark and wordmark colours.
+ *
+ * It is a `Pressable` rather than the design system's `Button` because the
+ * design system takes an icon *name* from the app's monochrome set, and
+ * Google's guidelines require their four-colour "G" on a white plate. So this
+ * one control opts out of the theme deliberately: white in dark mode too,
+ * because a recoloured Google button is an off-brand Google button, and
+ * shoppers recognise it by exactly those colours.
+ *
+ * The "or" rule is a prop rather than a fixture because each screen decides
+ * whether Google comes before or after the credentials form — and because it
+ * has to disappear with the button. A merchant who has not enabled Google
+ * would otherwise get a rule with nothing on one side of it.
+ */
+export function GoogleSignInButton({
+    onSignedIn,
+    separatorBefore,
+    separatorAfter,
+}: GoogleSignInButtonProps) {
     const t = useTranslations('Auth');
     const google = useGoogleSignIn();
 
@@ -121,25 +145,15 @@ export function GoogleSignInButton({onSignedIn}: GoogleSignInButtonProps) {
 
     return (
         <View style={styles.root}>
-            <View style={styles.separator}>
-                <View style={styles.rule}>
-                    <Divider />
-                </View>
-                <Text variant="micro" color="textMuted" uppercase>
-                    {t('orContinueWith')}
-                </Text>
-                <View style={styles.rule}>
-                    <Divider />
-                </View>
-            </View>
+            {separatorBefore ? <OrSeparator label={separatorBefore} /> : null}
 
             <ErrorBanner error={google.error} />
 
-            <Button
-                variant="secondary"
-                size="lg"
-                fullWidth
-                loading={google.isPending}
+            <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('continueWithGoogle')}
+                accessibilityState={{busy: google.isPending, disabled: google.isPending}}
+                disabled={google.isPending}
                 onPress={() =>
                     google.mutate(undefined, {
                         onSuccess: result => {
@@ -147,9 +161,36 @@ export function GoogleSignInButton({onSignedIn}: GoogleSignInButtonProps) {
                         },
                     })
                 }
+                style={({pressed}) => [styles.button, pressed && styles.buttonPressed]}
             >
-                {t('continueWithGoogle')}
-            </Button>
+                {google.isPending ? (
+                    <ActivityIndicator size="small" color="#3c4043" />
+                ) : (
+                    <GoogleMark size={20} />
+                )}
+                <Text variant="bodyStrong" style={styles.label}>
+                    {t('continueWithGoogle')}
+                </Text>
+            </Pressable>
+
+            {separatorAfter ? <OrSeparator label={separatorAfter} /> : null}
+        </View>
+    );
+}
+
+/** A rule with a word in the middle: "Google above, email below". */
+export function OrSeparator({label}: {label: string}) {
+    return (
+        <View style={styles.separator}>
+            <View style={styles.rule}>
+                <Divider />
+            </View>
+            <Text variant="micro" color="textMuted" uppercase>
+                {label}
+            </Text>
+            <View style={styles.rule}>
+                <Divider />
+            </View>
         </View>
     );
 }
@@ -157,6 +198,26 @@ export function GoogleSignInButton({onSignedIn}: GoogleSignInButtonProps) {
 const styles = StyleSheet.create(theme => ({
     root: {
         gap: theme.spacing.md,
+    },
+    button: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: theme.spacing.sm,
+        minHeight: 52,
+        paddingHorizontal: theme.spacing.lg,
+        borderRadius: theme.radius.md,
+        // Google's own palette, not the theme's: #fff plate, #dadce0 rule,
+        // #3c4043 label. Fixed in both schemes on purpose — see above.
+        backgroundColor: '#ffffff',
+        borderWidth: 1,
+        borderColor: '#dadce0',
+    },
+    buttonPressed: {
+        backgroundColor: '#f1f3f4',
+    },
+    label: {
+        color: '#3c4043',
     },
     separator: {
         flexDirection: 'row',

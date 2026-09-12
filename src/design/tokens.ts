@@ -24,6 +24,14 @@ const palette = {
 
     sale: '#e11c4a',
     saleDark: '#ff2056',
+    /**
+     * Back-in-stock alerts. Orange-700 rather than a brighter orange because
+     * white has to be legible on it: orange-500 on white is 2.89:1 and this
+     * carries a label, not just a glyph. The storefront's notify button uses
+     * the same value for the same reason.
+     */
+    notify: '#c2410c',
+    notifyDark: '#ff8904',
     success: '#2c974f',
     successDark: '#00bc7d',
     danger: '#e7000b',
@@ -64,6 +72,10 @@ export interface AppColors {
     brandMuted: string;
 
     sale: string;
+    /** Back-in-stock alerts: neither a purchase nor an error. */
+    notify: string;
+    /** Text/icon color that sits legibly on `notify`. */
+    onNotify: string;
     success: string;
     danger: string;
 
@@ -82,6 +94,8 @@ const lightColors: AppColors = {
     onBrand: palette.white,
     brandMuted: palette.brandMutedLight,
     sale: palette.sale,
+    notify: palette.notify,
+    onNotify: palette.white,
     success: palette.success,
     danger: palette.danger,
     skeleton: palette.slate100,
@@ -98,6 +112,10 @@ const darkColors: AppColors = {
     onBrand: palette.slate950,
     brandMuted: palette.brandMutedDark,
     sale: palette.saleDark,
+    // Inverted the way `brand`/`onBrand` are: a bright orange on a near-black
+    // ground carries a dark glyph, not a white one.
+    notify: palette.notifyDark,
+    onNotify: palette.slate950,
     success: palette.successDark,
     danger: palette.dangerDark,
     skeleton: palette.slate800,

@@ -33,7 +33,7 @@ function googleSignInPlugin(): NonNullable<ExpoConfig['plugins']> {
 const config: ExpoConfig = {
     name: 'Dzduino',
     slug: 'vendure-bdtech-app',
-    version: '0.1.0',
+    version: '1.0.0',
     orientation: 'portrait',
     scheme: 'dzduino',
     userInterfaceStyle: 'automatic',
@@ -47,12 +47,32 @@ const config: ExpoConfig = {
 
     android: {
         package: BUNDLE_ID,
-        // Android 13+ requires an explicit runtime permission to post any
-        // notification. The expo-notifications plugin does not add it, and
-        // without it requestPermissionsAsync silently resolves to "denied" on
-        // a release build — while still appearing to work in dev, because the
-        // emulator auto-grants it.
-        permissions: ['android.permission.POST_NOTIFICATIONS'],
+        /**
+         * Play's own counter, and it has nothing to do with `version` above.
+         * It must be an integer that goes *up* on every upload; Play refuses a
+         * bundle whose code it has already seen, and the number can never be
+         * reused even after a release is deleted.
+         */
+        versionCode: 1,
+        /**
+         * Empty on purpose. `POST_NOTIFICATIONS` was here for the push opt-in,
+         * which is gone until the backend can actually deliver (see
+         * `lib/push.ts`), and a permission the app never exercises is one more
+         * thing to justify on the Data safety form and in review.
+         */
+        permissions: [],
+        /**
+         * Stripped from the merged manifest. The prebuild template contributes
+         * these, none of this app's code touches them, and all three are
+         * questions from a reviewer that have no good answer: "display over
+         * other apps" is a sensitive permission, and declared storage access
+         * has to be disclosed even when it is vestigial.
+         */
+        blockedPermissions: [
+            'android.permission.SYSTEM_ALERT_WINDOW',
+            'android.permission.READ_EXTERNAL_STORAGE',
+            'android.permission.WRITE_EXTERNAL_STORAGE',
+        ],
         adaptiveIcon: {
             foregroundImage: './assets/adaptive-icon.png',
             // White, matching the iOS icon and the brand mark's own ground:
@@ -104,6 +124,8 @@ const config: ExpoConfig = {
             },
         ],
         ...googleSignInPlugin(),
+        // Replaces the template's debug signing on the release build type.
+        './plugins/with-release-signing',
     ],
 
     experiments: {

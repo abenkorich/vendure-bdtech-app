@@ -11,6 +11,7 @@ import {useCardsWithStock} from '@/features/product/card-stock';
 import {SectionHeader} from './SectionHeader';
 import {S} from '@/features/catalogue-strings';
 import {QuickAddButton} from '@/features/cart/components/QuickAddButton';
+import {WishlistButton} from '@/features/wishlist/components/WishlistButton';
 
 /**
  * Horizontal product rail.
@@ -69,6 +70,7 @@ export function ProductRail({
                 product={item}
                 onPress={() => router.push(`/product/${item.slug}`)}
                 action={<QuickAddButton product={item} />}
+                favorite={<WishlistButton product={item} />}
             />
         ),
         [],

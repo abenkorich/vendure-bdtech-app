@@ -9,16 +9,21 @@ import {tr} from '@/features/catalogue-strings';
 /**
  * Push notifications.
  *
- * Deliberately conservative about *when* permission is requested. iOS gives an
- * app exactly one chance to ask, and asking on first launch (before the user
- * knows what the app is) is how a store ends up permanently unable to tell
- * anyone their order shipped. So `registerForPush` is exported for a screen to
- * call after a meaningful moment — placing an order, or an explicit opt-in in
- * account settings — and nothing here asks on its own.
+ * **`registerForPush` has no caller on purpose.** There was an opt-in card in
+ * the account screen; it was removed because it could not succeed. Two things
+ * are missing and both are outside this file: `app.config.ts` carries no EAS
+ * project id, so `getExpoPushTokenAsync` throws on every real phone; and the
+ * Vendure backend has no device registry and nothing that publishes on order
+ * events, so even a valid token would have nothing to receive. A button that
+ * asks for a permission it cannot use spends iOS's single prompt for nothing.
  *
- * The token is not sent anywhere yet: the Vendure backend has no device
- * registry. It is stored so that wiring can happen without another permission
- * prompt.
+ * Do not wire a caller back in until the backend can store a token and send to
+ * it. When that day comes, ask after a meaningful moment — placing an order,
+ * or an explicit opt-in in account settings — never on first launch, before
+ * the customer knows what the app is.
+ *
+ * `useNotificationRouting` below is live regardless: it costs no permission and
+ * handles a tap correctly the moment notifications do start arriving.
  */
 
 const PUSH_TOKEN_KEY = 'expo_push_token';
@@ -43,14 +48,27 @@ export function hasDeclinedPush(): boolean {
 }
 
 /**
+ * The three ways asking for push can end.
+ *
+ * They were one `null` before, and the screen had to tell the customer to go
+ * to their device settings whichever it was — advice that is simply wrong for
+ * someone who *granted* permission and then hit a build with no push
+ * credentials. The reason travels with the result so the screen can say the
+ * true thing.
+ */
+export type PushRegistration =
+    | {status: 'granted'; token: string}
+    | {status: 'denied'}
+    /** Permission is fine; this build cannot mint a token. See `reason`. */
+    | {status: 'unavailable'; reason: string};
+
+/**
  * Ask for permission and obtain an Expo push token.
  *
- * Returns null when declined, on a simulator (which cannot receive push), or
- * when the project id is unavailable. Callers should treat null as "no push"
- * and carry on rather than surfacing an error: notifications are an
- * enhancement, not a requirement for buying anything.
+ * Never throws: notifications are an enhancement, not a requirement for buying
+ * anything, so every failure comes back as a value.
  */
-export async function registerForPush(): Promise<string | null> {
+export async function registerForPush(): Promise<PushRegistration> {
     // A simulator cannot receive push, and getExpoPushTokenAsync throws
     // there. Rather than add expo-device (a native module, so every
     // contributor would need a rebuild before the app would even start) for
@@ -60,14 +78,14 @@ export async function registerForPush(): Promise<string | null> {
     let status = existing.status;
 
     if (status !== 'granted') {
-        if (!existing.canAskAgain) return null;
+        if (!existing.canAskAgain) return {status: 'denied'};
         const requested = await Notifications.requestPermissionsAsync();
         status = requested.status;
     }
 
     if (status !== 'granted') {
         prefsStorage().set(PUSH_DECLINED_KEY, true);
-        return null;
+        return {status: 'denied'};
     }
 
     if (Platform.OS === 'android') {
@@ -83,10 +101,24 @@ export async function registerForPush(): Promise<string | null> {
     try {
         const {data} = await Notifications.getExpoPushTokenAsync();
         prefsStorage().set(PUSH_TOKEN_KEY, data);
-        return data;
-    } catch {
-        // A missing EAS project id throws here. Push simply stays off.
-        return null;
+        return {status: 'granted', token: data};
+    } catch (error) {
+        /**
+         * Two things land here, and the message is the only way to tell them
+         * apart on a device:
+         *
+         * - **No EAS project id.** `getExpoPushTokenAsync` needs one to
+         *   address the token, and `app.config.ts` carries none, so this is
+         *   what every real phone hits today. `eas init` writes
+         *   `extra.eas.projectId` and it starts working.
+         * - **A simulator**, which cannot receive push at all.
+         *
+         * Neither is the customer's fault and neither is fixable from device
+         * settings, which is exactly what the screen used to tell them.
+         */
+        const reason = error instanceof Error ? error.message : String(error);
+        if (__DEV__) console.warn('[push] no token:', reason);
+        return {status: 'unavailable', reason};
     }
 }
 

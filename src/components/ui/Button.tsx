@@ -21,7 +21,7 @@ import {IconSymbol, type IconName} from './IconSymbol';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'notify';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 const TEXT_VARIANT: Record<ButtonSize, TextVariant> = {
@@ -120,7 +120,8 @@ const FOREGROUND = {
     secondary: 'text',
     ghost: 'brand',
     danger: 'onBrand',
-} as const satisfies Record<ButtonVariant, 'onBrand' | 'text' | 'brand'>;
+    notify: 'onNotify',
+} as const satisfies Record<ButtonVariant, 'onBrand' | 'onNotify' | 'text' | 'brand'>;
 
 const styles = StyleSheet.create(theme => ({
     base: {
@@ -139,6 +140,7 @@ const styles = StyleSheet.create(theme => ({
                 },
                 ghost: {backgroundColor: 'transparent'},
                 danger: {backgroundColor: theme.colors.danger},
+                notify: {backgroundColor: theme.colors.notify},
             },
             size: {
                 sm: {

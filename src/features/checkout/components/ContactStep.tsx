@@ -1,10 +1,16 @@
-import {useState} from 'react';
+import {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {StyleSheet} from 'react-native-unistyles';
 import {useRouter} from 'expo-router';
 import {Text, Button} from '@/components/ui';
 import {useTranslations} from '@/i18n';
+import {useT} from '@/features/account/i18n';
 import {Field} from '@/features/account/components/Field';
+import {PhoneField} from '@/features/account/components/PhoneField';
+import {createContactSchema} from '@/features/auth/schemas';
+import {useForm} from '@/features/auth/use-form';
+import {countryFromE164, type CallingCountry} from '@/lib/phone-number';
+import {displayCustomerEmail, guestEmailFromPhone, joinFullName, splitFullName} from '@/lib/contact-details';
 import {useSetCustomerForOrder} from '../queries';
 import {presentError, type PresentedError} from '@/features/cart/errors';
 import {ErrorBanner} from '@/features/cart/components/ErrorBanner';
@@ -16,14 +22,23 @@ import {ErrorBanner} from '@/features/cart/components/ErrorBanner';
  * on this store are placed without an account, so this step is the *first*
  * thing in the flow and creating an account is never required to get past it.
  *
- * The phone number is required rather than optional, unlike the web
- * storefront's generic form. Every carrier this store uses (Yalidine, ZR
- * Express, DHD) calls before delivery, and a COD parcel with no reachable
- * number comes back to the warehouse.
+ * It asks for one name, then a mobile, then an email — the same order and the
+ * same "either one will do" rule as sign-up and as the website, so a customer
+ * who has done this once anywhere recognises it. Note what that costs: a
+ * customer who leaves the mobile blank cannot be called, and every carrier
+ * this store uses (Yalidine, ZR Express, DHD) calls before delivery, so a COD
+ * parcel with no number risks coming back to the warehouse. The hint says so
+ * rather than the form refusing, because a blocked checkout loses the order
+ * outright. Making the mobile mandatory again is one word — drop `.optional()`
+ * from `contactFields` — if the returns tell a different story.
  *
- * `EmailAddressConflictError` gets its own treatment: the address belongs to an
- * existing account, and the only useful next action is a link to sign in, not
- * a red message telling the customer their own email is wrong.
+ * Vendure needs an `emailAddress`, so a mobile-only customer is given the same
+ * synthetic one the website's backend already recognises; the order then
+ * carries a real phone number and no fake address is ever shown back.
+ *
+ * `EmailAddressConflictError` gets its own treatment: the address belongs to
+ * an existing account, and the only useful next action is a link to sign in,
+ * not a red message telling the customer their own email is wrong.
  */
 
 export interface ContactStepProps {
@@ -34,8 +49,6 @@ export interface ContactStepProps {
     onComplete: () => void;
 }
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 export function ContactStep({
     initialEmail,
     initialFirstName,
@@ -44,40 +57,44 @@ export function ContactStep({
     onComplete,
 }: ContactStepProps) {
     const t = useTranslations('Checkout');
+    const tAuth = useT('Auth');
     const router = useRouter();
     const setCustomer = useSetCustomerForOrder();
 
-    const [email, setEmail] = useState(initialEmail ?? '');
-    const [firstName, setFirstName] = useState(initialFirstName ?? '');
-    const [lastName, setLastName] = useState(initialLastName ?? '');
-    const [phone, setPhone] = useState(initialPhone ?? '');
+    // A number already on the order was stored in E.164, so its country is
+    // read back from the prefix rather than assumed.
+    const [country, setCountry] = useState<CallingCountry>(() => countryFromE164(initialPhone));
+    const schema = useMemo(() => createContactSchema(country), [country]);
 
-    const [errors, setErrors] = useState<Record<string, string>>({});
+    const form = useForm(schema, {
+        fullName: joinFullName(initialFirstName, initialLastName),
+        phone: initialPhone ?? '',
+        // A synthetic phone identifier is not an address the customer typed,
+        // so it is never echoed back into the field.
+        email: displayCustomerEmail(initialEmail) ?? '',
+    });
+
     const [conflict, setConflict] = useState(false);
     const [failure, setFailure] = useState<PresentedError | null>(null);
-
-    const validate = (): boolean => {
-        const next: Record<string, string> = {};
-        if (!email.trim()) next.email = t('emailRequired');
-        else if (!EMAIL_PATTERN.test(email.trim())) next.email = t('invalidEmail');
-        if (!firstName.trim()) next.firstName = t('firstNameRequired');
-        if (!lastName.trim()) next.lastName = t('lastNameRequired');
-        if (!phone.trim()) next.phone = t('phoneRequired');
-        setErrors(next);
-        return Object.keys(next).length === 0;
-    };
 
     const handleSubmit = () => {
         setConflict(false);
         setFailure(null);
-        if (!validate()) return;
+
+        const parsed = form.submit();
+        if (!parsed) return;
+
+        const {firstName, lastName} = splitFullName(parsed.fullName);
+        const phoneNumber = parsed.phone?.trim();
+        const email = parsed.email?.trim();
 
         setCustomer.mutate(
             {
-                emailAddress: email.trim(),
-                firstName: firstName.trim(),
-                lastName: lastName.trim(),
-                phoneNumber: phone.trim(),
+                // Guaranteed by the schema: one of the two is present.
+                emailAddress: email || guestEmailFromPhone(phoneNumber!),
+                firstName,
+                lastName,
+                ...(phoneNumber ? {phoneNumber} : {}),
             },
             {
                 onSuccess: onComplete,
@@ -115,50 +132,50 @@ export function ContactStep({
             ) : null}
 
             <Field
+                label={t('fullName')}
+                icon="account"
+                value={form.values.fullName}
+                onChangeText={value => form.setValue('fullName', value)}
+                onBlur={() => form.blur('fullName')}
+                error={form.errors.fullName}
+                autoComplete="name"
+                textContentType="name"
+                returnKeyType="next"
+            />
+
+            {/* Above both fields, not under one: it is a rule about the pair,
+                and attached to either alone it reads as that field being the
+                optional one. */}
+            <Text variant="micro" color="textMuted">
+                {t('contactHint')}
+            </Text>
+
+            <PhoneField
+                label={t('phoneNumber')}
+                value={form.values.phone}
+                country={country}
+                onChange={value => form.setValue('phone', value)}
+                onCountryChange={setCountry}
+                onBlur={() => form.blur('phone')}
+                error={form.errors.phone}
+                selectorLabel={tAuth('countryCode')}
+                searchPlaceholder={tAuth('searchCountry')}
+                noMatchMessage={tAuth('noCountriesMatch')}
+            />
+
+            <Field
                 label={t('emailAddress')}
                 icon="mail"
-                value={email}
-                onChangeText={setEmail}
-                error={errors.email}
+                value={form.values.email}
+                onChangeText={value => form.setValue('email', value)}
+                onBlur={() => form.blur('email')}
+                error={form.errors.email}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoComplete="email"
                 textContentType="emailAddress"
-                returnKeyType="next"
-            />
-
-            <View style={styles.pair}>
-                <Field
-                    label={t('firstName')}
-                    value={firstName}
-                    onChangeText={setFirstName}
-                    error={errors.firstName}
-                    autoComplete="given-name"
-                    textContentType="givenName"
-                    containerStyle={styles.pairItem}
-                />
-                <Field
-                    label={t('lastName')}
-                    value={lastName}
-                    onChangeText={setLastName}
-                    error={errors.lastName}
-                    autoComplete="family-name"
-                    textContentType="familyName"
-                    containerStyle={styles.pairItem}
-                />
-            </View>
-
-            <Field
-                label={t('phoneNumber')}
-                icon="phone"
-                value={phone}
-                onChangeText={setPhone}
-                error={errors.phone}
-                keyboardType="phone-pad"
-                autoComplete="tel"
-                textContentType="telephoneNumber"
-                hint={t('phoneHint')}
-                tabular
+                returnKeyType="go"
+                onSubmitEditing={handleSubmit}
             />
 
             <Button
@@ -185,8 +202,6 @@ export function ContactStep({
 
 const styles = StyleSheet.create(theme => ({
     root: {gap: theme.spacing.md},
-    pair: {flexDirection: 'row', gap: theme.spacing.md},
-    pairItem: {flex: 1},
     conflict: {
         gap: theme.spacing.xs,
         padding: theme.spacing.md,

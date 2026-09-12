@@ -1,5 +1,7 @@
 import {z} from 'zod';
 import {translate} from '../account/i18n';
+import {isValidEmail} from '@/lib/contact-details';
+import {phoneFieldValidate, type CallingCountry} from '@/lib/phone-number';
 
 /**
  * Form schemas.
@@ -26,27 +28,115 @@ export const passwordSchema = z
     .min(1, {error: () => translate('Auth.passwordRequired')})
     .min(8, {error: () => translate('Auth.passwordMinLength')});
 
+/**
+ * Sign-in takes an email *or* a mobile, because registration does: an account
+ * created with a mobile and no address has no email to type here, and a field
+ * that only accepts one would lock those customers out of their own accounts.
+ * `normalizeLoginIdentifier` turns whichever they typed into the identifier
+ * the account was created with.
+ */
 export const signInSchema = z.object({
-    email: emailSchema,
+    identifier: z
+        .string()
+        .trim()
+        .min(1, {error: () => translate('Errors.emailRequired')})
+        .superRefine((value, ctx) => {
+            if (!value) return;
+            const looksLikeEmail = value.includes('@');
+            if (looksLikeEmail && !isValidEmail(value)) {
+                ctx.addIssue({code: 'custom', message: translate('Auth.emailValidation')});
+                return;
+            }
+            if (!looksLikeEmail && value.replace(/\D/g, '').length < 6) {
+                ctx.addIssue({code: 'custom', message: translate('Auth.emailOrPhoneRequired')});
+            }
+        }),
     // Sign-in deliberately does *not* enforce the 8-character minimum: an
     // existing account may predate that rule, and rejecting it locally would
     // lock the user out of an account the server would happily accept.
     password: z.string().min(1, {error: () => translate('Auth.passwordRequired')}),
 });
 
-export const registerSchema = z
-    .object({
-        firstName: z.string().trim().min(1, {error: () => translate('Errors.firstLastNameRequired')}),
-        lastName: z.string().trim().min(1, {error: () => translate('Errors.firstLastNameRequired')}),
-        email: emailSchema,
-        phoneNumber: z.string().trim().optional(),
-        password: passwordSchema,
-        confirmPassword: z.string(),
-    })
-    .refine(values => values.password === values.confirmPassword, {
-        path: ['confirmPassword'],
-        message: translate('Auth.passwordsMismatch'),
-    });
+/* ------------------------------------------------------- contact details */
+
+/**
+ * The shape both the sign-up form and guest checkout collect: one name, a
+ * mobile, an email, and the rule that **at least one way to reach the
+ * customer** is present.
+ *
+ * Two things make this a factory rather than a constant. The country decides
+ * what a valid mobile looks like, and it lives in component state; and the
+ * either/or rule has to raise its message on *both* fields, so neither one
+ * reads as "this field is wrong" when the truth is "fill in one of these".
+ *
+ * The web storefront applies the same rule (`register/registration-form.tsx`)
+ * and the two must agree: a customer who signed up on the phone with a mobile
+ * and no email has to be recognised by the website, and the other way round.
+ */
+export function contactFields(country: CallingCountry) {
+    return {
+        fullName: z.string().trim().min(1, {error: () => translate('Account.fullNameRequired')}),
+        phone: z
+            .string()
+            .trim()
+            .optional()
+            .superRefine((value, ctx) => {
+                const result = phoneFieldValidate(
+                    country,
+                    value,
+                    {
+                        required: translate('Auth.phoneRequired'),
+                        format: translate('Auth.invalidPhone'),
+                        pattern: translate('Auth.phonePatternError'),
+                    },
+                    true,
+                );
+                if (result !== true) ctx.addIssue({code: 'custom', message: result});
+            }),
+        email: z
+            .string()
+            .trim()
+            .optional()
+            .superRefine((value, ctx) => {
+                if (!value) return;
+                if (!isValidEmail(value)) {
+                    ctx.addIssue({code: 'custom', message: translate('Auth.emailValidation')});
+                }
+            }),
+    };
+}
+
+/** Raise "give us one of these" on both fields, or neither. */
+function requireOneContact(
+    values: {email?: string; phone?: string},
+    ctx: z.RefinementCtx,
+): void {
+    const hasEmail = Boolean(values.email?.trim());
+    const hasPhone = Boolean(values.phone?.trim());
+    if (hasEmail || hasPhone) return;
+    const message = translate('Auth.emailOrPhoneRequired');
+    ctx.addIssue({code: 'custom', message, path: ['phone']});
+    ctx.addIssue({code: 'custom', message, path: ['email']});
+}
+
+/** Guest checkout: contact details only, no credentials. */
+export function createContactSchema(country: CallingCountry) {
+    return z.object(contactFields(country)).superRefine(requireOneContact);
+}
+
+export function createRegisterSchema(country: CallingCountry) {
+    return z
+        .object({
+            ...contactFields(country),
+            password: passwordSchema,
+            confirmPassword: z.string(),
+        })
+        .refine(values => values.password === values.confirmPassword, {
+            path: ['confirmPassword'],
+            message: translate('Auth.passwordsMismatch'),
+        })
+        .superRefine(requireOneContact);
+}
 
 export const forgotPasswordSchema = z.object({email: emailSchema});
 

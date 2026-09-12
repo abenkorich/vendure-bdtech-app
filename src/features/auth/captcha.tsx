@@ -80,6 +80,15 @@ export function CaptchaProvider({children}: {children: React.ReactNode}) {
     const nextId = useRef(1);
     // Mounting is deferred until the first `execute`; see the note above.
     const [mounted, setMounted] = useState(false);
+    /**
+     * A web view that failed to load stays mounted on its error page, and a
+     * second `execute` against it would inject into nothing and then sit out
+     * the whole twenty-second timeout. So a failure is remembered, and the
+     * next attempt remounts the view — `attempt` is its `key` — which makes
+     * the retry a real load: it either works or fails fast the same way.
+     */
+    const loadFailed = useRef(false);
+    const [attempt, setAttempt] = useState(0);
 
     const settle = useCallback((id: number, apply: (entry: Pending) => void) => {
         const entry = pending.current.get(id);
@@ -89,9 +98,21 @@ export function CaptchaProvider({children}: {children: React.ReactNode}) {
         apply(entry);
     }, []);
 
+    /**
+     * A bridge that will not load (not deployed yet, offline, an error page)
+     * must fail the waiters now rather than after the timeout: twenty seconds
+     * of a spinning sign-in button reads as the app being broken.
+     */
+    const failAll = useCallback(() => {
+        loadFailed.current = true;
+        for (const id of [...pending.current.keys()]) {
+            settle(id, entry => entry.reject(new CaptchaUnavailableError()));
+        }
+    }, [settle]);
+
     const onMessage = useCallback(
         (event: WebViewMessageEvent) => {
-            let payload: {type?: string; id?: number; token?: string};
+            let payload: {type?: string; id?: number; token?: string; message?: string};
             try {
                 payload = JSON.parse(event.nativeEvent.data) as typeof payload;
             } catch {
@@ -105,7 +126,30 @@ export function CaptchaProvider({children}: {children: React.ReactNode}) {
             }
 
             if (payload.type === 'error' && typeof payload.id === 'number') {
+                /**
+                 * `not_ready` is not a failure, it is "too early". The bridge
+                 * defines `window.__captcha` synchronously but `grecaptcha`
+                 * arrives with a ~300 KB script, so the first injection almost
+                 * always lands in that gap. Rejecting here made the *first*
+                 * attempt at every sign-in fail with "could not confirm you
+                 * are human", and only a second tap succeed. The request stays
+                 * pending instead and the retry below asks again.
+                 */
+                if (payload.message === 'not_ready') return;
                 settle(payload.id, entry => entry.reject(new CaptchaUnavailableError()));
+                return;
+            }
+
+            /**
+             * A failure with no request behind it: the reCAPTCHA script would
+             * not load, or `grecaptcha` never appeared. Nothing this bridge
+             * does later can succeed, so every waiter fails now. These used to
+             * arrive as `{type:'error', id:0}` and settle nothing — id 0 is
+             * never handed out — leaving the caller to sit out the full
+             * twenty-second timeout with a spinning button.
+             */
+            if (payload.type === 'fatal' || (payload.type === 'error' && !payload.id)) {
+                failAll();
                 return;
             }
 
@@ -113,30 +157,21 @@ export function CaptchaProvider({children}: {children: React.ReactNode}) {
             // Fail every waiter rather than hang; the caller then sends no
             // token and the backend decides.
             if (payload.type === 'disabled') {
-                for (const id of [...pending.current.keys()]) {
-                    settle(id, entry => entry.reject(new CaptchaUnavailableError()));
-                }
+                failAll();
             }
         },
-        [settle],
+        [settle, failAll],
     );
-
-    /**
-     * A bridge that will not load (not deployed yet, offline, an error page)
-     * must fail the waiters now rather than after the timeout: twenty seconds
-     * of a spinning sign-in button reads as the app being broken.
-     */
-    const failAll = useCallback(() => {
-        for (const id of [...pending.current.keys()]) {
-            settle(id, entry => entry.reject(new CaptchaUnavailableError()));
-        }
-    }, [settle]);
 
     const execute = useCallback(
         (action: CaptchaAction): Promise<string | undefined> => {
             if (!isCaptchaRequired(config, action)) return Promise.resolve(undefined);
 
             setMounted(true);
+            if (loadFailed.current) {
+                loadFailed.current = false;
+                setAttempt(count => count + 1);
+            }
 
             const id = nextId.current;
             nextId.current += 1;
@@ -177,6 +212,7 @@ export function CaptchaProvider({children}: {children: React.ReactNode}) {
             {mounted ? (
                 <View style={{position: 'absolute', width: 1, height: 1, opacity: 0}} pointerEvents="none">
                     <WebView
+                        key={attempt}
                         ref={webViewRef}
                         source={{uri: `${env.siteUrl.replace(/\/$/, '')}${BRIDGE_PATH}`}}
                         onMessage={onMessage}

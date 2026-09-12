@@ -3,6 +3,7 @@
 import {Stack} from 'expo-router';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {StatusBar} from 'expo-status-bar';
+import {useUnistyles} from 'react-native-unistyles';
 import {DataProvider} from '@/lib/data-provider';
 import {useNotificationRouting} from '@/lib/push';
 import {CaptchaProvider} from '@/features/auth/captcha';
@@ -36,7 +37,7 @@ export default function RootLayout() {
                     token, and the hidden web view that mints one must outlive
                     the screen that asked. */}
                 <CaptchaProvider>
-                    <StatusBar style="auto" />
+                    <ThemedStatusBar />
                     <Stack screenOptions={{headerShown: false}}>
                         <Stack.Screen name="(tabs)" />
                     </Stack>
@@ -44,4 +45,20 @@ export default function RootLayout() {
             </DataProvider>
         </GestureHandlerRootView>
     );
+}
+
+/**
+ * The clock and battery, kept legible when the app's theme and the phone's
+ * disagree.
+ *
+ * `style="auto"` asks *expo-status-bar* to pick, and it picks from the OS
+ * colour scheme — which the header's light/dark switch does not touch. So a
+ * phone set to dark whose owner switched the app to light got white status
+ * icons on the white ground every screen paints behind them, and the time
+ * disappeared. Reading `theme.isDark` instead follows whatever the app is
+ * actually showing, including the OS when nothing has overridden it.
+ */
+function ThemedStatusBar() {
+    const {theme} = useUnistyles();
+    return <StatusBar style={theme.isDark ? 'light' : 'dark'} />;
 }

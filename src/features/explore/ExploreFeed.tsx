@@ -6,6 +6,7 @@ import {ProductCard, ProductCardSkeleton, Button, IconSymbol, Text} from '@/comp
 import {useTranslations} from '@/i18n';
 import {SectionHeader} from '@/features/home/components/SectionHeader';
 import {QuickAddButton} from '@/features/cart/components/QuickAddButton';
+import {WishlistButton} from '@/features/wishlist/components/WishlistButton';
 import {useExploreFeed, type FeedPage} from './queries';
 import {useCardsWithStock} from '@/features/product/card-stock';
 
@@ -101,6 +102,7 @@ export function ExploreRow({products}: {products: ExploreCard[]}) {
                         product={product}
                         onPress={() => router.push(`/product/${product.slug}`)}
                         action={<QuickAddButton product={product} />}
+                        favorite={<WishlistButton product={product} />}
                     />
                 </View>
             ))}

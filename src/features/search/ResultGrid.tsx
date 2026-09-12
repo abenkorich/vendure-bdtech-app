@@ -5,6 +5,7 @@ import {StyleSheet} from 'react-native-unistyles';
 import {ProductCard, ProductCardSkeleton} from '@/components/ui';
 import type {SearchCard} from './use-filtered-search';
 import {QuickAddButton} from '@/features/cart/components/QuickAddButton';
+import {WishlistButton} from '@/features/wishlist/components/WishlistButton';
 import {useCardsWithStock} from '@/features/product/card-stock';
 
 /**
@@ -44,6 +45,7 @@ export function ResultGrid({
                     product={item}
                     onPress={() => onPressProduct(item.slug)}
                     action={<QuickAddButton product={item} />}
+                    favorite={<WishlistButton product={item} />}
                 />
             </View>
         ),
