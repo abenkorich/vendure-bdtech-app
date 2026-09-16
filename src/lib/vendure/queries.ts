@@ -163,6 +163,31 @@ export const GetProductDetailQuery = graphql(`
                 sku
                 priceWithTax
                 stockLevel
+                # Mobile-only addition: sale price, tiers and limits from the
+                # product-discounts plugin, priced for everyone (this document
+                # is sent without a session token). Member prices overlay it;
+                # see lib/vendure/product-discounts.ts, which repeats these
+                # selections exactly.
+                discount {
+                    productDiscountId
+                    name
+                    priceWithTax
+                    originalPriceWithTax
+                    percentOff
+                    endsAt
+                    unitsRemaining
+                    maxQuantityPerOrder
+                    membersOnly
+                }
+                quantityDiscounts {
+                    minQuantity
+                    productDiscountId
+                    name
+                    priceWithTax
+                    percentOff
+                    endsAt
+                    membersOnly
+                }
                 options {
                     id
                     code
@@ -228,6 +253,28 @@ export const GetProductCardBySlugQuery = graphql(`
                 id
                 priceWithTax
                 stockLevel
+                # Mobile-only addition, same selection as GetProductDetail:
+                # a hand-picked rail card strikes a sale price like any other.
+                discount {
+                    productDiscountId
+                    name
+                    priceWithTax
+                    originalPriceWithTax
+                    percentOff
+                    endsAt
+                    unitsRemaining
+                    maxQuantityPerOrder
+                    membersOnly
+                }
+                quantityDiscounts {
+                    minQuantity
+                    productDiscountId
+                    name
+                    priceWithTax
+                    percentOff
+                    endsAt
+                    membersOnly
+                }
             }
         }
     }
@@ -248,16 +295,58 @@ export const GetActiveOrderQuery = graphql(`
             totalWithTax
             currencyCode
             couponCodes
+            # Mobile-only additions from here on (adjustment sources,
+            # surcharges, shipping lines, discounted line prices, the variant's
+            # discount limits and productDiscounts): the cart's totals
+            # breakdown and its discount-aware optimistic maths need them. See
+            # lib/order-discounts.ts and lib/cart-math.ts.
             discounts {
+                adjustmentSource
+                type
                 description
                 amountWithTax
             }
+            surcharges {
+                description
+                priceWithTax
+            }
+            shippingLines {
+                priceWithTax
+            }
+            productDiscounts {
+                lines {
+                    orderLineId
+                    productDiscountId
+                    name
+                    discountedQuantity
+                    unitSavingWithTax
+                    savingWithTax
+                    percentOff
+                }
+                savingWithTax
+                potentialSavingWithTax
+                replacedByCoupon
+                suppressedCouponCodes
+            }
             lines {
                 id
+                discountedLinePriceWithTax
+                discounts {
+                    adjustmentSource
+                    amountWithTax
+                }
                 productVariant {
                     id
                     name
                     sku
+                    discount {
+                        productDiscountId
+                        maxQuantityPerOrder
+                        unitsRemaining
+                    }
+                    quantityDiscounts {
+                        minQuantity
+                    }
                     product {
                         id
                         name
@@ -329,12 +418,40 @@ export const GetActiveOrderForCheckoutQuery = graphql(`
                 }
                 priceWithTax
             }
+            # Mobile-only additions, as in GetActiveOrder: the checkout summary
+            # renders the same totals breakdown and sale lines as the cart.
             discounts {
+                adjustmentSource
+                type
                 description
                 amountWithTax
             }
+            surcharges {
+                description
+                priceWithTax
+            }
+            productDiscounts {
+                lines {
+                    orderLineId
+                    productDiscountId
+                    name
+                    discountedQuantity
+                    unitSavingWithTax
+                    savingWithTax
+                    percentOff
+                }
+                savingWithTax
+                potentialSavingWithTax
+                replacedByCoupon
+                suppressedCouponCodes
+            }
             lines {
                 id
+                discountedLinePriceWithTax
+                discounts {
+                    adjustmentSource
+                    amountWithTax
+                }
                 productVariant {
                     id
                     name
@@ -534,10 +651,25 @@ export const GetOrderDetailQuery = graphql(`
                 unitPriceWithTax
                 quantity
                 linePriceWithTax
+                # Mobile-only additions: the discounted line price and the
+                # stored adjustments. A placed order is shown from what Vendure
+                # stored, never from productDiscounts, which re-prices against
+                # the discounts live today (see lib/order-discounts.ts).
+                discountedLinePriceWithTax
+                discounts {
+                    adjustmentSource
+                    amountWithTax
+                }
             }
             discounts {
+                adjustmentSource
+                type
                 description
                 amountWithTax
+            }
+            surcharges {
+                description
+                priceWithTax
             }
             fulfillments {
                 id

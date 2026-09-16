@@ -23,6 +23,25 @@ export const ProductCardFragment = graphql(`
             }
         }
         currencyCode
+        # Mobile-only addition: the product-discounts plugin's sale summary, so
+        # a card can strike the real price. Null when nothing is on sale. The
+        # rails build this shape from variants (lib/product-discounts.ts) and
+        # member prices overlay it (lib/vendure/product-discounts.ts), both
+        # with this exact selection.
+        discount {
+            productDiscountId
+            name
+            fromPriceWithTax
+            fromOriginalPriceWithTax
+            maxPercentOff
+            endsAt
+            discountedVariantCount
+            membersOnly
+            quantityDiscount {
+                minQuantity
+                percentOff
+            }
+        }
     }
 `);
 

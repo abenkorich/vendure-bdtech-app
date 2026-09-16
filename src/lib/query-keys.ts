@@ -87,6 +87,18 @@ export const queryKeys = {
     activeOrderForCheckout: () => [CUSTOMER_ROOT, 'active-order-checkout'] as const,
     eligibleShippingMethods: () => [CUSTOMER_ROOT, 'eligible-shipping-methods'] as const,
     eligiblePaymentMethods: () => [CUSTOMER_ROOT, 'eligible-payment-methods'] as const,
+
+    /**
+     * Member prices. Customer-scoped like the rest of this subtree: never
+     * persisted, reset on every token change. The customer id is in the key as
+     * well, so a response landing after a sign-out is never read by the next
+     * shopper on the device.
+     */
+    memberDiscounts: () => [CUSTOMER_ROOT, 'member-discounts'] as const,
+    hasMemberDiscounts: (customerId: string) =>
+        [CUSTOMER_ROOT, 'member-discounts', customerId, 'has'] as const,
+    memberProductDiscounts: (customerId: string, productId: string) =>
+        [CUSTOMER_ROOT, 'member-discounts', customerId, 'product', productId] as const,
 } as const;
 
 export type QueryKeys = typeof queryKeys;

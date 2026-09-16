@@ -9,6 +9,8 @@ import {QuickAddButton} from '@/features/cart/components/QuickAddButton';
 import {WishlistButton} from '@/features/wishlist/components/WishlistButton';
 import {useExploreFeed, type FeedPage} from './queries';
 import {useCardsWithStock} from '@/features/product/card-stock';
+import {useCardsWithMemberPrices} from '@/features/product/member-discounts';
+import {hasStruckPrice} from '@/design/card-price';
 
 /**
  * "Explore more": the open-ended tail of the home screen.
@@ -56,8 +58,9 @@ export function useExploreCards(slugs: readonly string[]): ExploreCards {
     }, [feed.data]);
 
     // The feed reads the search index, which has no counts; this looks them up
-    // for the products already on screen.
-    const cards = useCardsWithStock(flat);
+    // for the products already on screen. Member prices go on after.
+    const withStock = useCardsWithStock(flat);
+    const cards = useCardsWithMemberPrices(withStock);
 
     const rows = useMemo(() => {
         const grouped: ExploreRowData[] = [];
@@ -94,6 +97,9 @@ export function ExploreHeading({personalised}: {personalised: boolean}) {
 }
 
 export function ExploreRow({products}: {products: ExploreCard[]}) {
+    // Both cards keep a struck-price line when either has one.
+    const reserveSaleLine = products.some(hasStruckPrice);
+
     return (
         <View style={styles.row}>
             {products.map(product => (
@@ -103,6 +109,7 @@ export function ExploreRow({products}: {products: ExploreCard[]}) {
                         onPress={() => router.push(`/product/${product.slug}`)}
                         action={<QuickAddButton product={product} />}
                         favorite={<WishlistButton product={product} />}
+                        reserveSaleLine={reserveSaleLine}
                     />
                 </View>
             ))}

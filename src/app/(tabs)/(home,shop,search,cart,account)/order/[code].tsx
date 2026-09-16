@@ -22,6 +22,8 @@ import {
     orderStateTone,
 } from '@/features/account/components/OrderTimeline';
 import {presentError} from '@/features/cart/errors';
+import {CartTotals} from '@/features/cart/components/CartTotals';
+import {totalsBreakdown} from '@/lib/order-discounts';
 import {plainDescription} from '@/features/checkout/delivery';
 import {formatDate} from '@/lib/format';
 
@@ -108,7 +110,9 @@ export default function OrderScreen() {
     const currencyCode = data.currencyCode;
     const address = data.shippingAddress;
     const shippingLine = data.shippingLines?.[0];
-    const tax = data.subTotalWithTax - data.subTotal;
+    // From Vendure's stored adjustments, which are what was charged; see
+    // lib/order-discounts for why a placed order never reads productDiscounts.
+    const breakdown = totalsBreakdown(data);
 
     return (
         <Screen>
@@ -179,7 +183,14 @@ export default function OrderScreen() {
                                 </View>
 
                                 <Price
-                                    value={line.linePriceWithTax}
+                                    value={line.discountedLinePriceWithTax}
+                                    compareAt={
+                                        line.linePriceWithTax > line.discountedLinePriceWithTax
+                                            ? line.linePriceWithTax
+                                            : null
+                                    }
+                                    showDiscount={false}
+                                    layout="stacked"
                                     currencyCode={currencyCode}
                                     size="sm"
                                     tone="text"
@@ -190,39 +201,7 @@ export default function OrderScreen() {
 
                     <Divider />
 
-                    <Row label={tAccount('subtotal')}>
-                        <Price
-                            value={data.subTotal}
-                            currencyCode={currencyCode}
-                            size="sm"
-                            tone="text"
-                        />
-                    </Row>
-
-                    {tax > 0 ? (
-                        <Row label={tCheckout('tax')}>
-                            <Price
-                                value={tax}
-                                currencyCode={currencyCode}
-                                size="sm"
-                                tone="text"
-                            />
-                        </Row>
-                    ) : null}
-
-                    <Row label={tAccount('shipping')}>
-                        <Price
-                            value={data.shippingWithTax}
-                            currencyCode={currencyCode}
-                            size="sm"
-                            tone="text"
-                        />
-                    </Row>
-
-                    <View style={styles.totalRow}>
-                        <Text variant="bodyStrong">{t('total')}</Text>
-                        <Price value={data.totalWithTax} currencyCode={currencyCode} size="lg" />
-                    </View>
+                    <CartTotals currencyCode={currencyCode} breakdown={breakdown} shippingKnown />
                 </Card>
 
                 <Card padding="lg" style={styles.block}>
@@ -305,17 +284,6 @@ export default function OrderScreen() {
     );
 }
 
-function Row({label, children}: {label: string; children: React.ReactNode}) {
-    return (
-        <View style={styles.row}>
-            <Text variant="caption" color="textMuted" numberOfLines={1} style={styles.rowLabel}>
-                {label}
-            </Text>
-            {children}
-        </View>
-    );
-}
-
 const styles = StyleSheet.create(theme => ({
     content: {
         paddingHorizontal: theme.spacing.lg,
@@ -358,20 +326,6 @@ const styles = StyleSheet.create(theme => ({
         borderColor: theme.colors.border,
     },
     lineBody: {flex: 1, gap: theme.spacing.xs},
-    row: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: theme.spacing.md,
-    },
-    rowLabel: {flexShrink: 1},
-    totalRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: theme.spacing.md,
-        paddingTop: theme.spacing.xs,
-    },
     detail: {gap: theme.spacing.xs},
     paymentRow: {
         flexDirection: 'row',

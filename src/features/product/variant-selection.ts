@@ -57,11 +57,11 @@ function matches(variant: VariantLike, selection: Selection): boolean {
 }
 
 /** The variant satisfying every selected option, or null while incomplete. */
-export function findVariant(
-    variants: readonly VariantLike[],
+export function findVariant<V extends VariantLike>(
+    variants: readonly V[],
     selection: Selection,
     groupCount: number,
-): VariantLike | null {
+): V | null {
     if (Object.keys(selection).length < groupCount) return null;
     return variants.find(variant => matches(variant, selection)) ?? null;
 }

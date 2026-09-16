@@ -36,8 +36,12 @@ export const PERSIST_KEY = 'tanstack-query-cache';
  * `{rails, totals}`. An old blob crashed the shop screen on `data.rails.map`,
  * which is the failure this version marker exists to prevent — the cache
  * outlives a code change, so a shape change must invalidate it.
+ *
+ * v3: catalogue cards and product details gained `discount` (sale prices). A
+ * v2 blob has none, so for up to a day it would show full prices on products
+ * that are on sale; a sale price is exactly the price that must be current.
  */
-export const PERSIST_VERSION = 2;
+export const PERSIST_VERSION = 3;
 
 /** Older than this and a cold start refetches instead of showing stale prices. */
 export const MAX_AGE_MS = 24 * 60 * 60 * 1000;

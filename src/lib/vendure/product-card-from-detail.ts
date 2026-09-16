@@ -1,6 +1,11 @@
 import type {FragmentOf} from '@/graphql';
 import {ProductCardFragment} from './fragments';
 import {preferredStockQuantity} from '@/lib/product-card-extras';
+import {
+    summarizeVariantDiscounts,
+    type QuantityDiscountLike,
+    type VariantDiscountLike,
+} from '@/lib/product-discounts';
 
 export interface ProductCardBySlugSource {
     id: string;
@@ -9,7 +14,15 @@ export interface ProductCardBySlugSource {
     /** Mobile-only: preferred over `assets[0]`, which is empty for a third of this catalogue. */
     featuredAsset?: {id: string; preview: string} | null;
     assets: Array<{id: string; preview: string}>;
-    variants: Array<{id: string; sku?: string | null; priceWithTax: number; stockLevel: string}>;
+    variants: Array<{
+        id: string;
+        sku?: string | null;
+        priceWithTax: number;
+        stockLevel: string;
+        /** Mobile-only: product-discounts plugin fields, summarised into the card's `discount`. */
+        discount?: VariantDiscountLike | null;
+        quantityDiscounts?: readonly QuantityDiscountLike[] | null;
+    }>;
 }
 
 /** Build a ProductCard search fragment from a shop `product` query result. */
@@ -40,5 +53,9 @@ export function toProductCardFragment(
                 ? {__typename: 'SinglePrice', value: min}
                 : {__typename: 'PriceRange', min, max},
         currencyCode,
+        // Mobile-only: a `products` row has no `SearchResult.discount`, so the
+        // summary the search index would return is built from the variants by
+        // the server's own rule. Sources without discount fields get null.
+        discount: summarizeVariantDiscounts(product.variants),
     } as unknown as FragmentOf<typeof ProductCardFragment>;
 }

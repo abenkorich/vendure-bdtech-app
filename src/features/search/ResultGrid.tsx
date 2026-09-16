@@ -1,4 +1,4 @@
-import {useCallback} from 'react';
+import {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {FlashList} from '@shopify/flash-list';
 import {StyleSheet} from 'react-native-unistyles';
@@ -7,6 +7,8 @@ import type {SearchCard} from './use-filtered-search';
 import {QuickAddButton} from '@/features/cart/components/QuickAddButton';
 import {WishlistButton} from '@/features/wishlist/components/WishlistButton';
 import {useCardsWithStock} from '@/features/product/card-stock';
+import {useCardsWithMemberPrices} from '@/features/product/member-discounts';
+import {hasStruckPrice} from '@/design/card-price';
 
 /**
  * The 2-column result grid.
@@ -35,8 +37,13 @@ export function ResultGrid({
     footer,
     onEndReached,
 }: ResultGridProps) {
-    // Search results carry no stock count; this looks up the ones on screen.
-    const cards = useCardsWithStock(products);
+    // Search results carry no stock count; this looks up the ones on screen,
+    // then lays a signed-in shopper's member prices over them.
+    const withStock = useCardsWithStock(products);
+    const cards = useCardsWithMemberPrices(withStock);
+    // Every card keeps a struck-price line once any card has one, so a row
+    // mixing sale and full-price cards stays one height.
+    const reserveSaleLine = useMemo(() => cards.some(hasStruckPrice), [cards]);
 
     const renderItem = useCallback(
         ({item}: {item: SearchCard}) => (
@@ -46,10 +53,11 @@ export function ResultGrid({
                     onPress={() => onPressProduct(item.slug)}
                     action={<QuickAddButton product={item} />}
                     favorite={<WishlistButton product={item} />}
+                    reserveSaleLine={reserveSaleLine}
                 />
             </View>
         ),
-        [onPressProduct],
+        [onPressProduct, reserveSaleLine],
     );
 
     return (

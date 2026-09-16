@@ -1,19 +1,22 @@
+import {useMemo} from 'react';
 import {View} from 'react-native';
 import {Image} from 'expo-image';
 import {StyleSheet} from 'react-native-unistyles';
-import {Text, Price, Divider} from '@/components/ui';
+import {Text, Price, Divider, IconSymbol} from '@/components/ui';
 import {useTranslations} from '@/i18n';
 import type {CheckoutOrder} from '@/lib/types';
+import {lineSale, totalsBreakdown} from '@/lib/order-discounts';
+import {CartTotals} from '@/features/cart/components/CartTotals';
+import {SaleCouponNotice} from '@/features/cart/components/SaleCouponNotice';
 
 /**
  * Order summary, for the checkout screen.
  *
  * Every figure is `Money` in integer minor units and goes through `<Price>`.
- * There is no arithmetic in this component beyond the tax line — which is
- * derived as `subTotalWithTax - subTotal` for the same reason `CartTotals`
- * derives it: Vendure exposes the two subtotals rather than the tax, and
- * computing it here keeps the rows consistent with the total the customer
- * pays.
+ * The totals are the cart's own breakdown (`CartTotals`): subtotal before
+ * discounts, each discount by name, shipping, total. The two screens a
+ * customer compares therefore cannot disagree, and the column adds up to the
+ * amount the courier will ask for.
  *
  * Shipping shows "to be calculated" until a method is on the order, rather than
  * a confident `0.00 DZD`. A free-looking delivery that later costs 600 DZD is
@@ -26,110 +29,82 @@ export interface OrderSummaryProps {
 
 export function OrderSummary({order}: OrderSummaryProps) {
     const t = useTranslations('Checkout');
+    const tSale = useTranslations('ProductDiscounts');
     const currencyCode = order.currencyCode;
-    const tax = order.subTotalWithTax - order.subTotal;
     const shippingKnown = Boolean(order.shippingLines?.length);
+    const breakdown = useMemo(() => totalsBreakdown(order), [order]);
 
     return (
         <View style={styles.root}>
             <Text variant="heading">{t('orderSummary')}</Text>
 
             <View style={styles.lines}>
-                {order.lines.map(line => (
-                    <View key={line.id} style={styles.line}>
-                        {line.productVariant.product.featuredAsset?.preview ? (
-                            <Image
-                                source={{uri: line.productVariant.product.featuredAsset.preview}}
-                                style={styles.thumb}
-                                contentFit="cover"
-                                transition={120}
+                {order.lines.map(line => {
+                    const sale = lineSale(order, line.id);
+                    const compareAt =
+                        line.linePriceWithTax > line.discountedLinePriceWithTax
+                            ? line.linePriceWithTax
+                            : null;
+
+                    return (
+                        <View key={line.id} style={styles.line}>
+                            {line.productVariant.product.featuredAsset?.preview ? (
+                                <Image
+                                    source={{uri: line.productVariant.product.featuredAsset.preview}}
+                                    style={styles.thumb}
+                                    contentFit="cover"
+                                    transition={120}
+                                />
+                            ) : (
+                                <View style={[styles.thumb, styles.thumbEmpty]} />
+                            )}
+
+                            <View style={styles.lineBody}>
+                                <Text variant="caption" numberOfLines={2}>
+                                    {line.productVariant.name}
+                                </Text>
+                                <Text variant="micro" color="textMuted" tabular>
+                                    {t('qty', {quantity: line.quantity})}
+                                </Text>
+                                {sale ? (
+                                    <View style={styles.saleRow}>
+                                        <IconSymbol name="tag" size={12} color="sale" />
+                                        <Text
+                                            variant="micro"
+                                            color="sale"
+                                            numberOfLines={1}
+                                            style={styles.saleText}
+                                        >
+                                            {tSale('lineSale', {name: sale.name, percent: sale.percentOff})}
+                                        </Text>
+                                    </View>
+                                ) : null}
+                            </View>
+
+                            <Price
+                                value={line.discountedLinePriceWithTax}
+                                compareAt={compareAt}
+                                showDiscount={false}
+                                layout="stacked"
+                                currencyCode={currencyCode}
+                                size="sm"
+                                tone={compareAt !== null ? 'sale' : 'text'}
                             />
-                        ) : (
-                            <View style={[styles.thumb, styles.thumbEmpty]} />
-                        )}
-
-                        <View style={styles.lineBody}>
-                            <Text variant="caption" numberOfLines={2}>
-                                {line.productVariant.name}
-                            </Text>
-                            <Text variant="micro" color="textMuted" tabular>
-                                {t('qty', {quantity: line.quantity})}
-                            </Text>
                         </View>
-
-                        <Price
-                            value={line.linePriceWithTax}
-                            currencyCode={currencyCode}
-                            size="sm"
-                            tone="text"
-                        />
-                    </View>
-                ))}
+                    );
+                })}
             </View>
+
+            <SaleCouponNotice productDiscounts={order.productDiscounts} currencyCode={currencyCode} />
 
             <Divider />
 
-            <Row label={t('subtotal')}>
-                <Price value={order.subTotal} currencyCode={currencyCode} size="sm" tone="text" />
-            </Row>
-
-            {order.discounts.map(discount => (
-                <Row key={discount.description} label={discount.description} tone="success">
-                    <Price
-                        value={discount.amountWithTax}
-                        currencyCode={currencyCode}
-                        size="sm"
-                        tone="text"
-                    />
-                </Row>
-            ))}
-
-            {tax > 0 ? (
-                <Row label={t('tax')}>
-                    <Price value={tax} currencyCode={currencyCode} size="sm" tone="text" />
-                </Row>
-            ) : null}
-
-            <Row label={t('shipping')}>
-                {shippingKnown ? (
-                    <Price
-                        value={order.shippingWithTax}
-                        currencyCode={currencyCode}
-                        size="sm"
-                        tone="text"
-                    />
-                ) : (
-                    <Text variant="caption" color="textMuted">
-                        {t('toBeCalculated')}
-                    </Text>
-                )}
-            </Row>
-
-            <Divider />
-
-            <View style={styles.totalRow}>
-                <Text variant="bodyStrong">{t('total')}</Text>
-                <Price value={order.totalWithTax} currencyCode={currencyCode} size="lg" />
-            </View>
-        </View>
-    );
-}
-
-function Row({
-    label,
-    tone = 'textMuted',
-    children,
-}: {
-    label: string;
-    tone?: 'textMuted' | 'success';
-    children: React.ReactNode;
-}) {
-    return (
-        <View style={styles.row}>
-            <Text variant="caption" color={tone} numberOfLines={1} style={styles.rowLabel}>
-                {label}
-            </Text>
-            {children}
+            <CartTotals
+                currencyCode={currencyCode}
+                breakdown={breakdown}
+                shippingKnown={shippingKnown}
+                shippingUnknownLabel={t('toBeCalculated')}
+            />
         </View>
     );
 }
@@ -146,18 +121,6 @@ const styles = StyleSheet.create(theme => ({
     },
     thumbEmpty: {borderWidth: theme.elevation.card.borderWidth, borderColor: theme.colors.border},
     lineBody: {flex: 1, gap: theme.spacing.xs},
-    row: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: theme.spacing.md,
-    },
-    rowLabel: {flexShrink: 1},
-    totalRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: theme.spacing.md,
-        paddingTop: theme.spacing.xs,
-    },
+    saleRow: {flexDirection: 'row', alignItems: 'center', gap: theme.spacing.xs},
+    saleText: {flexShrink: 1},
 }));

@@ -1,4 +1,4 @@
-import {useCallback} from 'react';
+import {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 // The list types come from FlashList, not React Native: RN's own
 // `ListRenderItemInfo` requires `separators`, which FlashList does not pass.
@@ -8,6 +8,8 @@ import {router} from 'expo-router';
 import {ProductCard, ProductCardSkeleton, EmptyState, Text} from '@/components/ui';
 import {readProductCards, type ProductCardData} from '@/lib/types';
 import {useCardsWithStock} from '@/features/product/card-stock';
+import {useCardsWithMemberPrices} from '@/features/product/member-discounts';
+import {hasStruckPrice} from '@/design/card-price';
 import {SectionHeader} from './SectionHeader';
 import {S} from '@/features/catalogue-strings';
 import {QuickAddButton} from '@/features/cart/components/QuickAddButton';
@@ -60,8 +62,13 @@ export function ProductRail({
     const {theme} = useUnistyles();
 
     // A rail built from `products` already knows its counts; one built from a
-    // search does not, and this fills those in.
-    const cards = useCardsWithStock(products ? readProductCards(products) : []);
+    // search does not, and this fills those in. A signed-in shopper's member
+    // prices go on last, whichever source the cards came from.
+    const withStock = useCardsWithStock(products ? readProductCards(products) : []);
+    const cards = useCardsWithMemberPrices(withStock);
+    // Every card keeps a struck-price line once any card has one, so the rail
+    // stays one height.
+    const reserveSaleLine = useMemo(() => cards.some(hasStruckPrice), [cards]);
 
     const renderItem = useCallback(
         ({item}: ListRenderItemInfo<RailCard>) => (
@@ -71,9 +78,10 @@ export function ProductRail({
                 onPress={() => router.push(`/product/${item.slug}`)}
                 action={<QuickAddButton product={item} />}
                 favorite={<WishlistButton product={item} />}
+                reserveSaleLine={reserveSaleLine}
             />
         ),
-        [],
+        [reserveSaleLine],
     );
 
     if (!isLoading && !error && cards.length === 0 && hideWhenEmpty) return null;

@@ -8,6 +8,7 @@ import {Price} from './Price';
 import {Skeleton} from './Skeleton';
 import {IconSymbol} from './IconSymbol';
 import {useTranslations} from '@/i18n';
+import {cardPriceDisplay, type CardDiscountLike} from '@/design/card-price';
 
 /**
  * Product card — the unit the whole catalogue is built from.
@@ -25,6 +26,9 @@ import {useTranslations} from '@/i18n';
 export type ProductCardPrice =
     | {__typename?: 'SinglePrice'; value: number}
     | {__typename?: 'PriceRange'; min: number; max: number};
+
+/** `discount` as the fragment returns it: the product-discounts plugin's sale summary. */
+export type ProductCardDiscount = CardDiscountLike;
 
 export interface ProductCardData {
     productId: string;
@@ -45,6 +49,8 @@ export interface ProductCardData {
      * which refuses to invent a figure from an enum.
      */
     stockQuantity?: number | null;
+    /** Sale summary; null (or absent, on an older cached card) when nothing is on sale. */
+    discount?: ProductCardDiscount | null;
 }
 
 export interface ProductCardProps {
@@ -72,6 +78,12 @@ export interface ProductCardProps {
      * saving a product needs the wishlist store.
      */
     favorite?: React.ReactNode;
+    /**
+     * Keep the line a struck-through price takes even when this card has none.
+     * A list passes true when any of its cards is on sale, so a grid or rail
+     * mixing sale and full-price cards keeps one card height.
+     */
+    reserveSaleLine?: boolean;
 }
 
 export function ProductCard({
@@ -82,15 +94,17 @@ export function ProductCard({
     footer,
     action,
     favorite,
+    reserveSaleLine = false,
 }: ProductCardProps) {
     styles.useVariants({layout});
 
     const t = useTranslations('Product');
-    const price = product.priceWithTax;
-    const isRange = 'min' in price && 'max' in price && price.min !== price.max;
-    const amount = 'value' in price ? price.value : price.min;
+    const tSale = useTranslations('ProductDiscounts');
+    const price = cardPriceDisplay(product);
     const outOfStock = product.inStock === false;
     const outOfStockLabel = t('outOfStock');
+    const hasSaleBadges =
+        price.percentOff !== null || price.quantityDiscount !== null || price.membersOnly;
 
     // The reference and the count, on one line under the picture — the same
     // bar the web storefront puts there. Each side appears only when its
@@ -130,6 +144,33 @@ export function ProductCard({
                     </View>
                 )}
 
+                {/* Over the photo, on the leading side: the favourite control
+                    holds the trailing corner and the stock badge the bottom. */}
+                {hasSaleBadges ? (
+                    <View style={styles.saleSlot}>
+                        {price.percentOff !== null ? (
+                            <Badge tone="sale" solid>
+                                {price.upTo
+                                    ? tSale('upToPercentOff', {percent: price.percentOff})
+                                    : tSale('percentOff', {percent: price.percentOff})}
+                            </Badge>
+                        ) : null}
+                        {price.quantityDiscount ? (
+                            <Badge tone="sale">
+                                {tSale('tierBadge', {
+                                    percent: price.quantityDiscount.percentOff,
+                                    count: price.quantityDiscount.minQuantity,
+                                })}
+                            </Badge>
+                        ) : null}
+                        {price.membersOnly ? (
+                            <Badge tone="brand" solid>
+                                {tSale('memberPrice')}
+                            </Badge>
+                        ) : null}
+                    </View>
+                ) : null}
+
                 {outOfStock ? (
                     <View style={styles.badgeSlot}>
                         <Badge tone="danger">{outOfStockLabel}</Badge>
@@ -166,14 +207,20 @@ export function ProductCard({
                     {product.productName}
                 </Text>
 
-                <View style={styles.priceRow}>
-                    {isRange && showPriceRange ? (
-                        <Text variant="micro" color="textMuted">
-                            from
+                <View style={[styles.priceRow, reserveSaleLine ? styles.priceRowReserved : null]}>
+                    {price.isRange && showPriceRange ? (
+                        <Text variant="micro" color="textMuted" style={styles.fromLabel}>
+                            {t('from')}
                         </Text>
                     ) : null}
+                    {/* Stacked: a card is too narrow for a sale price and the
+                        struck real price side by side. The percentage is on
+                        the photo, so the chip stays off. */}
                     <Price
-                        value={amount}
+                        value={price.value}
+                        compareAt={price.compareAt}
+                        showDiscount={false}
+                        layout="stacked"
                         currencyCode={product.currencyCode}
                         size="md"
                         tone={outOfStock ? 'textMuted' : 'brand'}
@@ -237,6 +284,16 @@ const styles = StyleSheet.create(theme => ({
         alignItems: 'center',
         justifyContent: 'center',
     },
+    saleSlot: {
+        position: 'absolute',
+        top: 0,
+        start: 0,
+        padding: theme.spacing.sm,
+        gap: theme.spacing.xs,
+        // Leaves the trailing corner to the favourite control however long a
+        // translated label runs.
+        maxWidth: '75%',
+    },
     badgeSlot: {
         position: 'absolute',
         bottom: 0,
@@ -290,8 +347,17 @@ const styles = StyleSheet.create(theme => ({
     },
     priceRow: {
         flexDirection: 'row',
-        alignItems: 'center',
+        // Top, not centre: a sale price stacks its struck original underneath,
+        // and "from" belongs to the first line, not between the two.
+        alignItems: 'flex-start',
         gap: theme.spacing.xs,
         flexWrap: 'wrap',
+    },
+    priceRowReserved: {
+        minHeight: theme.typography.bodyStrong.lineHeight + theme.typography.caption.lineHeight,
+    },
+    fromLabel: {
+        // Centres the small label on the price's line.
+        paddingTop: (theme.typography.bodyStrong.lineHeight - theme.typography.micro.lineHeight) / 2,
     },
 }));

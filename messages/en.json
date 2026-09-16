@@ -287,6 +287,25 @@
     },
     "specifications": "Specifications"
   },
+  "ProductDiscounts": {
+    "percentOff": "-{percent}%",
+    "upToPercentOff": "Up to -{percent}%",
+    "tierBadge": "-{percent}% from {count}",
+    "memberPrice": "Member price",
+    "tiersTitle": "Buy more, save more",
+    "fromQuantity": "From {count, plural, one {{count} unit} other {{count} units}}",
+    "unitsLeft": "Only {count} left at this price",
+    "maxPerOrder": "Sale price on up to {count, plural, one {{count} unit} other {{count} units}} per order",
+    "endsIn": "Ends in {time}",
+    "endsOn": "Ends {date}",
+    "countdownDays": "{days}d {hours}h",
+    "countdownHours": "{hours}h {minutes}m",
+    "countdownMinutes": "{minutes}m",
+    "lineSale": "{name} · -{percent}%",
+    "saleOnPart": "Sale price on {count} of {quantity}",
+    "couponReplacesSale": "Your coupon saves more than the sale prices, so they are not applied to this order. The sale would have saved {amount}.",
+    "couponNotCombined": "{count, plural, one {Coupon {codes} doesn’t} other {Coupons {codes} don’t}} combine with sale prices. The sale saves you more, so it stays applied."
+  },
   "Sort": {
     "nameAsc": "Name: A to Z",
     "nameDesc": "Name: Z to A",
@@ -332,7 +351,9 @@
     "viewCart": "View cart",
     "itemCount": "{count, plural, one {# item} other {# items}}",
     "decreaseQuantity": "Decrease quantity",
-    "increaseQuantity": "Increase quantity"
+    "increaseQuantity": "Increase quantity",
+    "includesTax": "Includes {amount} tax",
+    "adjustments": "Other adjustments"
   },
   "Checkout": {
     "pageTitle": "Checkout",

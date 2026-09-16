@@ -287,6 +287,25 @@
     },
     "specifications": "Caractéristiques"
   },
+  "ProductDiscounts": {
+    "percentOff": "-{percent} %",
+    "upToPercentOff": "Jusqu’à -{percent} %",
+    "tierBadge": "-{percent} % dès {count}",
+    "memberPrice": "Prix membre",
+    "tiersTitle": "Achetez plus, économisez plus",
+    "fromQuantity": "À partir de {count, plural, one {{count} unité} other {{count} unités}}",
+    "unitsLeft": "Plus que {count} à ce prix",
+    "maxPerOrder": "Prix promo limité à {count, plural, one {{count} unité} other {{count} unités}} par commande",
+    "endsIn": "Se termine dans {time}",
+    "endsOn": "Se termine le {date}",
+    "countdownDays": "{days} j {hours} h",
+    "countdownHours": "{hours} h {minutes} min",
+    "countdownMinutes": "{minutes} min",
+    "lineSale": "{name} · -{percent} %",
+    "saleOnPart": "Prix promo appliqué à {count} sur {quantity}",
+    "couponReplacesSale": "Votre code promo fait économiser plus que les prix soldés : ils ne s’appliquent donc pas à cette commande. Les soldes vous auraient fait économiser {amount}.",
+    "couponNotCombined": "{count, plural, one {Le code {codes} n’est pas cumulable} other {Les codes {codes} ne sont pas cumulables}} avec les prix soldés. Les soldes vous font économiser davantage : ils restent appliqués."
+  },
   "Sort": {
     "nameAsc": "Nom : A à Z",
     "nameDesc": "Nom : Z à A",
@@ -332,7 +351,9 @@
     "viewCart": "Voir le panier",
     "itemCount": "{count, plural, one {# article} other {# articles}}",
     "decreaseQuantity": "Diminuer la quantité",
-    "increaseQuantity": "Augmenter la quantité"
+    "increaseQuantity": "Augmenter la quantité",
+    "includesTax": "Dont {amount} de TVA",
+    "adjustments": "Autres ajustements"
   },
   "Checkout": {
     "pageTitle": "Paiement",

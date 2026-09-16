@@ -16,6 +16,8 @@ import {useCollection} from '@/features/collection/queries';
 import {useStockedCollections} from '@/features/collection/stocked-queries';
 import {readProductCards} from '@/lib/types';
 import {useCardsWithStock} from '@/features/product/card-stock';
+import {useCardsWithMemberPrices} from '@/features/product/member-discounts';
+import {hasStruckPrice} from '@/design/card-price';
 import type {SortKey} from '@/lib/search-input';
 import {Breadcrumbs} from '@/features/collection/components/Breadcrumbs';
 import {SortControl} from '@/features/collection/components/SortControl';
@@ -58,7 +60,11 @@ export default function CollectionScreen() {
         if (data?.collection) recordCollectionVisit(data.collection.slug);
     }, [data?.collection]);
 
-    const products = useCardsWithStock(data ? readProductCards(data.products) : []);
+    const withStock = useCardsWithStock(data ? readProductCards(data.products) : []);
+    // A signed-in shopper's member prices, over the prices open to everyone.
+    const products = useCardsWithMemberPrices(withStock);
+    // Every card keeps a struck-price line once any card has one.
+    const reserveSaleLine = useMemo(() => products.some(hasStruckPrice), [products]);
     const total = data?.totalItems ?? 0;
     const hasMore = products.length < total;
 
@@ -184,6 +190,7 @@ export default function CollectionScreen() {
                                 onPress={() => router.push(`/product/${item.slug}`)}
                                 action={<QuickAddButton product={item} />}
                                 favorite={<WishlistButton product={item} />}
+                                reserveSaleLine={reserveSaleLine}
                             />
                         </View>
                     )}

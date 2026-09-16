@@ -287,6 +287,25 @@
     },
     "specifications": "المواصفات"
   },
+  "ProductDiscounts": {
+    "percentOff": "خصم {percent}%",
+    "upToPercentOff": "خصم حتى {percent}%",
+    "tierBadge": "خصم {percent}% عند شراء {count}",
+    "memberPrice": "سعر الأعضاء",
+    "tiersTitle": "اشترِ أكثر ووفّر أكثر",
+    "fromQuantity": "عند شراء {count, plural, zero {{count} قطعة} one {قطعة واحدة} two {قطعتين} few {{count} قطع} many {{count} قطعة} other {{count} قطعة}} أو أكثر",
+    "unitsLeft": "{count, plural, zero {لم تبقَ أي قطعة} one {بقيت قطعة واحدة فقط} two {بقيت قطعتان فقط} few {بقيت {count} قطع فقط} many {بقيت {count} قطعة فقط} other {بقيت {count} قطعة فقط}} بهذا السعر",
+    "maxPerOrder": "سعر التخفيض على {count, plural, zero {{count} قطعة} one {قطعة واحدة} two {قطعتين} few {{count} قطع} many {{count} قطعة} other {{count} قطعة}} كحد أقصى لكل طلب",
+    "endsIn": "ينتهي خلال {time}",
+    "endsOn": "ينتهي في {date}",
+    "countdownDays": "{days} يوم و{hours} ساعة",
+    "countdownHours": "{hours} ساعة و{minutes} دقيقة",
+    "countdownMinutes": "{minutes} دقيقة",
+    "lineSale": "{name} · خصم {percent}%",
+    "saleOnPart": "سعر التخفيض على {count} من {quantity}",
+    "couponReplacesSale": "قسيمتك توفر أكثر من أسعار التخفيض، لذلك لا تُطبَّق أسعار التخفيض على هذا الطلب. كان التخفيض سيوفر لك {amount}.",
+    "couponNotCombined": "{count, plural, zero {القسائم {codes} لا تُجمع} one {القسيمة {codes} لا تُجمع} two {القسيمتان {codes} لا تُجمعان} few {القسائم {codes} لا تُجمع} many {القسائم {codes} لا تُجمع} other {القسائم {codes} لا تُجمع}} مع أسعار التخفيض. التخفيض يوفر لك أكثر، لذلك يبقى مطبقاً."
+  },
   "Sort": {
     "nameAsc": "الاسم: أ إلى ي",
     "nameDesc": "الاسم: ي إلى أ",
@@ -332,7 +351,9 @@
     "viewCart": "عرض السلة",
     "itemCount": "{count, plural, one {# عنصر} other {# عناصر}}",
     "decreaseQuantity": "إنقاص الكمية",
-    "increaseQuantity": "زيادة الكمية"
+    "increaseQuantity": "زيادة الكمية",
+    "includesTax": "يتضمن {amount} ضريبة",
+    "adjustments": "تعديلات أخرى"
   },
   "Checkout": {
     "pageTitle": "الدفع",

@@ -3,6 +3,7 @@ import {Alert, Pressable} from 'react-native';
 import * as Haptics from 'expo-haptics';
 import {StyleSheet} from 'react-native-unistyles';
 import {IconSymbol, type ProductCardData} from '@/components/ui';
+import {cardPriceDisplay} from '@/design/card-price';
 import {useWishlist} from '@/features/wishlist/store';
 import {useTranslations} from '@/i18n';
 
@@ -16,8 +17,8 @@ import {useTranslations} from '@/i18n';
  * It stores enough to render the saved row without refetching — name, price,
  * image — because that is what makes the wishlist screen work with no
  * connection. The price taken is the one the card *shows*: `value` for a
- * single price, `min` for a range, so a saved row never quotes a figure the
- * shopper never saw.
+ * single price, `min` for a range, the sale price when there is one, so a
+ * saved row never quotes a figure the shopper never saw.
  *
  * Filled heart means saved. The list is capped, and a tap that hits the cap
  * says so rather than doing nothing — a silently ignored tap on a heart reads
@@ -33,11 +34,10 @@ export function WishlistButton({product}: WishlistButtonProps) {
     const saved = wishlist.has(product.slug);
 
     const onPress = useCallback(() => {
-        const price = product.priceWithTax;
         const result = wishlist.toggle({
             slug: product.slug,
             name: product.productName,
-            priceWithTax: 'value' in price ? price.value : price.min,
+            priceWithTax: cardPriceDisplay(product).value,
             currencyCode: product.currencyCode,
             imageUrl: product.productAsset?.preview ?? null,
         });

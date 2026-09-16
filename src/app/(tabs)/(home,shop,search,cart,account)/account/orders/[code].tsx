@@ -8,6 +8,8 @@ import {BackHeader} from '@/features/account/components/chrome';
 import {OrderTimeline, OrderStateBadge} from '@/features/account/components/OrderTimeline';
 import {useT, useActiveLocale, translate} from '@/features/account/i18n';
 import {formatDate} from '@/lib/format';
+import {totalsBreakdown} from '@/lib/order-discounts';
+import {CartTotals} from '@/features/cart/components/CartTotals';
 
 /**
  * Order detail.
@@ -100,7 +102,14 @@ export default function OrderDetailScreen() {
                                     </Text>
                                 </View>
                                 <Price
-                                    value={line.linePriceWithTax}
+                                    value={line.discountedLinePriceWithTax}
+                                    compareAt={
+                                        line.linePriceWithTax > line.discountedLinePriceWithTax
+                                            ? line.linePriceWithTax
+                                            : null
+                                    }
+                                    showDiscount={false}
+                                    layout="stacked"
                                     currencyCode={data.currencyCode}
                                     tone="text"
                                 />
@@ -111,29 +120,13 @@ export default function OrderDetailScreen() {
 
                 <Card padding="lg" style={styles.block}>
                     <Text variant="bodyStrong">{t('orderSummary')}</Text>
-                    <SummaryRow
-                        label={t('subtotal')}
-                        value={data.subTotalWithTax}
-                        currency={data.currencyCode}
+                    {/* From Vendure's stored adjustments, which are what was
+                        charged; see lib/order-discounts. */}
+                    <CartTotals
+                        currencyCode={data.currencyCode}
+                        breakdown={totalsBreakdown(data)}
+                        shippingKnown
                     />
-                    <SummaryRow
-                        label={t('shipping')}
-                        value={data.shippingWithTax}
-                        currency={data.currencyCode}
-                    />
-                    {data.discounts.map(discount => (
-                        <SummaryRow
-                            key={discount.description}
-                            label={discount.description}
-                            value={discount.amountWithTax}
-                            currency={data.currencyCode}
-                        />
-                    ))}
-                    <Divider />
-                    <View style={styles.summaryRow}>
-                        <Text variant="bodyStrong">{t('total')}</Text>
-                        <Price value={data.totalWithTax} currencyCode={data.currencyCode} size="lg" />
-                    </View>
                 </Card>
 
                 {data.shippingAddress ? (
@@ -227,17 +220,6 @@ function Fulfillments({order}: {order: OrderDetail}) {
                 </View>
             ))}
         </Card>
-    );
-}
-
-function SummaryRow({label, value, currency}: {label: string; value: number; currency: string}) {
-    return (
-        <View style={styles.summaryRow}>
-            <Text variant="caption" color="textMuted">
-                {label}
-            </Text>
-            <Price value={value} currencyCode={currency} tone="text" size="sm" />
-        </View>
     );
 }
 

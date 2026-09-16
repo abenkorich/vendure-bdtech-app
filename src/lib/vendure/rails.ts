@@ -2,6 +2,7 @@ import {graphql} from '@/graphql';
 import type {FragmentOf} from '@/graphql';
 import {ProductCardFragment} from './fragments';
 import {toProductCardFragment} from './product-card-from-detail';
+import type {QuantityDiscountLike, VariantDiscountLike} from '@/lib/product-discounts';
 
 /**
  * Home-rail documents, written for *this* backend.
@@ -27,8 +28,10 @@ import {toProductCardFragment} from './product-card-from-detail';
  *   arbitrary cutoff date, and is already proven on device. Switching would be
  *   churn, not a fix.
  *
- * `graphqlUnsafe` mirrors the existing escape hatch: `dealProducts` is absent
- * from the `graphql-env.d.ts` snapshot, so gql.tada cannot type it. Results are
+ * `graphqlUnsafe` mirrors the existing escape hatch: `dealProducts` was absent
+ * from the `graphql-env.d.ts` snapshot when this was written. The snapshot
+ * regenerated on 2026-09-15 has it, but the shared `RAIL_PRODUCT_FIELDS`
+ * interpolation still keeps gql.tada from typing these documents. Results are
  * narrowed by the hand-written interfaces below, which is the one place in this
  * codebase where a declared shape is justified.
  */
@@ -50,6 +53,26 @@ const RAIL_PRODUCT_FIELDS = `
         currencyCode
         customFields {
             compareAtPrice
+        }
+        discount {
+            productDiscountId
+            name
+            priceWithTax
+            originalPriceWithTax
+            percentOff
+            endsAt
+            unitsRemaining
+            maxQuantityPerOrder
+            membersOnly
+        }
+        quantityDiscounts {
+            minQuantity
+            productDiscountId
+            name
+            priceWithTax
+            percentOff
+            endsAt
+            membersOnly
         }
     }
 `;
@@ -85,6 +108,9 @@ export interface RailProduct {
         stockLevel: string;
         currencyCode?: string | null;
         customFields?: {compareAtPrice?: number | null} | null;
+        /** Product-discounts plugin: the single-unit sale, priced for everyone. */
+        discount?: VariantDiscountLike | null;
+        quantityDiscounts?: QuantityDiscountLike[] | null;
     }>;
 }
 
@@ -137,6 +163,8 @@ export function railItemsToCards(
                         sku: variant.sku,
                         priceWithTax: variant.priceWithTax,
                         stockLevel: variant.stockLevel,
+                        discount: variant.discount,
+                        quantityDiscounts: variant.quantityDiscounts,
                     })),
                 },
                 item.variants[0]?.currencyCode ?? fallbackCurrencyCode,

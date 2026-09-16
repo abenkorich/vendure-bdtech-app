@@ -3,6 +3,7 @@ import {View, ScrollView, Alert} from 'react-native';
 import {StyleSheet} from 'react-native-unistyles';
 import * as Haptics from 'expo-haptics';
 import {useLocalSearchParams, router} from 'expo-router';
+import {useQueryClient} from '@tanstack/react-query';
 import {
     Screen,
     Text,
@@ -22,6 +23,10 @@ import {getDisplayOptionGroups} from '@/lib/vendure/product-options';
 import {ProductGallery} from '@/features/product/components/ProductGallery';
 import {SpecSheet, type SpecRow} from '@/features/product/components/SpecSheet';
 import {VariantSheet} from '@/features/product/components/VariantSheet';
+import {SaleDetails} from '@/features/product/components/SaleDetails';
+import {useMemberProductOverlays} from '@/features/product/member-discounts';
+import {withVariantOverlay} from '@/lib/product-discounts';
+import {queryKeys} from '@/lib/query-keys';
 import {Breadcrumbs} from '@/features/collection/components/Breadcrumbs';
 import {ProductRail} from '@/features/home/components/ProductRail';
 import {useWishlist, useCompare} from '@/features/wishlist/store';
@@ -88,7 +93,15 @@ export default function ProductScreen() {
         [product],
     );
 
-    const variants = product?.variants ?? [];
+    // A signed-in shopper's member prices replace the public sale on the
+    // variants they apply to; everyone else sees the product as fetched.
+    const productIds = useMemo(() => (product ? [product.id] : []), [product]);
+    const memberOverlays = useMemberProductOverlays(productIds);
+    const memberOverlay = product ? memberOverlays[product.id] : undefined;
+    const variants = useMemo(
+        () => withVariantOverlay(product?.variants ?? [], memberOverlay),
+        [product, memberOverlay],
+    );
 
     const resolvedSelection = selection ?? (product ? initialSelection(variants) : {});
 
@@ -108,6 +121,14 @@ export default function ProductScreen() {
     const relatedProducts = related.data?.products.filter(
         item => 'productId' in item,
     );
+
+    const queryClient = useQueryClient();
+    // A sale ending while the page is open leaves its price stale: fetch the
+    // product again, and drop member prices, which may have ended with it.
+    const onSaleEnded = useCallback(() => {
+        void refetch();
+        void queryClient.invalidateQueries({queryKey: queryKeys.memberDiscounts()});
+    }, [refetch, queryClient]);
 
     const onAdd = useCallback(() => {
         if (!variant) return;
@@ -138,7 +159,8 @@ export default function ProductScreen() {
                 ? {
                       slug: product.slug,
                       name: product.name,
-                      priceWithTax: variant.priceWithTax,
+                      // What the page shows: the sale price when there is one.
+                      priceWithTax: variant.discount?.priceWithTax ?? variant.priceWithTax,
                       currencyCode: CURRENCY,
                       imageUrl: product.assets?.[0]?.preview ?? null,
                   }
@@ -253,7 +275,9 @@ export default function ProductScreen() {
                         <View style={styles.priceRow}>
                             {variant ? (
                                 <Price
-                                    value={variant.priceWithTax}
+                                    value={variant.discount?.priceWithTax ?? variant.priceWithTax}
+                                    compareAt={variant.discount?.originalPriceWithTax ?? null}
+                                    percentOff={variant.discount?.percentOff ?? null}
                                     currencyCode={CURRENCY}
                                     size="lg"
                                     tone={outOfStock ? 'textMuted' : 'brand'}
@@ -274,6 +298,15 @@ export default function ProductScreen() {
                                 {outOfStock ? S.outOfStock : state === 'low-stock' ? S.lowStock : S.inStock}
                             </Badge>
                         </View>
+
+                        {variant ? (
+                            <SaleDetails
+                                variant={variant}
+                                quantity={quantity}
+                                currencyCode={CURRENCY}
+                                onEnded={onSaleEnded}
+                            />
+                        ) : null}
 
                         {/* Reference and quantity on one bar: the two facts
                             a buyer checks right before the button. */}

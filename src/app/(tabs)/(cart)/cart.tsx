@@ -15,6 +15,8 @@ import {
 import {CartLineRow} from '@/features/cart/components/CartLineRow';
 import {CartTotals} from '@/features/cart/components/CartTotals';
 import {CouponField} from '@/features/cart/components/CouponField';
+import {SaleCouponNotice} from '@/features/cart/components/SaleCouponNotice';
+import {lineSale, totalsBreakdown} from '@/lib/order-discounts';
 import {UndoBar} from '@/features/cart/components/UndoBar';
 import {ErrorBanner} from '@/features/cart/components/ErrorBanner';
 import {CART_STRINGS, itemCountLabel} from '@/features/cart/strings';
@@ -99,7 +101,12 @@ export default function CartScreen() {
         setRemoved(null);
     }, [removed, addToCart]);
 
-    const discounts = useMemo(() => order?.discounts ?? [], [order]);
+    // Rows that add up to the total. Not reconciled while an optimistic change
+    // has the discounts on their way back from the server.
+    const breakdown = useMemo(
+        () => (order ? totalsBreakdown(order, {pending: order.totalsPending}) : null),
+        [order],
+    );
 
     if (isPending) {
         return (
@@ -187,6 +194,8 @@ export default function CartScreen() {
                             <CartLineRow
                                 line={line}
                                 currencyCode={currencyCode}
+                                sale={lineSale(order, line.id)}
+                                pending={order.pendingLineIds?.includes(line.id) ?? false}
                                 onChangeQuantity={quantity => handleAdjust(line.id, quantity)}
                                 onRemove={() =>
                                     handleRemove(
@@ -206,26 +215,36 @@ export default function CartScreen() {
                 </View>
 
                 <Card variant="raised" padding="lg" style={styles.card}>
-                    <CouponField
-                        appliedCodes={order.couponCodes}
-                        onApply={code => applyCoupon.mutateAsync(code)}
-                        onRemove={code => removeCoupon.mutate(code)}
-                        applying={applyCoupon.isPending}
-                    />
+                    <View style={styles.couponBody}>
+                        <CouponField
+                            appliedCodes={order.couponCodes}
+                            onApply={code => applyCoupon.mutateAsync(code)}
+                            onRemove={code => removeCoupon.mutate(code)}
+                            applying={applyCoupon.isPending}
+                        />
+                        {/* Beside the coupon chips it explains: a code that
+                            stays on the order while giving nothing. */}
+                        <SaleCouponNotice
+                            productDiscounts={order.productDiscounts}
+                            currencyCode={currencyCode}
+                        />
+                    </View>
                 </Card>
 
                 <Card variant="raised" padding="lg" style={styles.card}>
                     <Text variant="heading">{CART_STRINGS.orderSummary}</Text>
                     <View style={styles.totals}>
-                        <CartTotals
-                            currencyCode={currencyCode}
-                            subTotal={order.subTotal}
-                            subTotalWithTax={order.subTotalWithTax}
-                            shippingWithTax={order.shippingWithTax}
-                            totalWithTax={order.totalWithTax}
-                            discounts={discounts}
-                            shippingKnown={false}
-                        />
+                        {breakdown ? (
+                            <CartTotals
+                                currencyCode={currencyCode}
+                                breakdown={breakdown}
+                                // A method chosen at checkout stays on the order
+                                // when the shopper comes back here, and its price
+                                // is already inside the total.
+                                shippingKnown={breakdown.hasShippingLines}
+                                pending={order.totalsPending ?? false}
+                            />
+                        ) : null}
                     </View>
                 </Card>
             </ScrollView>
@@ -280,6 +299,7 @@ const styles = StyleSheet.create(theme => ({
     banner: {paddingHorizontal: theme.spacing.lg, paddingBottom: theme.spacing.md},
     list: {paddingHorizontal: theme.spacing.lg},
     card: {marginHorizontal: theme.spacing.lg, marginTop: theme.spacing.lg},
+    couponBody: {gap: theme.spacing.md},
     totals: {marginTop: theme.spacing.md},
     centered: {flex: 1, justifyContent: 'center'},
     sticky: {backgroundColor: theme.colors.surface},

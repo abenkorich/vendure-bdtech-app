@@ -16,8 +16,14 @@ import {
     RemovePromotionCodeMutation,
 } from '@/lib/vendure/mutations';
 import {unwrapResult} from '@/lib/types';
-import type {ActiveOrder, CheckoutOrder} from '@/lib/types';
-import {addToCartOptimistic, adjustLineQuantity, removeLine, cartCount} from '@/lib/cart-math';
+import type {CheckoutOrder} from '@/lib/types';
+import {
+    addToCartOptimistic,
+    adjustLineQuantity,
+    removeLine,
+    cartCount,
+    type CartOrder,
+} from '@/lib/cart-math';
 
 /**
  * Cart hooks.
@@ -36,12 +42,12 @@ import {addToCartOptimistic, adjustLineQuantity, removeLine, cartCount} from '@/
 
 const AUTH = {useAuthToken: true} as const;
 
-async function fetchActiveOrder(signal?: AbortSignal): Promise<ActiveOrder | null> {
+async function fetchActiveOrder(signal?: AbortSignal): Promise<CartOrder | null> {
     const {data} = await query(GetActiveOrderQuery, {}, {...AUTH, signal});
     return data.activeOrder ?? null;
 }
 
-export function useActiveOrder(): UseQueryResult<ActiveOrder | null, Error> {
+export function useActiveOrder(): UseQueryResult<CartOrder | null, Error> {
     return useQuery({
         queryKey: queryKeys.activeOrder(),
         queryFn: ({signal}) => fetchActiveOrder(signal),
@@ -71,7 +77,7 @@ export function useCartCount(): number {
 }
 
 interface CartContext {
-    previous: ActiveOrder | null | undefined;
+    previous: CartOrder | null | undefined;
 }
 
 /**
@@ -83,11 +89,11 @@ interface CartContext {
  */
 async function beginOptimistic(
     client: QueryClient,
-    apply: (current: ActiveOrder | null) => ActiveOrder | null,
+    apply: (current: CartOrder | null) => CartOrder | null,
 ): Promise<CartContext> {
     await client.cancelQueries({queryKey: queryKeys.activeOrder()});
-    const previous = client.getQueryData<ActiveOrder | null>(queryKeys.activeOrder());
-    client.setQueryData<ActiveOrder | null>(queryKeys.activeOrder(), apply(previous ?? null));
+    const previous = client.getQueryData<CartOrder | null>(queryKeys.activeOrder());
+    client.setQueryData<CartOrder | null>(queryKeys.activeOrder(), apply(previous ?? null));
     return {previous};
 }
 

@@ -27,7 +27,10 @@ export interface VariantSheetProps {
     open: boolean;
     onClose: () => void;
     groups: readonly OptionGroupLike[];
-    variants: readonly VariantLike[];
+    /** With the sale price, when a variant has one (`ProductVariant.discount`). */
+    variants: readonly (VariantLike & {
+        discount?: {priceWithTax: number; originalPriceWithTax: number} | null;
+    })[];
     selection: Selection;
     onSelectionChange: (selection: Selection) => void;
     currencyCode: string;
@@ -143,7 +146,9 @@ export function VariantSheet({
                                 </View>
 
                                 <Price
-                                    value={variant.priceWithTax}
+                                    value={variant.discount?.priceWithTax ?? variant.priceWithTax}
+                                    compareAt={variant.discount?.originalPriceWithTax ?? null}
+                                    showDiscount={false}
                                     currencyCode={currencyCode}
                                     size="sm"
                                     tone={state === 'out-of-stock' ? 'textMuted' : 'text'}
