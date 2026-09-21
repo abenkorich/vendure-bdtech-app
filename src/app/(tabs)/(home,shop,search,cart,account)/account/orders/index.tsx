@@ -21,15 +21,15 @@ import {formatDate} from '@/lib/format';
  */
 type Filter = 'all' | 'open' | 'delivered';
 
-const OPEN_STATES = new Set([
-    'AddingItems',
-    'ArrangingPayment',
-    'PaymentAuthorized',
-    'PaymentSettled',
-    'PartiallyShipped',
-    'Shipped',
-    'PartiallyDelivered',
-]);
+/**
+ * "Open" is everything still in flight, expressed as the states that are *not*
+ * — a positive list silently drops an order the day the store adds a state to
+ * its process, and the customer stops seeing it under any chip.
+ */
+const CLOSED_STATES = new Set(['Delivered', 'Completed', 'Cancelled']);
+
+/** Delivered and filed both mean "it arrived", and belong under the same chip. */
+const DELIVERED_STATES = new Set(['Delivered', 'Completed']);
 
 export default function OrdersScreen() {
     const t = useT('Account');
@@ -40,8 +40,8 @@ export default function OrdersScreen() {
 
     const items = useMemo(() => {
         const all = orders.data?.orders ?? [];
-        if (filter === 'open') return all.filter(order => OPEN_STATES.has(order.state));
-        if (filter === 'delivered') return all.filter(order => order.state === 'Delivered');
+        if (filter === 'open') return all.filter(order => !CLOSED_STATES.has(order.state));
+        if (filter === 'delivered') return all.filter(order => DELIVERED_STATES.has(order.state));
         return all;
     }, [orders.data, filter]);
 

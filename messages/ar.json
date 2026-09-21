@@ -490,16 +490,22 @@
     "serverUnreachableTitle": "تعذر الوصول إلى الخادم"
   },
   "OrderStatus": {
+    "Draft": "مسودة",
     "AddingItems": "إضافة المنتجات",
-    "ArrangingPayment": "ترتيب الدفع",
-    "PaymentAuthorized": "تم تفويض الدفع",
-    "PaymentSettled": "تمت تسوية الدفع",
+    "Processing": "قيد المعالجة",
+    "Confirmed": "مؤكدة",
+    "PendingShipping": "قيد التحضير",
+    "PendingPayment": "بانتظار الدفع",
+    "PendingAdditionalPayment": "بانتظار دفعة إضافية",
+    "Paid": "مدفوعة",
+    "Modifying": "قيد التعديل",
     "PartiallyShipped": "شُحن جزئياً",
     "Shipped": "تم الشحن",
     "PartiallyDelivered": "تم التسليم جزئياً",
     "Delivered": "تم التسليم",
-    "Cancelled": "ملغى",
-    "Draft": "مسودة"
+    "Returned": "مُرجَعة",
+    "Completed": "مكتملة",
+    "Cancelled": "ملغى"
   },
   "Auth": {
     "pageTitle": "تسجيل الدخول",
@@ -700,9 +706,8 @@
     "trackingHistoryUnavailable": "سجل التتبع غير متاح مؤقتاً.",
     "timeline": {
       "AddingItems": "السلة",
-      "ArrangingPayment": "الدفع",
-      "PaymentAuthorized": "مصرّح",
-      "PaymentSettled": "مدفوع",
+      "Processing": "تم الطلب",
+      "PendingShipping": "قيد التحضير",
       "Shipped": "تم الشحن",
       "Delivered": "تم التسليم"
     },

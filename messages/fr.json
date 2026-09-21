@@ -490,16 +490,22 @@
     "serverUnreachableTitle": "Serveur injoignable"
   },
   "OrderStatus": {
+    "Draft": "Brouillon",
     "AddingItems": "Ajout d'articles",
-    "ArrangingPayment": "Paiement en cours",
-    "PaymentAuthorized": "Paiement autorisé",
-    "PaymentSettled": "Paiement confirmé",
+    "Processing": "En traitement",
+    "Confirmed": "Confirmée",
+    "PendingShipping": "En préparation",
+    "PendingPayment": "En attente de paiement",
+    "PendingAdditionalPayment": "Complément à payer",
+    "Paid": "Payée",
+    "Modifying": "En cours de modification",
     "PartiallyShipped": "Partiellement expédié",
     "Shipped": "Expédié",
     "PartiallyDelivered": "Partiellement livré",
     "Delivered": "Livré",
-    "Cancelled": "Annulé",
-    "Draft": "Brouillon"
+    "Returned": "Retournée",
+    "Completed": "Terminée",
+    "Cancelled": "Annulé"
   },
   "Auth": {
     "pageTitle": "Connexion",
@@ -700,9 +706,8 @@
     "trackingHistoryUnavailable": "L'historique de suivi est temporairement indisponible.",
     "timeline": {
       "AddingItems": "Panier",
-      "ArrangingPayment": "Paiement",
-      "PaymentAuthorized": "Autorisé",
-      "PaymentSettled": "Payé",
+      "Processing": "Passée",
+      "PendingShipping": "Préparation",
       "Shipped": "Expédié",
       "Delivered": "Livré"
     },

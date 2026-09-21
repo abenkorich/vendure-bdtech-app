@@ -492,13 +492,19 @@
   "OrderStatus": {
     "Draft": "Draft",
     "AddingItems": "Adding Items",
-    "ArrangingPayment": "Arranging Payment",
-    "PaymentAuthorized": "Payment Authorized",
-    "PaymentSettled": "Payment Settled",
+    "Processing": "Processing",
+    "Confirmed": "Confirmed",
+    "PendingShipping": "Preparing",
+    "PendingPayment": "Awaiting Payment",
+    "PendingAdditionalPayment": "Awaiting Extra Payment",
+    "Paid": "Paid",
+    "Modifying": "Being Updated",
     "PartiallyShipped": "Partially Shipped",
     "Shipped": "Shipped",
     "PartiallyDelivered": "Partially Delivered",
     "Delivered": "Delivered",
+    "Returned": "Returned",
+    "Completed": "Completed",
     "Cancelled": "Cancelled"
   },
   "Auth": {
@@ -700,9 +706,8 @@
     "trackingHistoryUnavailable": "Tracking history is temporarily unavailable.",
     "timeline": {
       "AddingItems": "Cart",
-      "ArrangingPayment": "Checkout",
-      "PaymentAuthorized": "Authorized",
-      "PaymentSettled": "Paid",
+      "Processing": "Placed",
+      "PendingShipping": "Preparing",
       "Shipped": "Shipped",
       "Delivered": "Delivered"
     },

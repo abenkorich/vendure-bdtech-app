@@ -42,10 +42,11 @@ import {formatDate} from '@/lib/format';
  * order exists; going "back" would land on a checkout for an order that is no
  * longer active. The two exits are "keep shopping" and "my orders".
  *
- * For a cash-on-delivery order the state after placing is `ArrangingPayment`,
- * which reads alarmingly like a failure. So the confirmation copy leads with
- * what actually happens next — the courier calls, and cash is due on delivery —
- * and the raw state is shown as a badge rather than as the headline.
+ * For a cash-on-delivery order the state after placing is `Processing` — the
+ * store has the order and has not accepted it yet — which says nothing a
+ * customer wants to know. So the confirmation copy leads with what actually
+ * happens next — the courier calls, and cash is due on delivery — and the
+ * state is shown as a badge rather than as the headline.
  */
 export default function OrderScreen() {
     const t = useTranslations('OrderConfirmation');

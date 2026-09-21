@@ -7,50 +7,57 @@ import {translate} from '../i18n';
 /**
  * Order status timeline.
  *
- * Vendure's state machine has more states than a customer cares about, so the
- * timeline shows the six milestones the `Account.timeline.*` catalog already
- * names and maps every real state onto one of them. Terminal states that are
- * not on the happy path (Cancelled) are not a step at all — drawing "Cancelled"
- * as progress toward delivery would be actively misleading — so they render as
- * a single status marker instead.
+ * This store's order process has more states than a customer cares about, so
+ * the timeline shows five milestones and maps every real state onto one of
+ * them. Money is a separate axis here — a COD order is shipped and delivered
+ * long before it is paid — so the milestones follow the goods, not the money.
+ *
+ * States off the happy path (Cancelled, Returned) are not a step at all —
+ * drawing them as progress toward delivery would be actively misleading — so
+ * they render as a single status marker instead, which is also what an
+ * unrecognised state does.
  */
 
 const STEPS = [
     'AddingItems',
-    'ArrangingPayment',
-    'PaymentAuthorized',
-    'PaymentSettled',
+    'Processing',
+    'PendingShipping',
     'Shipped',
     'Delivered',
 ] as const;
 
 type Step = (typeof STEPS)[number];
 
-/** Real Vendure states → the milestone they have reached. */
+/** Real order states → the milestone they have reached. */
 const STATE_TO_STEP: Record<string, Step> = {
     Draft: 'AddingItems',
     AddingItems: 'AddingItems',
-    ArrangingPayment: 'ArrangingPayment',
-    PaymentAuthorized: 'PaymentAuthorized',
-    PaymentSettled: 'PaymentSettled',
+    // Placed, waiting to be accepted by the store.
+    Processing: 'Processing',
+    // Accepted: being prepared, whatever the money is doing.
+    Confirmed: 'PendingShipping',
+    PendingShipping: 'PendingShipping',
+    PendingPayment: 'PendingShipping',
+    PendingAdditionalPayment: 'PendingShipping',
+    Paid: 'PendingShipping',
+    Modifying: 'PendingShipping',
     PartiallyShipped: 'Shipped',
     Shipped: 'Shipped',
     PartiallyDelivered: 'Shipped',
     Delivered: 'Delivered',
-    Modifying: 'ArrangingPayment',
-    ArrangingAdditionalPayment: 'ArrangingPayment',
+    Completed: 'Delivered',
 };
 
 export function orderStateTone(state: string): 'success' | 'brand' | 'danger' | 'neutral' {
     if (state === 'Cancelled') return 'danger';
-    if (state === 'Delivered') return 'success';
+    if (state === 'Delivered' || state === 'Completed') return 'success';
     if (state === 'Shipped' || state === 'PartiallyShipped') return 'brand';
     return 'neutral';
 }
 
 export function orderStateLabel(state: string): string {
-    // OrderStatus carries every state; fall back to the raw state rather than
-    // rendering the key path if the backend adds one.
+    // OrderStatus carries every state this process can produce; fall back to
+    // the raw state rather than rendering the key path if the backend adds one.
     const label = translate(`OrderStatus.${state}`);
     return label === `OrderStatus.${state}` ? state : label;
 }

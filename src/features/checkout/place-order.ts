@@ -16,18 +16,20 @@ import {unwrapResult, VendureResultError} from '@/lib/types';
  * trusting the screen's props. A stale cache here would place an order for the
  * wrong total.
  *
- * The sequence is Vendure's, and both halves must succeed:
+ * The sequence is the storefront's, and both halves must succeed:
  *
- *   1. `AddingItems -> ArrangingPayment`. This is where the backend re-checks
- *      stock and product availability, so it is where "that item sold out
- *      while you were typing your address" surfaces.
+ *   1. `AddingItems -> Processing`. This store's order process has no
+ *      payment-arranging step — a cart becomes an order and the money is
+ *      recorded afterwards — so this is the transition that places it, and
+ *      where the backend re-checks stock and product availability. It is where
+ *      "that item sold out while you were typing your address" surfaces.
  *   2. `addPaymentToOrder`. For a COD method the handler settles it without a
  *      gateway; nothing is charged to a card, the courier collects cash.
  *
  * `OrderStateTransitionError.transitionError` is preferred over `message`
  * because Vendure's `message` for a transition is the generic
- * "Cannot transition from AddingItems to ArrangingPayment", while
- * `transitionError` carries the reason a customer can act on.
+ * "Cannot transition from AddingItems to Processing", while `transitionError`
+ * carries the reason a customer can act on.
  *
  * NOTE FOR ANYONE TESTING THIS AGAINST api.dzduino.dz: that backend is
  * production with live payment configuration. Exercise the flow up to the
@@ -80,7 +82,7 @@ export function usePlaceOrder() {
 
             const transition = await mutate(
                 TransitionOrderToStateMutation,
-                {state: 'ArrangingPayment'},
+                {state: 'Processing'},
                 AUTH,
             );
             const transitioned = transition.data.transitionOrderToState;
