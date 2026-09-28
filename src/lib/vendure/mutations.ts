@@ -266,20 +266,14 @@ export const TransitionOrderToStateMutation = graphql(`
     }
 `);
 
-export const AddPaymentToOrderMutation = graphql(`
-    mutation AddPaymentToOrder($input: PaymentInput!) {
-        addPaymentToOrder(input: $input) {
+export const SetOrderPaymentMethodMutation = graphql(`
+    mutation SetOrderPaymentMethod($input: UpdateOrderInput!) {
+        setOrderCustomFields(input: $input) {
             __typename
             ... on Order {
                 id
                 code
                 state
-                payments {
-                    id
-                    method
-                    amount
-                    state
-                }
             }
             ... on ErrorResult {
                 errorCode

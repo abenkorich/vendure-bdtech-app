@@ -3,10 +3,9 @@ import {mutate, query} from '@/lib/vendure/api';
 import {queryKeys} from '@/lib/query-keys';
 import {
     TransitionOrderToStateMutation,
-    AddPaymentToOrderMutation,
+    SetOrderPaymentMethodMutation,
 } from '@/lib/vendure/mutations';
 import {GetActiveOrderForCheckoutQuery} from '@/lib/vendure/queries';
-import {unwrapResult, VendureResultError} from '@/lib/types';
 
 /**
  * Placing the order.
@@ -18,13 +17,15 @@ import {unwrapResult, VendureResultError} from '@/lib/types';
  *
  * The sequence is the storefront's, and both halves must succeed:
  *
- *   1. `AddingItems -> Processing`. This store's order process has no
- *      payment-arranging step — a cart becomes an order and the money is
- *      recorded afterwards — so this is the transition that places it, and
- *      where the backend re-checks stock and product availability. It is where
- *      "that item sold out while you were typing your address" surfaces.
- *   2. `addPaymentToOrder`. For a COD method the handler settles it without a
- *      gateway; nothing is charged to a card, the courier collects cash.
+ *   1. `setOrderCustomFields({paymentMethodCode})`. No payment is taken at
+ *      checkout: the chosen method is stored on the order and the store records
+ *      the money later (cash on delivery once shipped, transfers when they
+ *      arrive). Vendure's `ArrangingPayment` / `addPaymentToOrder` step does not
+ *      exist in this store's order process.
+ *   2. `AddingItems -> Processing`. This is the transition that places the
+ *      order, and where the backend re-checks stock, product availability and
+ *      that the stored payment method is set and eligible. It is where "that
+ *      item sold out while you were typing your address" surfaces.
  *
  * `OrderStateTransitionError.transitionError` is preferred over `message`
  * because Vendure's `message` for a transition is the generic
@@ -80,6 +81,19 @@ export function usePlaceOrder() {
                 throw new PlaceOrderError('NO_ACTIVE_ORDER', 'Your cart is empty.');
             }
 
+            const method = await mutate(
+                SetOrderPaymentMethodMutation,
+                {input: {customFields: {paymentMethodCode}}},
+                AUTH,
+            );
+            const withMethod = method.data.setOrderCustomFields;
+            if (withMethod.__typename !== 'Order') {
+                throw new PlaceOrderError(
+                    'PAYMENT_FAILED',
+                    withMethod.message || 'The payment method could not be saved.',
+                );
+            }
+
             const transition = await mutate(
                 TransitionOrderToStateMutation,
                 {state: 'Processing'},
@@ -99,25 +113,7 @@ export function usePlaceOrder() {
                 );
             }
 
-            const payment = await mutate(
-                AddPaymentToOrderMutation,
-                {input: {method: paymentMethodCode, metadata: {}}},
-                AUTH,
-            );
-
-            let paid;
-            try {
-                paid = unwrapResult(payment.data.addPaymentToOrder);
-            } catch (caught) {
-                throw new PlaceOrderError(
-                    'PAYMENT_FAILED',
-                    caught instanceof VendureResultError
-                        ? caught.message
-                        : 'The payment could not be recorded.',
-                );
-            }
-
-            return {code: paid.code, state: paid.state};
+            return {code: transitioned.code, state: transitioned.state};
         },
         onSuccess: placed => {
             // The active order is gone (it became a placed order), and the new

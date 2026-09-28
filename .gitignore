@@ -10,7 +10,7 @@ android/
 .env.local
 expo-env.d.ts
 tests/.bundles/
-android/
+/android/
 
 # Claude Code worktrees and local launch config
 .claude/
