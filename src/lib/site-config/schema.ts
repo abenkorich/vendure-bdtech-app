@@ -41,6 +41,9 @@ export const heroSlideSchema = z.object({
 export const heroLayoutKeys = ['fullWidth', 'contained'] as const;
 export type HeroLayout = (typeof heroLayoutKeys)[number];
 
+export const heroCaptionBackgroundKeys = ['none', 'light', 'dark'] as const;
+export type HeroCaptionBackground = (typeof heroCaptionBackgroundKeys)[number];
+
 /** `#RGB` or `#RRGGBB`; anything else is dropped and the default white kept. */
 const HEX_COLOR = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
 
@@ -56,6 +59,8 @@ export const heroSchema = z.object({
         .optional()
         .catch(undefined)
         .transform(value => (value && HEX_COLOR.test(value) ? value : undefined)),
+    /** Translucent panel behind the caption; replaces the scrim when set. */
+    captionBackground: z.enum(heroCaptionBackgroundKeys).default('none').catch('none'),
     slides: z.array(heroSlideSchema).default([]),
 });
 

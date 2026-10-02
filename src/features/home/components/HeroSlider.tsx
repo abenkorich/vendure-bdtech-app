@@ -21,6 +21,8 @@ import {spacing} from '@/design/tokens';
  * Layout and caption colour are app-only customizer settings: `fullWidth`
  * runs edge to edge, `contained` insets the slider with the same gutter and
  * radius as the promo banners below it, so the two read as one column.
+ * `captionBackground` puts the caption on a translucent panel instead of
+ * darkening the whole photo, which is what keeps it readable on busy shots.
  *
  * Autoplay pauses while the user is touching the carousel. Yanking a banner
  * out from under someone mid-swipe is the single most irritating thing a
@@ -40,6 +42,9 @@ const ASPECT = 16 / 9;
 /** Matches `PromoBanner`'s gutter, so a contained hero lines up with it. */
 const CONTAINED_GUTTER = spacing.lg;
 
+/** Default caption colour on the light panel, where the white would vanish. */
+const PANEL_LIGHT_TEXT = '#171717';
+
 export function HeroSlider({hero, assetBaseUrl, isLoading = false}: HeroSliderProps) {
     const {locale} = useLocale();
     const {width: windowWidth} = useWindowDimensions();
@@ -53,9 +58,12 @@ export function HeroSlider({hero, assetBaseUrl, isLoading = false}: HeroSliderPr
     // the slide width rather than the window's.
     const width = contained ? windowWidth - 2 * CONTAINED_GUTTER : windowWidth;
     const height = width / ASPECT;
-    // Merchant colour when set; otherwise the styles' white, which the scrim
-    // keeps readable in both themes.
-    const textColor = hero.textColor;
+    // A panel carries the contrast itself, so the scrim goes and the photo
+    // stays as bright as the merchant shot it.
+    const panel = hero.captionBackground === 'none' ? null : hero.captionBackground;
+    // Merchant colour when set; otherwise whatever reads on the backdrop:
+    // dark on a light panel, white on a dark panel or the scrim.
+    const textColor = hero.textColor ?? (panel === 'light' ? PANEL_LIGHT_TEXT : undefined);
     const tint = textColor ? {color: textColor} : null;
 
     /**
@@ -163,14 +171,24 @@ export function HeroSlider({hero, assetBaseUrl, isLoading = false}: HeroSliderPr
                                 {/* A scrim, sized by the merchant's overlayOpacity:
                                     banner photos vary wildly and white text on a
                                     pale product shot is unreadable without one. */}
+                                {panel ? null : (
+                                    <View
+                                        style={[
+                                            styles.scrim,
+                                            {backgroundColor: `rgba(0,0,0,${slide.overlayOpacity})`},
+                                        ]}
+                                    />
+                                )}
+
                                 <View
                                     style={[
-                                        styles.scrim,
-                                        {backgroundColor: `rgba(0,0,0,${slide.overlayOpacity})`},
+                                        styles.copy,
+                                        panel && styles.copyPanel,
+                                        panel === 'light' && styles.panelLight,
+                                        panel === 'dark' && styles.panelDark,
+                                        panel && hero.showDots && slides.length > 1 && styles.copyAboveDots,
                                     ]}
-                                />
-
-                                <View style={styles.copy}>
+                                >
                                     {copy.eyebrow ? (
                                         <Text variant="micro" style={[styles.eyebrow, tint]} uppercase>
                                             {copy.eyebrow}
@@ -198,20 +216,29 @@ export function HeroSlider({hero, assetBaseUrl, isLoading = false}: HeroSliderPr
 
                 {hero.showDots && slides.length > 1 ? (
                     <View style={styles.dots} pointerEvents="box-none">
-                        {slides.map((slide, dotIndex) => (
-                            <Pressable
-                                key={slide.id}
-                                accessibilityRole="button"
-                                accessibilityLabel={`${dotIndex + 1}`}
-                                onPress={() => goTo(dotIndex)}
-                                hitSlop={8}
-                                style={[
-                                    styles.dot,
-                                    dotIndex === index && styles.dotActive,
-                                    textColor ? {backgroundColor: textColor} : null,
-                                ]}
-                            />
-                        ))}
+                        <View
+                            style={[
+                                styles.dotsRow,
+                                panel && styles.dotsPanel,
+                                panel === 'light' && styles.panelLight,
+                                panel === 'dark' && styles.panelDark,
+                            ]}
+                        >
+                            {slides.map((slide, dotIndex) => (
+                                <Pressable
+                                    key={slide.id}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={`${dotIndex + 1}`}
+                                    onPress={() => goTo(dotIndex)}
+                                    hitSlop={8}
+                                    style={[
+                                        styles.dot,
+                                        dotIndex === index && styles.dotActive,
+                                        textColor ? {backgroundColor: textColor} : null,
+                                    ]}
+                                />
+                            ))}
+                        </View>
                     </View>
                 ) : null}
             </View>
@@ -248,6 +275,29 @@ const styles = StyleSheet.create(theme => ({
         padding: theme.spacing.lg,
         gap: theme.spacing.xs,
     },
+    // Inset card instead of a full-width strip: only the words need the
+    // contrast, and the rest of the photo stays visible.
+    copyPanel: {
+        start: theme.spacing.md,
+        end: theme.spacing.md,
+        bottom: theme.spacing.md,
+        padding: theme.spacing.md,
+        borderRadius: theme.radius.md,
+        borderWidth: StyleSheet.hairlineWidth,
+    },
+    // Clears the dots pill below it.
+    copyAboveDots: {
+        bottom: theme.spacing['2xl'],
+    },
+    // Fixed, not themed: the panel sits on a photo, not on the app surface.
+    panelLight: {
+        backgroundColor: 'rgba(255,255,255,0.82)',
+        borderColor: 'rgba(0,0,0,0.08)',
+    },
+    panelDark: {
+        backgroundColor: 'rgba(0,0,0,0.55)',
+        borderColor: 'rgba(255,255,255,0.12)',
+    },
     // Light by default: the scrim guarantees a dark backdrop in both themes,
     // so these do not follow the colour scheme. A merchant colour replaces
     // `color` only; the opacities keep the hierarchy either way.
@@ -259,9 +309,19 @@ const styles = StyleSheet.create(theme => ({
         bottom: theme.spacing.sm,
         start: 0,
         end: 0,
+        alignItems: 'center',
+    },
+    dotsRow: {
         flexDirection: 'row',
-        justifyContent: 'center',
+        alignItems: 'center',
         gap: theme.spacing.xs,
+    },
+    // Without the scrim the dots sit on the raw photo; a pill keeps them visible.
+    dotsPanel: {
+        paddingHorizontal: theme.spacing.sm,
+        paddingVertical: theme.spacing.xs,
+        borderRadius: theme.radius.full,
+        borderWidth: StyleSheet.hairlineWidth,
     },
     dot: {
         width: 6,

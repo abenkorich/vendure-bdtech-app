@@ -222,5 +222,17 @@ export async function run(): Promise<void> {
         1,
     );
 
+    eq('a payload without a caption background keeps the scrim', parseSiteConfig({}).hero.captionBackground, 'none');
+    eq(
+        'a light caption panel is honoured',
+        parseSiteConfig({hero: {captionBackground: 'light'}}).hero.captionBackground,
+        'light',
+    );
+    eq(
+        'an unknown caption background falls back rather than failing the hero',
+        parseSiteConfig({hero: {captionBackground: 'glass', slides: [{id: 'a'}]}}).hero.slides.length,
+        1,
+    );
+
     done();
 }
