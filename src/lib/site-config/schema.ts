@@ -38,10 +38,24 @@ export const heroSlideSchema = z.object({
     collectionSlug: z.string().optional(),
 });
 
+export const heroLayoutKeys = ['fullWidth', 'contained'] as const;
+export type HeroLayout = (typeof heroLayoutKeys)[number];
+
+/** `#RGB` or `#RRGGBB`; anything else is dropped and the default white kept. */
+const HEX_COLOR = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
+
 export const heroSchema = z.object({
     autoplay: z.boolean().default(true),
     intervalMs: z.number().int().positive().default(4000),
     showDots: z.boolean().default(true),
+    /** Edge to edge, or inset as a rounded card. Unknown values fall back. */
+    layout: z.enum(heroLayoutKeys).default('fullWidth').catch('fullWidth'),
+    /** Caption and dot colour over the slides; absent means white. */
+    textColor: z
+        .string()
+        .optional()
+        .catch(undefined)
+        .transform(value => (value && HEX_COLOR.test(value) ? value : undefined)),
     slides: z.array(heroSlideSchema).default([]),
 });
 
@@ -165,7 +179,7 @@ export type HomeConfig = z.infer<typeof homeSchema>;
 
 export const appSiteConfigSchema = z.object({
     home: homeSchema.prefault({}),
-    hero: heroSchema.default({autoplay: true, intervalMs: 4000, showDots: true, slides: []}),
+    hero: heroSchema.prefault({}),
     popularCategories: popularCategoriesSchema.default({collectionSlugs: [], showViewMore: true}),
     search: searchConfigSchema.default({popularTerms: [], categorySlugs: []}),
     header: headerConfigSchema.default({showSiteName: false}),

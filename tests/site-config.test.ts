@@ -197,5 +197,30 @@ export async function run(): Promise<void> {
     );
     eq('a slide with no link stays inert', resolveAppUrl({url: undefined}), null);
 
+    /* ------------------------------------------------------ hero display */
+
+    eq('a payload without layout keeps the full-width hero', parseSiteConfig({}).hero.layout, 'fullWidth');
+    eq(
+        'a contained layout is honoured',
+        parseSiteConfig({hero: {layout: 'contained'}}).hero.layout,
+        'contained',
+    );
+    eq(
+        'an unknown layout falls back rather than failing the hero',
+        parseSiteConfig({hero: {layout: 'banana', slides: [{id: 'a'}]}}).hero.slides.length,
+        1,
+    );
+    eq('a hex text colour is kept', parseSiteConfig({hero: {textColor: '#1a1a1a'}}).hero.textColor, '#1a1a1a');
+    eq(
+        'a CSS token the app cannot resolve is dropped',
+        parseSiteConfig({hero: {textColor: 'var(--primary)'}}).hero.textColor,
+        undefined,
+    );
+    eq(
+        'a non-string text colour does not discard the slides',
+        parseSiteConfig({hero: {textColor: 42, slides: [{id: 'a'}]}}).hero.slides.length,
+        1,
+    );
+
     done();
 }

@@ -9,6 +9,7 @@ import {enabledSlides, slideCopy, type HeroConfig} from '@/lib/site-config/schem
 import {siteImageSource} from '@/lib/site-config/bundled-assets';
 import {slideOffset, slideIndex} from '@/features/home/slide-paging';
 import {resolveAppUrl} from '@/lib/notification-routes';
+import {spacing} from '@/design/tokens';
 
 /**
  * Merchant-configured hero carousel.
@@ -16,6 +17,10 @@ import {resolveAppUrl} from '@/lib/notification-routes';
  * Slides, autoplay, interval and dots all come from the customizer, so this
  * shows whatever the merchant published for the web, with copy resolved for
  * the active locale.
+ *
+ * Layout and caption colour are app-only customizer settings: `fullWidth`
+ * runs edge to edge, `contained` insets the slider with the same gutter and
+ * radius as the promo banners below it, so the two read as one column.
  *
  * Autoplay pauses while the user is touching the carousel. Yanking a banner
  * out from under someone mid-swipe is the single most irritating thing a
@@ -32,15 +37,26 @@ export interface HeroSliderProps {
 /** 16:9 is what the customizer's banner uploads are cropped to. */
 const ASPECT = 16 / 9;
 
+/** Matches `PromoBanner`'s gutter, so a contained hero lines up with it. */
+const CONTAINED_GUTTER = spacing.lg;
+
 export function HeroSlider({hero, assetBaseUrl, isLoading = false}: HeroSliderProps) {
     const {locale} = useLocale();
-    const {width} = useWindowDimensions();
+    const {width: windowWidth} = useWindowDimensions();
     const scrollRef = useRef<ScrollView>(null);
     const [index, setIndex] = useState(0);
     const interacting = useRef(false);
 
     const slides = enabledSlides(hero);
+    const contained = hero.layout === 'contained';
+    // Paging is by the scroll view's own width, so every offset below uses
+    // the slide width rather than the window's.
+    const width = contained ? windowWidth - 2 * CONTAINED_GUTTER : windowWidth;
     const height = width / ASPECT;
+    // Merchant colour when set; otherwise the styles' white, which the scrim
+    // keeps readable in both themes.
+    const textColor = hero.textColor;
+    const tint = textColor ? {color: textColor} : null;
 
     /**
      * Slide index <-> scroll offset; mirrored under RTL. See `slide-paging`
@@ -80,115 +96,125 @@ export function HeroSlider({hero, assetBaseUrl, isLoading = false}: HeroSliderPr
     }, [hero.autoplay, hero.intervalMs, slides.length, offsetFor]);
 
     if (isLoading && slides.length === 0) {
-        return <Skeleton width="100%" height={height} radius="none" />;
+        return (
+            <View style={[styles.root, contained && styles.contained]}>
+                <Skeleton width="100%" height={height} radius={contained ? 'lg' : 'none'} />
+            </View>
+        );
     }
 
     if (slides.length === 0) return null;
 
     return (
-        <View style={styles.root}>
-            <ScrollView
-                ref={scrollRef}
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                onTouchStart={() => {
-                    interacting.current = true;
-                }}
-                onTouchEnd={() => {
-                    interacting.current = false;
-                }}
-                onMomentumScrollEnd={event => {
-                    setIndex(indexFrom(event.nativeEvent.contentOffset.x));
-                }}
-            >
-                {slides.map(slide => {
-                    const copy = slideCopy(slide, locale);
-                    // A slide's link is merchant input from another
-                    // application, and `router.push` to a path this app does
-                    // not serve is a silent no-op. The same validator the push
-                    // payloads use rejects external urls, schemes and unknown
-                    // routes, so a banner either navigates or is inert — never
-                    // a tap that appears to do nothing.
-                    const target = slide.collectionSlug
-                        ? resolveAppUrl({url: `/collection/${slide.collectionSlug}`})
-                        : resolveAppUrl({url: slide.href});
+        <View style={[styles.root, contained && styles.contained]}>
+            <View style={contained && styles.frame}>
+                <ScrollView
+                    ref={scrollRef}
+                    horizontal
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                    onTouchStart={() => {
+                        interacting.current = true;
+                    }}
+                    onTouchEnd={() => {
+                        interacting.current = false;
+                    }}
+                    onMomentumScrollEnd={event => {
+                        setIndex(indexFrom(event.nativeEvent.contentOffset.x));
+                    }}
+                >
+                    {slides.map(slide => {
+                        const copy = slideCopy(slide, locale);
+                        // A slide's link is merchant input from another
+                        // application, and `router.push` to a path this app does
+                        // not serve is a silent no-op. The same validator the push
+                        // payloads use rejects external urls, schemes and unknown
+                        // routes, so a banner either navigates or is inert — never
+                        // a tap that appears to do nothing.
+                        const target = slide.collectionSlug
+                            ? resolveAppUrl({url: `/collection/${slide.collectionSlug}`})
+                            : resolveAppUrl({url: slide.href});
 
-                    return (
-                        <Pressable
-                            key={slide.id}
-                            accessibilityRole={target ? 'button' : 'image'}
-                            accessibilityLabel={copy.title ?? undefined}
-                            disabled={!target}
-                            onPress={() => target && router.push(target as never)}
-                            style={{width, height}}
-                        >
-                            {/* The brand plate sits under every slide. When the
-                                image is missing or still loading — offline, or
-                                a config service the app cannot reach — the
-                                slide reads as a designed banner rather than a
-                                black rectangle with text on it. */}
-                            <View style={styles.plate} />
+                        return (
+                            <Pressable
+                                key={slide.id}
+                                accessibilityRole={target ? 'button' : 'image'}
+                                accessibilityLabel={copy.title ?? undefined}
+                                disabled={!target}
+                                onPress={() => target && router.push(target as never)}
+                                style={{width, height}}
+                            >
+                                {/* The brand plate sits under every slide. When the
+                                    image is missing or still loading — offline, or
+                                    a config service the app cannot reach — the
+                                    slide reads as a designed banner rather than a
+                                    black rectangle with text on it. */}
+                                <View style={styles.plate} />
 
-                            {slide.imageUrl ? (
-                                <Image
-                                    source={siteImageSource(slide.imageUrl, assetBaseUrl)}
-                                    style={styles.image}
-                                    contentFit="cover"
-                                    transition={200}
+                                {slide.imageUrl ? (
+                                    <Image
+                                        source={siteImageSource(slide.imageUrl, assetBaseUrl)}
+                                        style={styles.image}
+                                        contentFit="cover"
+                                        transition={200}
+                                    />
+                                ) : null}
+
+                                {/* A scrim, sized by the merchant's overlayOpacity:
+                                    banner photos vary wildly and white text on a
+                                    pale product shot is unreadable without one. */}
+                                <View
+                                    style={[
+                                        styles.scrim,
+                                        {backgroundColor: `rgba(0,0,0,${slide.overlayOpacity})`},
+                                    ]}
                                 />
-                            ) : null}
 
-                            {/* A scrim, sized by the merchant's overlayOpacity:
-                                banner photos vary wildly and white text on a
-                                pale product shot is unreadable without one. */}
-                            <View
+                                <View style={styles.copy}>
+                                    {copy.eyebrow ? (
+                                        <Text variant="micro" style={[styles.eyebrow, tint]} uppercase>
+                                            {copy.eyebrow}
+                                        </Text>
+                                    ) : null}
+                                    {copy.title ? (
+                                        <Text variant="title" style={[styles.title, tint]} numberOfLines={2}>
+                                            {copy.title}
+                                        </Text>
+                                    ) : null}
+                                    {copy.subtitle ? (
+                                        <Text
+                                            variant="caption"
+                                            style={[styles.subtitle, tint]}
+                                            numberOfLines={2}
+                                        >
+                                            {copy.subtitle}
+                                        </Text>
+                                    ) : null}
+                                </View>
+                            </Pressable>
+                        );
+                    })}
+                </ScrollView>
+
+                {hero.showDots && slides.length > 1 ? (
+                    <View style={styles.dots} pointerEvents="box-none">
+                        {slides.map((slide, dotIndex) => (
+                            <Pressable
+                                key={slide.id}
+                                accessibilityRole="button"
+                                accessibilityLabel={`${dotIndex + 1}`}
+                                onPress={() => goTo(dotIndex)}
+                                hitSlop={8}
                                 style={[
-                                    styles.scrim,
-                                    {backgroundColor: `rgba(0,0,0,${slide.overlayOpacity})`},
+                                    styles.dot,
+                                    dotIndex === index && styles.dotActive,
+                                    textColor ? {backgroundColor: textColor} : null,
                                 ]}
                             />
-
-                            <View style={styles.copy}>
-                                {copy.eyebrow ? (
-                                    <Text variant="micro" style={styles.eyebrow} uppercase>
-                                        {copy.eyebrow}
-                                    </Text>
-                                ) : null}
-                                {copy.title ? (
-                                    <Text variant="title" style={styles.title} numberOfLines={2}>
-                                        {copy.title}
-                                    </Text>
-                                ) : null}
-                                {copy.subtitle ? (
-                                    <Text
-                                        variant="caption"
-                                        style={styles.subtitle}
-                                        numberOfLines={2}
-                                    >
-                                        {copy.subtitle}
-                                    </Text>
-                                ) : null}
-                            </View>
-                        </Pressable>
-                    );
-                })}
-            </ScrollView>
-
-            {hero.showDots && slides.length > 1 ? (
-                <View style={styles.dots} pointerEvents="box-none">
-                    {slides.map((slide, dotIndex) => (
-                        <Pressable
-                            key={slide.id}
-                            accessibilityRole="button"
-                            accessibilityLabel={`${dotIndex + 1}`}
-                            onPress={() => goTo(dotIndex)}
-                            hitSlop={8}
-                            style={[styles.dot, dotIndex === index && styles.dotActive]}
-                        />
-                    ))}
-                </View>
-            ) : null}
+                        ))}
+                    </View>
+                ) : null}
+            </View>
         </View>
     );
 }
@@ -196,6 +222,13 @@ export function HeroSlider({hero, assetBaseUrl, isLoading = false}: HeroSliderPr
 const styles = StyleSheet.create(theme => ({
     root: {
         marginBottom: theme.spacing.lg,
+    },
+    contained: {
+        paddingHorizontal: CONTAINED_GUTTER,
+    },
+    frame: {
+        borderRadius: theme.radius.lg,
+        overflow: 'hidden',
     },
     image: {
         ...StyleSheet.absoluteFillObject,
@@ -215,11 +248,12 @@ const styles = StyleSheet.create(theme => ({
         padding: theme.spacing.lg,
         gap: theme.spacing.xs,
     },
-    // Always light: the scrim guarantees a dark backdrop in both themes, so
-    // these do not follow the colour scheme.
-    eyebrow: {color: 'rgba(255,255,255,0.85)'},
+    // Light by default: the scrim guarantees a dark backdrop in both themes,
+    // so these do not follow the colour scheme. A merchant colour replaces
+    // `color` only; the opacities keep the hierarchy either way.
+    eyebrow: {color: '#ffffff', opacity: 0.85},
     title: {color: '#ffffff'},
-    subtitle: {color: 'rgba(255,255,255,0.9)'},
+    subtitle: {color: '#ffffff', opacity: 0.9},
     dots: {
         position: 'absolute',
         bottom: theme.spacing.sm,
@@ -233,10 +267,11 @@ const styles = StyleSheet.create(theme => ({
         width: 6,
         height: 6,
         borderRadius: theme.radius.full,
-        backgroundColor: 'rgba(255,255,255,0.45)',
+        backgroundColor: '#ffffff',
+        opacity: 0.45,
     },
     dotActive: {
         width: 18,
-        backgroundColor: '#ffffff',
+        opacity: 1,
     },
 }));
