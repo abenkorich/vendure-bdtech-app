@@ -116,6 +116,21 @@ export interface GoogleSignInButtonProps {
     separatorBefore?: string;
     /** "or" rule below it — for screens where Google leads. */
     separatorAfter?: string;
+    /**
+     * Change this to clear a previous Google failure.
+     *
+     * The sign-in screen has two independent error regions in one column —
+     * this button's and the credentials form's — and Google's sits at the
+     * top because Google leads. A failed Google attempt therefore left
+     * "DEVELOPER_ERROR" visible while the customer typed their email, which
+     * reads as the answer to the email sign-in rather than to the tap before
+     * it. It cost me an hour of chasing a credentials bug that did not exist.
+     *
+     * Screens pass their own mutation's `submittedAt`, so turning to the
+     * form clears the button's stale message and the newest attempt owns the
+     * screen.
+     */
+    resetSignal?: unknown;
 }
 
 /**
@@ -137,9 +152,16 @@ export function GoogleSignInButton({
     onSignedIn,
     separatorBefore,
     separatorAfter,
+    resetSignal,
 }: GoogleSignInButtonProps) {
     const t = useTranslations('Auth');
     const google = useGoogleSignIn();
+
+    const {reset} = google;
+    useEffect(() => {
+        // A no-op while idle, so the mount-time call costs nothing.
+        reset();
+    }, [resetSignal, reset]);
 
     if (!google.available) return null;
 

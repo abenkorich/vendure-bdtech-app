@@ -445,7 +445,7 @@
     "selectPickupCenterHintDhd": "اختر مكتب DHD لاستلام طلبك.",
     "selectPickupCenterHintDhdCity": "اختر المدينة التي ستستلم منها طلبك — يحدد DHD المكتب الذي يخدمها.",
     "loadingPickupCenters": "جارٍ تحميل مراكز الاستلام…",
-    "noPickupCenters": "لا توجد مراكز استلام متاحة لهذه الولاية.",
+    "noPickupCenters": "لا توجد مراكز استلام متاحة حاليًا.",
     "noPickupCentersMatch": "لا توجد مراكز تطابق بحثك.",
     "searchPickupCenters": "ابحث عن المراكز…",
     "pickupCenterRequired": "يرجى اختيار مركز استلام للمتابعة.",

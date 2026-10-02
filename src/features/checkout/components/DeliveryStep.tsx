@@ -135,7 +135,11 @@ export function DeliveryStep({
         return (centers.data?.centers ?? []).map(center => ({
             value: String(center.centerId),
             label: center.name,
-            detail: [center.address, center.communeName].filter(Boolean).join(' · '),
+            // The backend lists every centre nationwide (address wilaya first),
+            // so the wilaya has to be visible or two "Centre" rows look identical.
+            detail: [center.communeName, center.wilayaName, center.address]
+                .filter(Boolean)
+                .join(' · '),
         }));
     }, [pickupCarrier, centers.data, desks.data]);
 

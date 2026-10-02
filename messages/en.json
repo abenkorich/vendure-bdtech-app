@@ -424,7 +424,7 @@
     "selectPickupCenterHintDhd": "Choose a DHD office to collect your order.",
     "selectPickupCenterHintDhdCity": "Choose the city where you'll collect your order — DHD assigns the office serving it.",
     "loadingPickupCenters": "Loading pickup centers…",
-    "noPickupCenters": "No pickup centers available for this province.",
+    "noPickupCenters": "No pickup centers are available right now.",
     "noPickupCentersMatch": "No centers match your search.",
     "searchPickupCenters": "Search centers…",
     "pickupCenterRequired": "Please select a pickup center to continue.",

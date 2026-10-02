@@ -445,7 +445,7 @@
     "selectPickupCenterHintDhd": "Choisissez un bureau DHD pour récupérer votre commande.",
     "selectPickupCenterHintDhdCity": "Choisissez la ville où vous récupérerez votre commande — DHD affecte le bureau qui la dessert.",
     "loadingPickupCenters": "Chargement des points de retrait…",
-    "noPickupCenters": "Aucun point de retrait disponible pour cette province.",
+    "noPickupCenters": "Aucun point de retrait disponible pour le moment.",
     "noPickupCentersMatch": "Aucun centre ne correspond à votre recherche.",
     "searchPickupCenters": "Rechercher des centres…",
     "pickupCenterRequired": "Veuillez sélectionner un point de retrait pour continuer.",

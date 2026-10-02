@@ -187,6 +187,7 @@ export default function RegisterScreen() {
 
                 <GoogleSignInButton
                     separatorBefore={tCommon('or')}
+                    resetSignal={register.submittedAt}
                     onSignedIn={() => {
                         if (router.canGoBack()) router.back();
                         else router.replace('/account');

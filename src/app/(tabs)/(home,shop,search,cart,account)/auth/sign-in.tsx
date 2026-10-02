@@ -61,6 +61,7 @@ export default function SignInScreen() {
             <FormBody>
                 <GoogleSignInButton
                     separatorAfter={tCommon('or')}
+                    resetSignal={signIn.submittedAt}
                     onSignedIn={() => {
                         if (router.canGoBack()) router.back();
                         else router.replace('/account');
