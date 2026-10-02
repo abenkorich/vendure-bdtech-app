@@ -13,9 +13,10 @@
     "lint:fix": "eslint . --fix",
     "test": "node tests/run.mjs",
     "doctor": "npx expo-doctor",
-    "build:android:gradle": "export JAVA_HOME=/opt/homebrew/opt/openjdk@17 ANDROID_HOME=$HOME/Library/Android/sdk && cd '/Volumes/Data/Workshop/Projects/vendure-ecommerce/vendure-bdtech-app/android' && npx expo prebuild --platform android --no-install && cd android && ./gradlew bundleRelease assembleRelease",
-    "build:verify:android": "",
-    "install:android": "$HOME/Library/Android/sdk/platform-tools/adb install -r /Volumes/Data/Workshop/Projects/vendure-ecommerce/vendure-bdtech-app/android/android/app/build/outputs/apk/release/app-release.apk"
+    "build:android": "export JAVA_HOME=/opt/homebrew/opt/openjdk@17 ANDROID_HOME=$HOME/Library/Android/sdk && npx expo prebuild --platform android --no-install && cd android && ./gradlew assembleRelease",
+    "build:ios": "export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 && npx expo prebuild --platform ios && xcodebuild -workspace ios/Dzduino.xcworkspace -scheme Dzduino -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath ios/build -quiet build",
+    "install:android": "$HOME/Library/Android/sdk/platform-tools/adb install -r android/app/build/outputs/apk/release/app-release.apk && $HOME/Library/Android/sdk/platform-tools/adb shell monkey -p dz.dzduino.app -c android.intent.category.LAUNCHER 1",
+    "install:ios": "(xcrun simctl list devices booted | grep -q Booted || xcrun simctl boot 'iPhone 17 Pro') && open -a Simulator && xcrun simctl install booted ios/build/Build/Products/Release-iphonesimulator/Dzduino.app && xcrun simctl launch booted dz.dzduino.app"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
