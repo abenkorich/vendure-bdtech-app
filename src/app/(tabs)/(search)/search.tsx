@@ -1,4 +1,4 @@
-import {useCallback, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useLocalSearchParams,router} from 'expo-router';
 import {Keyboard, KeyboardAvoidingView, Platform, View, type TextInput} from 'react-native';
 import {StyleSheet} from 'react-native-unistyles';
@@ -20,6 +20,7 @@ import {
     type FilterState,
 } from '@/features/search';
 import {usePriceBounds} from '@/features/search/queries';
+import {trackSearch} from '@/lib/insights/insights';
 
 /**
  * Search.
@@ -66,6 +67,21 @@ export default function SearchScreen() {
     );
 
     const activeCount = activeFilterCount(filters);
+
+    // The backend's search report: the term with the results it found, once
+    // they have settled. Debounced inside trackSearch, so prefixes typed on the
+    // way to a real query are not reported.
+    useEffect(() => {
+        if (!search.isActive || search.isInitialLoading || search.isRefreshing || search.isError) return;
+        trackSearch(debouncedTerm, search.totalItems);
+    }, [
+        debouncedTerm,
+        search.isActive,
+        search.isInitialLoading,
+        search.isRefreshing,
+        search.isError,
+        search.totalItems,
+    ]);
 
     const changeTerm = useCallback((next: string) => {
         setTerm(next);

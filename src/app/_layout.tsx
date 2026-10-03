@@ -6,6 +6,7 @@ import {StatusBar} from 'expo-status-bar';
 import {useUnistyles} from 'react-native-unistyles';
 import {DataProvider} from '@/lib/data-provider';
 import {useNotificationRouting} from '@/lib/push';
+import {useInsightsTracking} from '@/lib/insights/insights';
 import {CaptchaProvider} from '@/features/auth/captcha';
 
 /**
@@ -29,6 +30,8 @@ import {CaptchaProvider} from '@/features/auth/captcha';
 export default function RootLayout() {
     // Route notification taps, including a cold start from a terminated app.
     useNotificationRouting();
+    // Screen views and searches for the backend's Customer insights reports.
+    useInsightsTracking();
 
     return (
         <GestureHandlerRootView style={{flex: 1}}>

@@ -2,6 +2,7 @@ import type {TadaDocumentNode} from 'gql.tada';
 import {print} from 'graphql';
 import {env} from '@/lib/env';
 import {getAuthToken, setAuthToken} from '@/lib/auth/token-store';
+import {CLIENT_HEADERS} from '@/lib/client-info';
 
 /**
  * Vendure Shop API client.
@@ -16,6 +17,9 @@ import {getAuthToken, setAuthToken} from '@/lib/auth/token-store';
  *    expo-secure-store and attached manually.
  * 2. **No `next` cache options.** Caching is TanStack Query's job here, so the
  *    `tags` / `revalidate` surface is gone rather than stubbed.
+ *
+ * Every request also carries `x-client-platform` / `x-client-version`
+ * (`lib/client-info.ts`), which the web storefront never sends.
  */
 
 const AUTH_TOKEN_HEADER = 'vendure-auth-token';
@@ -81,6 +85,8 @@ async function request<TResult>(
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
         [CHANNEL_TOKEN_HEADER]: channelToken ?? env.vendureChannelToken,
+        // Platform and app version, so the backend's reports can tell the app from the website.
+        ...CLIENT_HEADERS,
     };
 
     let authToken = token;
